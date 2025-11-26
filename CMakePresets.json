@@ -1,0 +1,142 @@
+{
+    "version": 9,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 30,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Default Config",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build"
+        },
+        {
+            "name": "ninja-multi",
+            "inherits": "default",
+            "displayName": "Ninja Multi-Config",
+            "generator": "Ninja Multi-Config"
+        },
+        {
+            "name": "windows-only",
+            "inherits": "default",
+            "displayName": "Windows-only configuration",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "default",
+            "configurePreset": "default"
+        },
+        {
+            "name": "Debug",
+            "description": "Debug build with Ninja Multi-Config",
+            "displayName": "debug-build",
+            "configurePreset": "ninja-multi",
+            "configuration": "Debug"
+        },
+        {
+            "name": "Release",
+            "description": "Release build with Ninja Multi-Config",
+            "displayName": "release-build",
+            "configurePreset": "ninja-multi",
+            "configuration": "Release"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "default",
+            "configurePreset": "ninja-multi",
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": true
+            }
+        },
+        {
+            "name": "test-debug",
+            "inherits": "default",
+            "configuration": "Debug"
+        },
+        {
+            "name": "test-release",
+            "inherits": "default",
+            "configuration": "Release"
+        }
+    ],
+    "packagePresets": [
+        {
+            "name": "default",
+            "configurePreset": "ninja-multi",
+            "generators": [
+                "ZIP"
+            ]
+        },
+        {
+            "name": "package-debug",
+            "inherits" : "default",
+            "configurations": ["Debug"]
+        },
+        {
+            "name": "package-release",
+            "inherits" : "default",
+            "configurations": ["Release"]
+        }
+    ],
+    "workflowPresets": [
+        {
+            "name": "debug-workflow",
+            "description": "",
+            "displayName": "Debug-Workflow",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "ninja-multi"
+                },
+                {
+                    "type": "build",
+                    "name": "Debug"
+                },
+                {
+                    "type": "test",
+                    "name": "test-debug"
+                },
+                {
+                    "type": "package",
+                    "name": "package-debug"
+                }
+            ]
+        },
+        {
+            "name": "release-workflow",
+            "description": "",
+            "displayName": "Release-Workflow",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "ninja-multi"
+                },
+                {
+                    "type": "build",
+                    "name": "Release"
+                },
+                {
+                    "type": "test",
+                    "name": "test-release"                    
+                },
+                {
+                    "type": "package",
+                    "name": "package-release"
+                }
+            ]
+        }
+    ]
+}
