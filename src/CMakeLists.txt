@@ -11,6 +11,7 @@ install(TARGETS ufps DESTINATION bin COMPONENT application)
 install(FILES ${PROJECT_BINARY_DIR}/resources DESTINATION bin COMPONENT application)
 
 add_subdirectory(events)
+add_subdirectory(graphics)
 add_subdirectory(utils)
 
 configure_file(${PROJECT_SOURCE_DIR}/include/config.h.in ${PROJECT_SOURCE_DIR}/include/config.h)

@@ -13,6 +13,7 @@
 #endif
 
 #define FOR_OPENGL_FUNCTIONS(DO)                                                              \
+    DO(::PFNGLOBJECTLABELPROC, glObjectLabel)                                                 \
     DO(::PFNGLCREATESHADERPROC, glCreateShader)                                               \
     DO(::PFNGLDELETESHADERPROC, glDeleteShader)                                               \
     DO(::PFNGLSHADERSOURCEPROC, glShaderSource)                                               \
