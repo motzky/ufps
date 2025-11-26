@@ -27,10 +27,3 @@ target_link_libraries(unit_tests gmock_main ufpslib)
 gtest_discover_tests(unit_tests DISCOVERY_MODE PRE_TEST)
 
 add_dependencies(unit_tests ufpslib)
-
-# add_custom_command(
-#     TARGET unit_tests
-#     POST_BUILD
-#     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-#     COMMAND ${CMAKE_CTEST_COMMAND} -C $<CONFIGURATION> -R "^${UNIT_TEST}$" --output-on-failure -j
-# )
