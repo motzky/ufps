@@ -188,7 +188,7 @@ namespace
         ufps::ensure(::wglMakeCurrent(dc, 0) == TRUE, "failed to unbind context");
     }
 
-    auto init_opengl(HDC dc, std::uint8_t samples) -> void
+    auto init_opengl(HDC dc) -> void
     {
         int pixel_format_attribs[]{
             WGL_DRAW_TO_WINDOW_ARB,
@@ -208,9 +208,9 @@ namespace
             WGL_STENCIL_BITS_ARB,
             8,
             WGL_SAMPLE_BUFFERS_ARB,
-            GL_TRUE,
+            GL_FALSE,
             WGL_SAMPLES_ARB,
-            samples,
+            0,
             0};
 
         auto pixel_format = 0;
@@ -254,7 +254,7 @@ namespace
 
 namespace ufps
 {
-    Window::Window(std::uint32_t width, std::uint32_t height, std::uint32_t x, std::uint32_t y, std::uint8_t samples)
+    Window::Window(std::uint32_t width, std::uint32_t height, std::uint32_t x, std::uint32_t y)
         : _windowHandle({}), _width(width), _height(height),
           //
           _wc({}), _dc({})
@@ -308,7 +308,7 @@ namespace ufps
         ensure(::RegisterRawInputDevices(&rid, 1, sizeof(rid)) == TRUE, "failed to register input device");
 
         resolve_wgl_functions(_wc.hInstance);
-        init_opengl(_dc, samples);
+        init_opengl(_dc);
         resolve_global_gl_functions();
         setup_debug();
 

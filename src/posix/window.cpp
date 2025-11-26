@@ -207,7 +207,7 @@ namespace
 
 namespace ufps
 {
-    Window::Window(std::uint32_t width, std::uint32_t height, std::uint32_t x, std::uint32_t y, std::uint8_t samples)
+    Window::Window(std::uint32_t width, std::uint32_t height, std::uint32_t x, std::uint32_t y)
         : _windowHandle{}, _width(width), _height(height)
     {
         log::info("Running on *nix, creating window with GLFW");
@@ -220,11 +220,6 @@ namespace ufps
         if (x != 0 && y != 0)
         {
             ::glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        }
-
-        if (samples > 1)
-        {
-            ::glfwWindowHint(GLFW_SAMPLES, samples);
         }
 
         _windowHandle = {::glfwCreateWindow(width, height, "Game Window", nullptr, nullptr),
@@ -265,11 +260,6 @@ namespace ufps
         ::setup_debug();
 
         ::glEnable(GL_DEPTH_TEST);
-
-        if (samples > 1)
-        {
-            ::glEnable(GL_MULTISAMPLE);
-        }
 
         auto vendor_str = ::glGetString(GL_VENDOR);
         ufps::log::info("Current render device vendor: {}", reinterpret_cast<const char *>(vendor_str));

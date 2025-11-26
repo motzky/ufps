@@ -37,7 +37,7 @@ auto main(int argc, char **argv) -> int
 
         try
         {
-            auto window = ufps::Window{1920u, 1080u, 0u, 0u, 1u};
+            auto window = ufps::Window{1920u, 1080u, 0u, 0u};
             auto running = true;
 
             while (running)
