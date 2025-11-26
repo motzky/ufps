@@ -13,6 +13,7 @@
 #include "config.h"
 #include "log.h"
 #include "utils/exception.h"
+#include "window.h"
 
 auto main(int argc, char **argv) -> int
 {
@@ -36,9 +37,35 @@ auto main(int argc, char **argv) -> int
 
         try
         {
-            // auto g = ufps::Game{args};
-            // const auto root = !args.empty() ? args.front() : ".";
-            // g.run(root);
+            auto window = ufps::Window{1920u, 1080u, 0u, 0u, 1u};
+            auto running = true;
+
+            while (running)
+            {
+                ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                auto event = window.pump_event();
+                while (event && running)
+                {
+                    std::visit(
+                        [&](auto &&arg)
+                        {
+                            using T = std::decay_t<decltype(arg)>;
+
+                            if constexpr (std::same_as<T, ufps::StopEvent>)
+                            {
+                                running = false;
+                            }
+                            if constexpr (std::same_as<T, ufps::KeyEvent>)
+                            {
+                                running = false;
+                            }
+                        },
+                        *event);
+
+                    event = window.pump_event();
+                }
+                window.swap();
+            }
         }
         catch (const ufps::Exception &err)
         {
