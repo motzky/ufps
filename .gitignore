@@ -67,7 +67,12 @@ config.h
 
 build/
 
+# ignore the raw assets due to licensing reasons
 assets/*
-!assets/*.vert
-!assets/*.frag
-!assets/*.lua
+# but we want to "unignore" our own shader and script files
+# Note: have to "unignore" their containing dir first, else git will not descend into it
+!assets/shaders/
+!assets/shaders/*.vert
+!assets/shaders/*.frag
+# !assets/scripts/
+# !assets/scripts/*.lua
