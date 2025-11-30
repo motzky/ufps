@@ -78,6 +78,7 @@
     DO(::PFNGLNAMEDFRAMEBUFFERREADBUFFERPROC, glNamedFramebufferReadBuffer)                   \
     DO(::PFNGLNAMEDRENDERBUFFERSTORAGEMULTISAMPLEPROC, glNamedRenderbufferStorageMultisample) \
     DO(::PFNGLCHECKNAMEDFRAMEBUFFERSTATUSPROC, glCheckNamedFramebufferStatus)                 \
+    DO(::PFNGLVALIDATEPROGRAMPROC, glValidateProgram)                                         \
     DO(::PFNGLDRAWARRAYSEXTPROC, glDrawArraysExt)
 
 #define DO_INLINE(TYPE, NAME) inline TYPE NAME;
