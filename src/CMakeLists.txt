@@ -12,6 +12,7 @@ install(FILES ${PROJECT_BINARY_DIR}/resources DESTINATION bin COMPONENT applicat
 
 add_subdirectory(events)
 add_subdirectory(graphics)
+add_subdirectory(math)
 add_subdirectory(utils)
 
 configure_file(${PROJECT_SOURCE_DIR}/include/config.h.in ${PROJECT_SOURCE_DIR}/include/config.h)
