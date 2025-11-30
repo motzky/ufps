@@ -12,7 +12,7 @@ _deps
 CMakeUserPresets.json
 log
 
-config.h
+include/config.h
 
 .vs
 
