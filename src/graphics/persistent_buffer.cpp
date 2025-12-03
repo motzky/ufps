@@ -17,10 +17,12 @@ namespace ufps
           _size{size},
           _map{}
     {
+        const auto flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
         ::glCreateBuffers(1, &_buffer);
-        ::glNamedBufferStorage(_buffer, size, nullptr, GL_DYNAMIC_STORAGE_BIT);
+        ::glNamedBufferStorage(_buffer, size, nullptr, GL_DYNAMIC_STORAGE_BIT | flags);
 
-        ::glMapNamedBuffer(_buffer, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+        _map = ::glMapNamedBufferRange(_buffer, 0, _size, flags);
+        ::glObjectLabel(GL_BUFFER, _buffer, name.length(), name.data());
     }
     auto PersistentBuffer::write(DataBufferView data, std::size_t offset) const -> void
     {
