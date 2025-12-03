@@ -10,7 +10,7 @@
 
 namespace ufps
 {
-    Buffer::Buffer(std::uint32_t size)
+    Buffer::Buffer(std::size_t size)
         : _buffer{0u, [](auto vbo)
                   { ::glDeleteBuffers(1, &vbo); }},
           _size(size)

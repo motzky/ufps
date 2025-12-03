@@ -2,7 +2,6 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <span>
 
 #include "graphics/opengl.h"
 #include "utils/auto_release.h"
@@ -10,10 +9,10 @@
 
 namespace ufps
 {
-    class Buffer
+    class PersistentBuffer
     {
     public:
-        Buffer(std::size_t size);
+        PersistentBuffer(std::size_t size);
 
         auto write(DataBufferView data, std::size_t offset) const -> void;
 
@@ -22,5 +21,6 @@ namespace ufps
     private:
         AutoRelease<::GLuint> _buffer;
         std::size_t _size;
+        void *_map;
     };
 }
