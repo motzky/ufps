@@ -12,6 +12,8 @@
 
 #include "config.h"
 #include "graphics/buffer.h"
+#include "graphics/multi_buffer.h"
+#include "graphics/persistent_buffer.h"
 #include "graphics/program.h"
 #include "graphics/shader.h"
 #include "graphics/vertex_data.h"
@@ -125,10 +127,10 @@ auto main(int argc, char **argv) -> int
                 {{.5f, -.5f, 0.f}, ufps::Color::blue()}};
 
             const auto triangle_view = ufps::DataBufferView{reinterpret_cast<const std::byte *>(triangle), sizeof(triangle)};
-            const auto triangle_buffer = ufps::Buffer(sizeof(triangle));
+            auto triangle_buffer = ufps::MultiBuffer<ufps::Buffer>(sizeof(triangle), "triangle_buffer");
             triangle_buffer.write(triangle_view, 0zu);
 
-            const auto command_buffer = ufps::Buffer(sizeof(IndirectCommand));
+            const auto command_buffer = ufps::PersistentBuffer(sizeof(IndirectCommand), "command_buffer");
             const auto command = IndirectCommand{
                 .count = 3,
                 .instanceCount = 1,
@@ -143,7 +145,7 @@ auto main(int argc, char **argv) -> int
             ::glGenVertexArrays(1u, &dummy_vao);
 
             ::glBindVertexArray(dummy_vao);
-            ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, triangle_buffer.native_handle());
+            ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, triangle_buffer.buffer().native_handle());
             ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, command_buffer.native_handle());
 
             sample_program.use();
@@ -173,6 +175,9 @@ auto main(int argc, char **argv) -> int
                     event = window.pump_event();
                 }
 
+                ::glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 1, 0);
+                triangle_buffer.advance();
+
                 triangle[0].color.r += 0.01f;
                 if (triangle[0].color.r >= 1.f)
                 {
@@ -181,7 +186,6 @@ auto main(int argc, char **argv) -> int
 
                 triangle_buffer.write(triangle_view, 0zu);
 
-                ::glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 1, 0);
                 window.swap();
             }
         }
