@@ -122,22 +122,35 @@ auto main(int argc, char **argv) -> int
             auto sample_program = ufps::Program{sample_vert, sample_frag, "sample_program"sv};
 
             ufps::VertexData triangle[] = {
-                {{0.f, 0.5f, 0.f}, ufps::Color::red()},
-                {{-.5f, -.5f, 0.f}, ufps::Color::green()},
-                {{.5f, -.5f, 0.f}, ufps::Color::blue()}};
+                {{0.f, 0.f, 0.f}, ufps::Color::red()},
+                {{-.5f, 0.f, 0.f}, ufps::Color::green()},
+                {{-.5f, .5f, 0.f}, ufps::Color::blue()},
+
+                {{0.f, 0.0f, 0.f}, ufps::Color::red()},
+                {{-.5f, .5f, 0.f}, ufps::Color::blue()},
+                {{0.f, .5f, 0.f}, ufps::Color::green()}};
 
             const auto triangle_view = ufps::DataBufferView{reinterpret_cast<const std::byte *>(triangle), sizeof(triangle)};
             auto triangle_buffer = ufps::MultiBuffer<ufps::Buffer>(sizeof(triangle), "triangle_buffer");
             triangle_buffer.write(triangle_view, 0zu);
 
-            const auto command_buffer = ufps::PersistentBuffer(sizeof(IndirectCommand), "command_buffer");
-            const auto command = IndirectCommand{
-                .count = 3,
-                .instanceCount = 1,
-                .first = 0,
-                .baseInstance = 0};
+            const IndirectCommand commands[] = {
+                {
+                    .count = 3,
+                    .instanceCount = 1,
+                    .first = 0,
+                    .baseInstance = 0,
+                },
+                {
+                    .count = 3,
+                    .instanceCount = 1,
+                    .first = 3,
+                    .baseInstance = 0,
+                },
+            };
 
-            const auto command_view = ufps::DataBufferView{reinterpret_cast<const std::byte *>(&command), sizeof(command)};
+            const auto command_buffer = ufps::PersistentBuffer(sizeof(commands), "command_buffer");
+            const auto command_view = ufps::DataBufferView{reinterpret_cast<const std::byte *>(commands), sizeof(commands)};
             command_buffer.write(command_view, 0zu);
 
             auto dummy_vao = ufps::AutoRelease<::GLuint>{0u, [](auto e)
@@ -175,14 +188,16 @@ auto main(int argc, char **argv) -> int
                     event = window.pump_event();
                 }
 
-                ::glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 1, 0);
+                ::glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 2, 0);
                 triangle_buffer.advance();
 
                 triangle[0].color.r += 0.01f;
                 if (triangle[0].color.r >= 1.f)
                 {
                     triangle[0].color.r = 0.f;
+                    triangle[3].color.r = 0.f;
                 }
+                triangle[3].color.r = triangle[0].color.r;
 
                 triangle_buffer.write(triangle_view, 0zu);
 
