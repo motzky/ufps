@@ -10,7 +10,7 @@
 
 namespace ufps
 {
-    Buffer::Buffer(std::size_t size)
+    Buffer::Buffer(std::size_t size, std::string_view name)
         : _buffer{0u, [](auto vbo)
                   { ::glDeleteBuffers(1, &vbo); }},
           _size(size)
@@ -18,6 +18,7 @@ namespace ufps
         ensure(size > 0, "Cannot create Buffor of size <= 0");
         ::glCreateBuffers(1, &_buffer);
         ::glNamedBufferStorage(_buffer, size, nullptr, GL_DYNAMIC_STORAGE_BIT);
+        ::glObjectLabel(GL_BUFFER, _buffer, name.length(), name.data());
     }
     auto Buffer::write(DataBufferView data, std::size_t offset) const -> void
     {

@@ -5,6 +5,7 @@ target_sources(ufpslib PUBLIC
     # frame_buffer.cpp
     # material.cpp
     # mesh.cpp
+    persistent_buffer.cpp
     program.cpp
     # renderer.cpp
     shader.cpp

@@ -11,7 +11,7 @@
 
 namespace ufps
 {
-    PersistentBuffer::PersistentBuffer(std::size_t size)
+    PersistentBuffer::PersistentBuffer(std::size_t size, std::string_view name)
         : _buffer{0u, [](auto buffer)
                   { ::glUnmapNamedBuffer(buffer); ::glDeleteBuffers(1, &buffer); }},
           _size{size},

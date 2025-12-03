@@ -80,6 +80,8 @@
     DO(::PFNGLCHECKNAMEDFRAMEBUFFERSTATUSPROC, glCheckNamedFramebufferStatus)                 \
     DO(::PFNGLVALIDATEPROGRAMPROC, glValidateProgram)                                         \
     DO(::PFNGLMULTIDRAWARRAYSINDIRECTPROC, glMultiDrawArraysIndirect)                         \
+    DO(::PFNGLMAPNAMEDBUFFERRANGEPROC, glMapNamedBufferRange)                                 \
+    DO(::PFNGLUNMAPNAMEDBUFFERPROC, glUnmapNamedBuffer)                                       \
     DO(::PFNGLDRAWARRAYSEXTPROC, glDrawArraysExt)
 
 #define DO_INLINE(TYPE, NAME) inline TYPE NAME;
