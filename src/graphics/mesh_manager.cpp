@@ -38,7 +38,7 @@ namespace ufps
             _mesh_data_gpu = Buffer{new_size, "mesh_data"};
         }
 
-        auto mesh_view = DataBufferView{reinterpret_cast<std::byte *>(_mesh_data_cpu.data()), buffer_size_bytes};
+        auto mesh_view = DataBufferView{reinterpret_cast<const std::byte *>(_mesh_data_cpu.data()), buffer_size_bytes};
         _mesh_data_gpu.write(mesh_view, 0zu);
 
         return {.offset = static_cast<std::uint32_t>(offset), .count = static_cast<std::uint32_t>(mesh.size())};
