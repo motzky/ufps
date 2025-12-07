@@ -31,4 +31,8 @@ namespace ufps
         return _buffer;
     }
 
+    auto Buffer::size() const -> std::size_t
+    {
+        return _size;
+    }
 }

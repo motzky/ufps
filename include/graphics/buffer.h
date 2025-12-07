@@ -20,6 +20,8 @@ namespace ufps
 
         auto native_handle() const -> ::GLuint;
 
+        auto size() const -> std::size_t;
+
     private:
         AutoRelease<::GLuint> _buffer;
         std::size_t _size;
