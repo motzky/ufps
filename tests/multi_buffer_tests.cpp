@@ -41,6 +41,8 @@ TEST(multi_buffer, simple)
 
     ASSERT_EQ(buffer.size, data_view.size_bytes() * 3zu);
     ASSERT_EQ(buffer.write_calls, expected);
+    // ASSERT_EQ(buffer.name(), "testbuffer"sv);
+    ASSERT_EQ(mb.original_size(), data_view.size_bytes());
 }
 
 TEST(multi_buffer, triple_write)

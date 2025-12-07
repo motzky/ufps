@@ -43,6 +43,11 @@ namespace ufps
             return _buffer;
         }
 
+        auto original_size() const -> std::size_t
+        {
+            return _original_size;
+        }
+
     private:
         Buffer _buffer;
         std::size_t _original_size;
