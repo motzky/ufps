@@ -1,5 +1,6 @@
 target_sources(ufpslib PUBLIC
     buffer.cpp
+    command_buffer.cpp
     # camera.cpp
     # cube_map.cpp
     # frame_buffer.cpp
