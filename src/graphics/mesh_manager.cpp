@@ -28,13 +28,16 @@ namespace ufps
 
         if (_mesh_data_gpu.size() <= buffer_size_bytes)
         {
-            auto new_size = _mesh_data_gpu.size() * 2;
+            auto new_size = _mesh_data_gpu.size() * 2zu;
             while (new_size < buffer_size_bytes)
             {
-                new_size *= 2;
+                new_size *= 2zu;
             }
 
-            log::info("growing mesh_data buffer {:x} -> {:x}", _mesh_data_gpu.size(), new_size);
+            log::info("growing mesh_data buffer {} -> {}", _mesh_data_gpu.size(), new_size);
+            // opengl barrier in case gpu using previous frame
+            ::glFinish();
+
             _mesh_data_gpu = Buffer{new_size, "mesh_data"};
         }
 
