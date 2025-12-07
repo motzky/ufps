@@ -4,7 +4,7 @@ target_sources(ufpslib PUBLIC
     # cube_map.cpp
     # frame_buffer.cpp
     # material.cpp
-    # mesh.cpp
+    mesh_manager.cpp    
     persistent_buffer.cpp
     program.cpp
     renderer.cpp
