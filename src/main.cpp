@@ -52,7 +52,6 @@ auto main(int argc, char **argv) -> int
 
             auto mesh_manager = ufps::MeshManager{};
             auto renderer = ufps::Renderer{};
-            // auto command_buffer = ufps::CommandBuffer{};
 
             auto scene = ufps::Scene{.entities = {}, .mesh_manager = mesh_manager};
 
@@ -67,15 +66,6 @@ auto main(int argc, char **argv) -> int
                      {{{0.f, 0.0f, 0.f}, ufps::Color::red()},
                       {{-.5f, .5f, 0.f}, ufps::Color::blue()},
                       {{0.f, .5f, 0.f}, ufps::Color::green()}})});
-
-            // auto dummy_vao = ufps::AutoRelease<::GLuint>{0u, [](auto e)
-            //                                              { ::glDeleteBuffers(1, &e); }};
-            // ::glGenVertexArrays(1u, &dummy_vao);
-
-            // ::glBindVertexArray(dummy_vao);
-            // ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mesh_manager.native_handle());
-
-            // sample_program.use();
 
             while (running)
             {
