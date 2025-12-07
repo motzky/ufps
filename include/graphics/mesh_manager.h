@@ -5,17 +5,12 @@
 #include <vector>
 
 #include "graphics/buffer.h"
+#include "graphics/mesh_view.h"
 #include "graphics/opengl.h"
 #include "graphics/vertex_data.h"
 
 namespace ufps
 {
-    struct MeshView
-    {
-        std::uint32_t offset;
-        std::uint32_t count;
-    };
-
     class MeshManager
     {
     public:
