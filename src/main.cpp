@@ -12,10 +12,13 @@
 
 #include "config.h"
 #include "graphics/buffer.h"
+#include "graphics/command_buffer.h"
+#include "graphics/entity.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/multi_buffer.h"
 #include "graphics/persistent_buffer.h"
 #include "graphics/program.h"
+#include "graphics/scene.h"
 #include "graphics/shader.h"
 #include "graphics/vertex_data.h"
 #include "log.h"
@@ -27,13 +30,6 @@ using namespace std::literals;
 
 namespace
 {
-    struct IndirectCommand
-    {
-        std::uint32_t count;
-        std::uint32_t instanceCount;
-        std::uint32_t first;
-        std::uint32_t baseInstance;
-    };
 
     constexpr auto sample_vertex_shader = R"(
 #version 460 core
@@ -123,35 +119,21 @@ auto main(int argc, char **argv) -> int
             auto sample_program = ufps::Program{sample_vert, sample_frag, "sample_program"sv};
 
             auto mesh_manager = ufps::MeshManager{};
+            auto command_buffer = ufps::CommandBuffer{};
 
-            const auto tri1 = mesh_manager.load(
-                {{{0.f, 0.f, 0.f}, ufps::Color::red()},
-                 {{-.5f, 0.f, 0.f}, ufps::Color::green()},
-                 {{-.5f, .5f, 0.f}, ufps::Color::blue()}});
+            auto scene = ufps::Scene{.entities = {}, .mesh_manager = mesh_manager};
 
-            const auto tri2 = mesh_manager.load(
-                {{{0.f, 0.0f, 0.f}, ufps::Color::red()},
-                 {{-.5f, .5f, 0.f}, ufps::Color::blue()},
-                 {{0.f, .5f, 0.f}, ufps::Color::green()}});
+            scene.entities.push_back(
+                {.mesh_view = mesh_manager.load(
+                     {{{0.f, 0.f, 0.f}, ufps::Color::red()},
+                      {{-.5f, 0.f, 0.f}, ufps::Color::green()},
+                      {{-.5f, .5f, 0.f}, ufps::Color::blue()}})});
 
-            const IndirectCommand commands[] = {
-                {
-                    .count = tri1.count,
-                    .instanceCount = 1,
-                    .first = tri1.offset,
-                    .baseInstance = 0,
-                },
-                {
-                    .count = tri2.count,
-                    .instanceCount = 1,
-                    .first = tri2.offset,
-                    .baseInstance = 0,
-                },
-            };
-
-            const auto command_buffer = ufps::PersistentBuffer(sizeof(commands), "command_buffer");
-            const auto command_view = ufps::DataBufferView{reinterpret_cast<const std::byte *>(commands), sizeof(commands)};
-            command_buffer.write(command_view, 0zu);
+            scene.entities.push_back(
+                {.mesh_view = mesh_manager.load(
+                     {{{0.f, 0.0f, 0.f}, ufps::Color::red()},
+                      {{-.5f, .5f, 0.f}, ufps::Color::blue()},
+                      {{0.f, .5f, 0.f}, ufps::Color::green()}})});
 
             auto dummy_vao = ufps::AutoRelease<::GLuint>{0u, [](auto e)
                                                          { ::glDeleteBuffers(1, &e); }};
@@ -159,7 +141,6 @@ auto main(int argc, char **argv) -> int
 
             ::glBindVertexArray(dummy_vao);
             ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, mesh_manager.native_handle());
-            ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, command_buffer.native_handle());
 
             sample_program.use();
 
@@ -188,7 +169,13 @@ auto main(int argc, char **argv) -> int
                     event = window.pump_event();
                 }
 
-                ::glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 2, 0);
+                auto command_count = command_buffer.build(scene);
+
+                ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, command_buffer.native_handle());
+
+                ::glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, command_count, 0);
+
+                command_buffer.advance();
 
                 window.swap();
             }
