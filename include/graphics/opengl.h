@@ -29,6 +29,7 @@
     DO(::PFNGLDELETEBUFFERSPROC, glDeleteBuffers)                                             \
     DO(::PFNGLBINDVERTEXARRAYPROC, glBindVertexArray)                                         \
     DO(::PFNGLBINDBUFFERPROC, glBindBuffer)                                                   \
+    DO(::PFNGLBINDBUFFERRANGEPROC, glBindBufferRange)                                         \
     DO(::PFNGLBUFFERDATAPROC, glBufferData)                                                   \
     DO(::PFNGLVERTEXATTRIBPOINTERPROC, glVertexAttribPointer)                                 \
     DO(::PFNGLENABLEVERTEXATTRIBARRAYPROC, glEnableVertexAttribArray)                         \
