@@ -12,6 +12,7 @@
 
 #include "config.h"
 #include "graphics/command_buffer.h"
+#include "graphics/mesh_data.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/multi_buffer.h"
 #include "graphics/persistent_buffer.h"
@@ -24,6 +25,59 @@
 #include "window.h"
 
 using namespace std::literals;
+
+namespace
+{
+    auto cube() -> ufps::MeshData
+    {
+        const ufps::Vector3 positions[] = {
+            {-1.f, -1.f, 1.f},
+            {1.f, -1.f, 1.f},
+            {1.f, 1.f, 1.f},
+            {-1.f, 1.f, 1.f},
+            {1.f, -1.f, 1.f},
+            {1.f, -1.f, -1.f},
+            {1.f, 1.f, -1.f},
+            {1.f, 1.f, 1.f},
+            {1.f, -1.f, -1.f},
+            {-1.f, -1.f, -1.f},
+            {-1.f, 1.f, -1.f},
+            {1.f, 1.f, -1.f},
+            {-1.f, -1.f, -1.f},
+            {-1.f, -1.f, 1.f},
+            {-1.f, 1.f, 1.f},
+            {-1.f, 1.f, -1.f},
+            {-1.f, 1.f, 1.f},
+            {1.f, 1.f, 1.f},
+            {1.f, 1.f, -1.f},
+            {-1.f, 1.f, -1.f},
+            {-1.f, -1.f, -1.f},
+            {1.f, -1.f, -1.f},
+            {1.f, -1.f, 1.f},
+            {-1.f, -1.f, 1.f}};
+
+        auto indices = std::vector<std::uint32_t>{
+            // Each face: 2 triangles (6 indices)
+            // Front face
+            0, 1, 2, 2, 3, 0,
+            // Right face
+            4, 5, 6, 6, 7, 4,
+            // Back face
+            8, 9, 10, 10, 11, 8,
+            // Left face
+            12, 13, 14, 14, 15, 12,
+            // Top face
+            16, 17, 18, 18, 19, 16,
+            // Bottom face
+            20, 21, 22, 22, 23, 20};
+
+        return {.vertices = positions |
+                            std::views::transform([](const auto &e)
+                                                  { return ufps::VertexData{.position = e, .color = ufps::Color::green()}; }) |
+                            std::ranges::to<std::vector>(),
+                .indices = std::move(indices)};
+    }
+}
 
 auto main(int argc, char **argv) -> int
 {
@@ -55,17 +109,7 @@ auto main(int argc, char **argv) -> int
 
             auto scene = ufps::Scene{.entities = {}, .mesh_manager = mesh_manager};
 
-            scene.entities.push_back(
-                {.mesh_view = mesh_manager.load(
-                     {{{0.f, 0.f, 0.f}, ufps::Color::red()},
-                      {{-.5f, 0.f, 0.f}, ufps::Color::green()},
-                      {{-.5f, .5f, 0.f}, ufps::Color::blue()}})});
-
-            scene.entities.push_back(
-                {.mesh_view = mesh_manager.load(
-                     {{{0.f, 0.0f, 0.f}, ufps::Color::red()},
-                      {{-.5f, .5f, 0.f}, ufps::Color::blue()},
-                      {{0.f, .5f, 0.f}, ufps::Color::green()}})});
+            scene.entities.push_back({.mesh_view = mesh_manager.load(cube())});
 
             while (running)
             {
