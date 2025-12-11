@@ -136,14 +136,24 @@ auto main(int argc, char **argv) -> int
 
                             if constexpr (std::same_as<T, ufps::StopEvent>)
                             {
+                                ufps::log::info("stopping");
                                 running = false;
                             }
                             if constexpr (std::same_as<T, ufps::KeyEvent>)
                             {
                                 if (arg.key() == ufps::Key::ESC && arg.state() == ufps::KeyState::UP)
                                 {
+                                    ufps::log::info("stopping");
                                     running = false;
                                 }
+                            }
+                            else if constexpr (std::same_as<T, ufps::MouseEvent>)
+                            {
+                                static constexpr auto sensitivity = float{0.002f};
+                                const auto delta_x = arg.delta_x() * sensitivity;
+                                const auto delta_y = arg.delta_y() * sensitivity;
+                                scene.camera.adjust_yaw(-delta_x);
+                                scene.camera.adjust_pitch(delta_y);
                             }
                         },
                         *event);
