@@ -73,6 +73,11 @@ namespace ufps
         _command_buffer.advance();
     }
 
+    auto CommandBuffer::offset_bytes() const -> std::size_t
+    {
+        return _command_buffer.frame_offset_bytes();
+    }
+
     auto CommandBuffer::to_string() const -> std::string
     {
         return std::format("command buffer {} size", _command_buffer.original_size());

@@ -20,7 +20,7 @@ namespace ufps
         auto native_handle() const -> ::GLuint;
 
         auto advance() -> void;
-
+        auto offset_bytes() const -> std::size_t;
         auto to_string() const -> std::string;
 
     private:
