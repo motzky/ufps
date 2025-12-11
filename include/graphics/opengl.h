@@ -80,6 +80,7 @@
     DO(::PFNGLCHECKNAMEDFRAMEBUFFERSTATUSPROC, glCheckNamedFramebufferStatus)                 \
     DO(::PFNGLVALIDATEPROGRAMPROC, glValidateProgram)                                         \
     DO(::PFNGLMULTIDRAWARRAYSINDIRECTPROC, glMultiDrawArraysIndirect)                         \
+    DO(::PFNGLMULTIDRAWELEMENTSINDIRECTPROC, glMultiDrawElementsIndirect)                     \
     DO(::PFNGLMAPNAMEDBUFFERRANGEPROC, glMapNamedBufferRange)                                 \
     DO(::PFNGLUNMAPNAMEDBUFFERPROC, glUnmapNamedBuffer)                                       \
     DO(::PFNGLDRAWARRAYSEXTPROC, glDrawArraysExt)
