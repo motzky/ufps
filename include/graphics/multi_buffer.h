@@ -48,6 +48,11 @@ namespace ufps
             return _original_size;
         }
 
+        auto frame_offset_bytes() const -> std::size_t
+        {
+            return _frame_offset;
+        }
+
     private:
         Buffer _buffer;
         std::size_t _original_size;
