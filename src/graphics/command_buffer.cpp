@@ -17,7 +17,8 @@ namespace
     {
         std::uint32_t count;
         std::uint32_t instanceCount;
-        std::uint32_t first;
+        std::uint32_t first_index;
+        std::int32_t base_vertex;
         std::uint32_t baseInstance;
     };
 
@@ -32,12 +33,18 @@ namespace ufps
 
     auto CommandBuffer::build(const Scene &scene) -> std::uint32_t
     {
+        auto base = 0;
         const auto command = scene.entities |
                              std::views::transform(
-                                 [](const auto &e)
+                                 [&base](const auto &e)
                                  {
+                                     base += e.mesh_view.vertex_offset;
                                      return IndirectCommand{
-                                         .count = e.mesh_view.count, .instanceCount = 1u, .first = e.mesh_view.offset, .baseInstance = 0u};
+                                         .count = e.mesh_view.index_count,
+                                         .instanceCount = 1u,
+                                         .first_index = e.mesh_view.index_offset,
+                                         .base_vertex = base,
+                                         .baseInstance = 0u};
                                  }) |
                              std::ranges::to<std::vector>();
 
