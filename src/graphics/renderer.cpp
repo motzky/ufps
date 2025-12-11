@@ -96,11 +96,15 @@ namespace ufps
     auto Renderer::render(const Scene &scene) -> void
     {
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, scene.mesh_manager.native_handle());
-        auto command_count = _command_buffer.build(scene);
+
+        const auto command_count = _command_buffer.build(scene);
 
         ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _command_buffer.native_handle());
 
-        ::glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, command_count, 0);
+        ::glMultiDrawArraysIndirect(GL_TRIANGLES,
+                                    reinterpret_cast<const void *>(_command_buffer.offset_bytes()),
+                                    command_count,
+                                    0);
 
         _command_buffer.advance();
     }
