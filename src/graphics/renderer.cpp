@@ -2,6 +2,7 @@
 
 #include <string_view>
 
+#include "core/camera.h"
 #include "graphics/command_buffer.h"
 #include "graphics/opengl.h"
 #include "graphics/program.h"
@@ -22,10 +23,16 @@ struct VertexData
     float position[3];
     float color[3];
 };
-    
+
 layout(binding = 0, std430) readonly buffer vertices
 {
     VertexData data[];
+};
+
+layout(binding = 1, std430) readonly buffer camera
+{
+    mat4 view;
+    mat4 projection;
 };
 
 vec3 get_position(int index)
@@ -50,7 +57,7 @@ layout (location = 0) out vec3 out_color;
 
 void main()
 {
-    gl_Position = vec4(get_position(gl_VertexID), 1.0);
+    gl_Position = projection * view * vec4(get_position(gl_VertexID), 1.0);
     out_color = get_color(gl_VertexID);
 }
 
@@ -84,6 +91,7 @@ namespace ufps
         : _dummy_vao{0u, [](auto e)
                      { ::glDeleteBuffers(1, &e); }},
           _command_buffer{},
+          _camera_buffer{sizeof(CameraData), "camera_buffer"},
           _program{create_program()}
     {
         ::glGenVertexArrays(1u, &_dummy_vao);
@@ -95,8 +103,11 @@ namespace ufps
 
     auto Renderer::render(const Scene &scene) -> void
     {
+        _camera_buffer.write(scene.camera.data_view(), 0zu);
+
         const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager.native_handle();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
+        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
         ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_handle);
 
         const auto command_count = _command_buffer.build(scene);
@@ -110,5 +121,6 @@ namespace ufps
                                       0);
 
         _command_buffer.advance();
+        _camera_buffer.advance();
     }
 }

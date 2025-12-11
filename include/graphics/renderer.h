@@ -1,7 +1,9 @@
 #pragma once
 
 #include "graphics/command_buffer.h"
+#include "graphics/multi_buffer.h"
 #include "graphics/opengl.h"
+#include "graphics/persistent_buffer.h"
 #include "graphics/program.h"
 #include "graphics/scene.h"
 #include "utils/auto_release.h"
@@ -18,6 +20,7 @@ namespace ufps
     private:
         AutoRelease<::GLuint> _dummy_vao;
         CommandBuffer _command_buffer;
+        MultiBuffer<PersistentBuffer> _camera_buffer;
         Program _program;
     };
 }
