@@ -38,6 +38,11 @@ namespace ufps
             _frame_offset = (_frame_offset + _original_size) % (_original_size * Frames);
         }
 
+        auto native_handle() const
+        {
+            return _buffer.native_handle();
+        }
+
         auto buffer() const -> const Buffer &
         {
             return _buffer;
