@@ -8,6 +8,7 @@
 #include "graphics/opengl.h"
 #include "graphics/persistent_buffer.h"
 #include "graphics/scene.h"
+#include "graphics/utils.h"
 #include "log.h"
 #include "utils/formatter.h"
 
@@ -50,20 +51,7 @@ namespace ufps
 
         const auto command_view = DataBufferView{reinterpret_cast<const std::byte *>(command.data()), command.size() * sizeof(IndirectCommand)};
 
-        if (command_view.size_bytes() > _command_buffer.original_size())
-        {
-            auto new_size = _command_buffer.original_size() * 2zu;
-            while (new_size < command_view.size_bytes())
-            {
-                new_size *= 2zu;
-            }
-
-            log::info("growing command buffer {} -> {}", _command_buffer.original_size(), new_size);
-
-            // opengl barrier in case gpu using previous frame
-            ::glFinish();
-            _command_buffer = MultiBuffer<PersistentBuffer>{new_size, "mesh_data"};
-        }
+        resize_gpu_buffer(command, _command_buffer, "command_buffer");
 
         _command_buffer.write(command_view, 0u);
 
@@ -87,6 +75,6 @@ namespace ufps
 
     auto CommandBuffer::to_string() const -> std::string
     {
-        return std::format("command buffer {} size", _command_buffer.original_size());
+        return std::format("command buffer {} size", _command_buffer.size());
     }
 }
