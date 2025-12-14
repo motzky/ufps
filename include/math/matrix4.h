@@ -6,6 +6,7 @@
 #include <ranges>
 #include <span>
 
+#include "math/quaternion.h"
 #include "math/vector3.h"
 #include "utils/ensure.h"
 
@@ -109,6 +110,42 @@ namespace ufps
                          0.f,
                          1.f})
         {
+        }
+
+        constexpr Matrix4(const Quaternion &rotation)
+            : Matrix4{}
+        {
+            // Note default initalized to identity(mat4)
+            auto x = rotation.x;
+            auto y = rotation.y;
+            auto z = rotation.z;
+            auto w = rotation.w;
+
+            auto tx = x + x;
+            auto ty = y + y;
+            auto tz = z + z;
+
+            auto xx = tx * x;
+            auto yy = ty * y;
+            auto zz = tz * z;
+            auto xy = tx * y;
+            auto xz = tx * z;
+            auto xw = tx * w;
+            auto yz = ty * z;
+            auto yw = ty * w;
+            auto zw = tz * w;
+
+            _elements[0] = (1.f - yy) - zz;
+            _elements[1] = xy + zw;
+            _elements[2] = xz - yw;
+
+            _elements[4] = xy - zw,
+            _elements[5] = (1.f - zz) - xx;
+            _elements[6] = yz + xw;
+
+            _elements[8] = xz + yw;
+            _elements[9] = yz - xw;
+            _elements[10] = (1.f - xx) - yy;
         }
 
         static constexpr auto look_at(const Vector3 &eye, const Vector3 &look_at, const Vector3 &up) -> Matrix4;
