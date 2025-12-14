@@ -5,6 +5,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 
 #ifndef WIN32
@@ -78,6 +79,36 @@ namespace
                             std::ranges::to<std::vector>(),
                 .indices = std::move(indices)};
     }
+
+    auto walk_direction(const std::unordered_map<ufps::Key, bool> &key_state, const ufps::Camera &camera) -> ufps::Vector3
+    {
+        auto direction = ufps::Vector3{};
+
+        auto is_key_pressed = [&key_state](ufps::Key k) -> bool
+        {
+            auto e = key_state.find(k);
+            return (e != key_state.end()) && e->second;
+        };
+
+        if (is_key_pressed(ufps::Key::W))
+        {
+            direction += camera.direction();
+        }
+        if (is_key_pressed(ufps::Key::S))
+        {
+            direction -= camera.direction();
+        }
+        if (is_key_pressed(ufps::Key::D))
+        {
+            direction += camera.right();
+        }
+        if (is_key_pressed(ufps::Key::A))
+        {
+            direction -= camera.right();
+        }
+
+        return direction;
+    }
 }
 
 auto main(int argc, char **argv) -> int
@@ -123,6 +154,13 @@ auto main(int argc, char **argv) -> int
 
             scene.entities.push_back({.mesh_view = mesh_manager.load(cube())});
 
+            auto key_state = std::unordered_map<ufps::Key, bool>{
+                {ufps::Key ::A, false},
+                {ufps::Key ::D, false},
+                {ufps::Key ::S, false},
+                {ufps::Key ::W, false},
+            };
+
             while (running)
             {
                 ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -146,6 +184,10 @@ auto main(int argc, char **argv) -> int
                                     ufps::log::info("stopping");
                                     running = false;
                                 }
+                                else
+                                {
+                                    key_state[arg.key()] = arg.state() == ufps::KeyState::DOWN;
+                                }
                             }
                             else if constexpr (std::same_as<T, ufps::MouseEvent>)
                             {
@@ -161,7 +203,7 @@ auto main(int argc, char **argv) -> int
                     event = window.pump_event();
                 }
 
-                scene.camera.translate({0.f, 0.f, 0.01f});
+                scene.camera.translate(walk_direction(key_state, scene.camera));
                 scene.camera.update();
 
                 renderer.render(scene);
