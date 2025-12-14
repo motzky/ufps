@@ -25,12 +25,17 @@ namespace
 struct VertexData
 {
     float position[3];
-    float color[3];
 };
 
 struct ObjectData
 {
     mat4 model;
+    uint material_index;
+};
+
+struct MaterialData
+{
+    float color[3];
 };
 
 layout(binding = 0, std430) readonly buffer vertices
@@ -49,7 +54,12 @@ layout(binding = 2, std430) readonly buffer objects
     ObjectData object_data[];
 };
 
-vec3 get_position(int index)
+layout(binding = 3, std430) readonly buffer materials
+{
+    MaterialData material_data[];
+};
+
+vec3 get_position(uint index)
 {
     return vec3(
         data[index].position[0],
@@ -58,37 +68,46 @@ vec3 get_position(int index)
     );
 }
 
-vec3 get_color(int index)
-{
-    return vec3(
-        data[index].color[0],
-        data[index].color[1],
-        data[index].color[2]
-    );
-}
-
-layout (location = 0) out vec3 out_color;
+layout (location = 0) out flat uint material_index;
 
 void main()
 {
     gl_Position = projection * view * object_data[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
-    out_color = get_color(gl_VertexID);
+    material_index = object_data[gl_DrawID].material_index;
 }
 
-    )"sv;
+)"sv;
 
     constexpr auto sample_fragment_shader = R"(
 #version 460 core
 
+struct MaterialData
+{
+    float color[3];
+};
 
-layout(location = 0) in vec3 in_color;
+layout(binding = 3, std430) readonly buffer materials
+{
+    MaterialData material_data[];
+};
+
+layout(location = 0) in flat uint material_index;
 layout(location = 0) out vec4 color;
+
+vec3 get_color(uint index)
+{
+    return vec3(
+        material_data[index].color[0],
+        material_data[index].color[1],
+        material_data[index].color[2]
+    );
+}
 
 void main()
 {
-    color = vec4(in_color, 1.0);
+    color = vec4(get_color(material_index), 1.0);
 }
-    )"sv;
+)"sv;
 
     auto create_program() -> ufps::Program
     {
@@ -131,14 +150,22 @@ namespace ufps
         ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _command_buffer.native_handle());
 
         const auto object_data = scene.entities |
-                                 std::views::transform([](const auto &e)
-                                                       { return ObjectData{.model = e.transform}; }) |
+                                 std::views::transform([&scene](const auto &e)
+                                                       { 
+                                                        const auto index = scene.material_manager.index(e.material_key);
+                                                         return ObjectData{
+                                                            .model = e.transform, 
+                                                            .material_id_index = index,
+                                                             .padding={},}; }) |
                                  std::ranges::to<std::vector>();
 
         resize_gpu_buffer(object_data, _object_data_buffer, "object_data_buffer");
 
         _object_data_buffer.write(std::as_bytes(std::span{object_data.data(), object_data.size()}), 0zu);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _object_data_buffer.native_handle());
+
+        scene.material_manager.sync();
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, scene.material_manager.native_handle());
 
         ::glMultiDrawElementsIndirect(GL_TRIANGLES,
                                       GL_UNSIGNED_INT,
@@ -149,5 +176,6 @@ namespace ufps
         _command_buffer.advance();
         _camera_buffer.advance();
         _object_data_buffer.advance();
+        scene.material_manager.advance();
     }
 }

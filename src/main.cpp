@@ -14,6 +14,7 @@
 
 #include "config.h"
 #include "graphics/command_buffer.h"
+#include "graphics/material_manager.h"
 #include "graphics/mesh_data.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/multi_buffer.h"
@@ -75,7 +76,7 @@ namespace
 
         return {.vertices = positions |
                             std::views::transform([](const auto &e)
-                                                  { return ufps::VertexData{.position = e, .color = ufps::Color::green()}; }) |
+                                                  { return ufps::VertexData{.position = e}; }) |
                             std::ranges::to<std::vector>(),
                 .indices = std::move(indices)};
     }
@@ -105,6 +106,14 @@ namespace
         if (is_key_pressed(ufps::Key::A))
         {
             direction -= camera.right();
+        }
+        if (is_key_pressed(ufps::Key::SPACE))
+        {
+            direction += camera.up();
+        }
+        if (is_key_pressed(ufps::Key::LCTRL))
+        {
+            direction -= camera.up();
         }
 
         return direction;
@@ -137,11 +146,18 @@ auto main(int argc, char **argv) -> int
             auto running = true;
 
             auto mesh_manager = ufps::MeshManager{};
+            auto material_manager = ufps::MaterialManager{};
             auto renderer = ufps::Renderer{};
+
+            [[maybe_unused]] const auto material_key_r = material_manager.add(ufps::Color{1.0f, 0.f, 0.f});
+            [[maybe_unused]] const auto material_key_g = material_manager.add(ufps::Color{0.0f, 1.f, 0.f});
+            [[maybe_unused]] const auto material_key_b = material_manager.add(ufps::Color{0.0f, 0.f, 1.f});
+            material_manager.remove(material_key_b);
 
             auto scene = ufps::Scene{
                 .entities = {},
                 .mesh_manager = mesh_manager,
+                .material_manager = material_manager,
                 .camera = {
                     {},
                     {0.f, 0.f, -1.f},
@@ -154,14 +170,21 @@ auto main(int argc, char **argv) -> int
 
             scene.entities.push_back(ufps::Entity{
                 .mesh_view = mesh_manager.load(cube()),
-                .transform = {{0.f, 0.f, -10.f}, {10.f}, {}},
+                .transform = {{10.f, 0.f, -10.f}, {5.f}, {}},
+                .material_key = material_key_r,
+            });
+
+            scene.entities.push_back(ufps::Entity{
+                .mesh_view = mesh_manager.load(cube()),
+                .transform = {{-10.f, 0.f, -10.f}, {5.f}, {}},
+                .material_key = material_key_g,
             });
 
             auto key_state = std::unordered_map<ufps::Key, bool>{
-                {ufps::Key ::A, false},
-                {ufps::Key ::D, false},
-                {ufps::Key ::S, false},
-                {ufps::Key ::W, false},
+                {ufps::Key::A, false},
+                {ufps::Key::D, false},
+                {ufps::Key::S, false},
+                {ufps::Key::W, false},
             };
 
             while (running)
