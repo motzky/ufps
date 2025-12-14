@@ -1,18 +1,12 @@
 #pragma once
 
-#include <concepts>
-#include <cstddef>
 #include <string_view>
 
 #include "utils/data_buffer.h"
+#include <graphics/utils.h>
 
 namespace ufps
 {
-
-    template <class T>
-    concept IsBuffer = requires(T t, DataBufferView data, std::size_t offset) {
-        { t.write(data, offset) };
-    };
 
     /**
      * A multi buffer wrapper of a Buffer type. Will allocate size * Frames amount of data an can advance through it
@@ -23,7 +17,7 @@ namespace ufps
     public:
         MultiBuffer(std::size_t size, std::string_view name)
             : _buffer{size * Frames, name},
-              _original_size{size},
+              _size{size},
               _frame_offset{}
         {
         }
@@ -35,7 +29,7 @@ namespace ufps
 
         auto advance() -> void
         {
-            _frame_offset = (_frame_offset + _original_size) % (_original_size * Frames);
+            _frame_offset = (_frame_offset + _size) % (_size * Frames);
         }
 
         auto native_handle() const
@@ -48,9 +42,9 @@ namespace ufps
             return _buffer;
         }
 
-        auto original_size() const -> std::size_t
+        auto size() const -> std::size_t
         {
-            return _original_size;
+            return _size;
         }
 
         auto frame_offset_bytes() const -> std::size_t
@@ -60,7 +54,7 @@ namespace ufps
 
     private:
         Buffer _buffer;
-        std::size_t _original_size;
+        std::size_t _size;
         std::size_t _frame_offset;
     };
 }

@@ -152,7 +152,10 @@ auto main(int argc, char **argv) -> int
                     0.01f,
                     1000.f}};
 
-            scene.entities.push_back({.mesh_view = mesh_manager.load(cube())});
+            scene.entities.push_back(ufps::Entity{
+                .mesh_view = mesh_manager.load(cube()),
+                .transform = {{0.f, 0.f, -10.f}, {10.f}, {}},
+            });
 
             auto key_state = std::unordered_map<ufps::Key, bool>{
                 {ufps::Key ::A, false},

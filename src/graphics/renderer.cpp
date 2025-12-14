@@ -1,13 +1,17 @@
 #include "graphics/renderer.h"
 
+#include <ranges>
+#include <span>
 #include <string_view>
 
 #include "core/camera.h"
 #include "graphics/command_buffer.h"
+#include "graphics/object_data.h"
 #include "graphics/opengl.h"
 #include "graphics/program.h"
 #include "graphics/scene.h"
 #include "graphics/shader.h"
+#include "graphics/utils.h"
 #include "utils/auto_release.h"
 
 using namespace std::literals;
@@ -24,6 +28,11 @@ struct VertexData
     float color[3];
 };
 
+struct ObjectData
+{
+    mat4 model;
+};
+
 layout(binding = 0, std430) readonly buffer vertices
 {
     VertexData data[];
@@ -33,6 +42,11 @@ layout(binding = 1, std430) readonly buffer camera
 {
     mat4 view;
     mat4 projection;
+};
+
+layout(binding = 2, std430) readonly buffer objects
+{
+    ObjectData object_data[];
 };
 
 vec3 get_position(int index)
@@ -57,7 +71,7 @@ layout (location = 0) out vec3 out_color;
 
 void main()
 {
-    gl_Position = projection * view * vec4(get_position(gl_VertexID), 1.0);
+    gl_Position = projection * view * object_data[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
     out_color = get_color(gl_VertexID);
 }
 
@@ -83,6 +97,7 @@ void main()
 
         return ufps::Program{sample_vert, sample_frag, "sample_program"sv};
     }
+
 }
 
 namespace ufps
@@ -92,6 +107,7 @@ namespace ufps
                      { ::glDeleteBuffers(1, &e); }},
           _command_buffer{},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},
+          _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},
           _program{create_program()}
     {
         ::glGenVertexArrays(1u, &_dummy_vao);
@@ -114,6 +130,16 @@ namespace ufps
 
         ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _command_buffer.native_handle());
 
+        const auto object_data = scene.entities |
+                                 std::views::transform([](const auto &e)
+                                                       { return ObjectData{.model = e.transform}; }) |
+                                 std::ranges::to<std::vector>();
+
+        resize_gpu_buffer(object_data, _object_data_buffer, "object_data_buffer");
+
+        _object_data_buffer.write(std::as_bytes(std::span{object_data.data(), object_data.size()}), 0zu);
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _object_data_buffer.native_handle());
+
         ::glMultiDrawElementsIndirect(GL_TRIANGLES,
                                       GL_UNSIGNED_INT,
                                       reinterpret_cast<const void *>(_command_buffer.offset_bytes()),
@@ -122,5 +148,6 @@ namespace ufps
 
         _command_buffer.advance();
         _camera_buffer.advance();
+        _object_data_buffer.advance();
     }
 }
