@@ -13,6 +13,7 @@ CMakeUserPresets.json
 log
 
 include/config.h
+imgui.ini
 
 .vs
 

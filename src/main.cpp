@@ -14,6 +14,7 @@
 
 #include "config.h"
 #include "graphics/command_buffer.h"
+#include "graphics/debug_ui.h"
 #include "graphics/material_manager.h"
 #include "graphics/mesh_data.h"
 #include "graphics/mesh_manager.h"
@@ -148,6 +149,7 @@ auto main(int argc, char **argv) -> int
             auto mesh_manager = ufps::MeshManager{};
             auto material_manager = ufps::MaterialManager{};
             auto renderer = ufps::Renderer{};
+            auto debug_ui = ufps::DebugUI{window};
 
             [[maybe_unused]] const auto material_key_r = material_manager.add(ufps::Color{1.0f, 0.f, 0.f});
             [[maybe_unused]] const auto material_key_g = material_manager.add(ufps::Color{0.0f, 1.f, 0.f});
@@ -223,6 +225,10 @@ auto main(int argc, char **argv) -> int
                                 scene.camera.adjust_yaw(-delta_x);
                                 scene.camera.adjust_pitch(delta_y);
                             }
+                            else if constexpr (std::same_as<T, ufps::MouseButtonEvent>)
+                            {
+                                debug_ui.add_mouse_event(arg);
+                            }
                         },
                         *event);
 
@@ -233,6 +239,7 @@ auto main(int argc, char **argv) -> int
                 scene.camera.update();
 
                 renderer.render(scene);
+                debug_ui.render(scene);
 
                 window.swap();
             }

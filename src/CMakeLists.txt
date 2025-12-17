@@ -1,3 +1,31 @@
+if(WIN32)
+add_library(imguilib STATIC
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
+
+    # ${imguizmo_SOURCE_DIR}/ImGuizmo.cpp
+)
+else()
+add_library(imguilib STATIC
+    ${imgui_SOURCE_DIR}/imgui.cpp
+    ${imgui_SOURCE_DIR}/imgui_demo.cpp
+    ${imgui_SOURCE_DIR}/imgui_draw.cpp
+    ${imgui_SOURCE_DIR}/imgui_tables.cpp
+    ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
+    ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+
+    # ${imguizmo_SOURCE_DIR}/ImGuizmo.cpp
+)
+endif()
+
+target_include_directories(imguilib PUBLIC ${imgui_SOURCE_DIR})
+
 add_library(
     ufpslib STATIC
 )
@@ -21,7 +49,7 @@ configure_file(${PROJECT_SOURCE_DIR}/include/config.h.in ${PROJECT_SOURCE_DIR}/i
 if(WIN32)
     target_sources(
         ufpslib
-        PRIVATE win32/window.cpp
+        PRIVATE win32/window.cpp win32/debug_ui.cpp
         # PRIVATE win32/window.cpp win32/debug_ui.cpp win32/file.cpp win32/sound_routine.cpp
     )
     # target_sources(
@@ -31,7 +59,7 @@ if(WIN32)
 elseif(UNIX)
     target_sources(
         ufpslib
-        PRIVATE posix/window.cpp
+        PRIVATE posix/window.cpp posix/debug_ui.cpp
         # PRIVATE posix/window.cpp posix/debug_ui.cpp posix/file.cpp posix/sound_routine.cpp
     )
     # target_sources(
@@ -70,11 +98,13 @@ endif()
 # endif()
 
 if(WIN32)
-# target_link_libraries(
-#     ufpslib
-#     PUBLIC imguilib Jolt opengl32 lua
-#     PRIVATE libzstd_static ${FREETYPE_LIBRARY_NAME}
-# )
+target_link_libraries(
+    ufpslib
+    PUBLIC imguilib     
+    # PUBLIC imguilib Jolt opengl32 lua
+    PRIVATE dwmapi
+    # PRIVATE libzstd_static ${FREETYPE_LIBRARY_NAME}
+)
 target_link_libraries(
     ufps
     PUBLIC ufpslib
@@ -83,6 +113,7 @@ target_link_libraries(
 elseif(UNIX)
 target_link_libraries(
     ufpslib
+    PUBLIC imguilib
     # PUBLIC imguilib Jolt lua
     PRIVATE GL glfw Backtrace::Backtrace stdc++exp
     # PRIVATE GL glfw Backtrace::Backtrace stdc++exp libzstd_static ${FREETYPE_LIBRARY_NAME}
