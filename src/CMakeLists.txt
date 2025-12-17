@@ -8,7 +8,7 @@ add_library(imguilib STATIC
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
 
-    # ${imguizmo_SOURCE_DIR}/ImGuizmo.cpp
+    ${imguizmo_SOURCE_DIR}/ImGuizmo.cpp
 )
 else()
 add_library(imguilib STATIC
@@ -20,11 +20,11 @@ add_library(imguilib STATIC
     ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 
-    # ${imguizmo_SOURCE_DIR}/ImGuizmo.cpp
+    ${imguizmo_SOURCE_DIR}/ImGuizmo.cpp
 )
 endif()
 
-target_include_directories(imguilib PUBLIC ${imgui_SOURCE_DIR})
+target_include_directories(imguilib PUBLIC ${imgui_SOURCE_DIR} ${imguizmo_SOURCE_DIR})
 
 add_library(
     ufpslib STATIC

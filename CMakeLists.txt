@@ -104,6 +104,14 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(imgui)
 
+FetchContent_Declare(
+    imguizmo
+    GIT_REPOSITORY https://github.com/CedricGuillemet/ImGuizmo.git
+    GIT_TAG df1c30142e7c3fb13c171aaeb328bb338fa7aaa6
+)
+
+FetchContent_MakeAvailable(imguizmo)
+
 add_subdirectory(src)
 # add_subdirectory(tools)
 
