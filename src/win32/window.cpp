@@ -313,7 +313,6 @@ namespace ufps
         setup_debug();
 
         ::glEnable(GL_DEPTH_TEST);
-        ::glEnable(GL_MULTISAMPLE);
     }
 
     auto Window::pump_event() const -> std::optional<Event>
