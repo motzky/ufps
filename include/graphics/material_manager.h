@@ -71,6 +71,14 @@ namespace ufps
             return key;
         }
 
+        auto operator[](MaterialKey key) -> MaterialData &
+        {
+            const auto element = _material_data_cpu.find(key);
+            expect(element != std::ranges::cend(_material_data_cpu), "key {} does not exit", key);
+
+            return element->second;
+        }
+
         auto remove(MaterialKey key) -> void
         {
             _material_data_cpu.erase(key);
