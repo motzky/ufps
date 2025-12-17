@@ -194,7 +194,6 @@ auto main(int argc, char **argv) -> int
 
             while (running)
             {
-                ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 auto event = window.pump_event();
                 while (event && running)
                 {
@@ -259,6 +258,7 @@ auto main(int argc, char **argv) -> int
                 scene.camera.translate(walk_direction(key_state, scene.camera));
                 scene.camera.update();
 
+                ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 renderer.render(scene);
                 if (show_debug_ui)
                 {
