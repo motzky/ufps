@@ -172,12 +172,14 @@ auto main(int argc, char **argv) -> int
                     1000.f}};
 
             scene.entities.push_back(ufps::Entity{
+                .name = "cube1",
                 .mesh_view = mesh_manager.load(cube()),
                 .transform = {{10.f, 0.f, -10.f}, {5.f}, {}},
                 .material_key = material_key_r,
             });
 
             scene.entities.push_back(ufps::Entity{
+                .name = "cube2",
                 .mesh_view = mesh_manager.load(cube()),
                 .transform = {{-10.f, 0.f, -10.f}, {5.f}, {}},
                 .material_key = material_key_g,
