@@ -1,5 +1,8 @@
 #include "graphics/debug_ui.h"
 
+#include <cstring>
+#include <string>
+
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <imgui.h>
@@ -36,11 +39,30 @@ namespace ufps
 
     auto DebugUI::render([[maybe_unused]] Scene &scene) const -> void
     {
+        auto &io = ::ImGui::GetIO();
+
         ::ImGui_ImplOpenGL3_NewFrame();
         ::ImGui_ImplGlfw_NewFrame();
         ::ImGui::NewFrame();
 
-        ::ImGui::ShowDemoWindow();
+        ::ImGui::LabelText("FPS", "%0.1f", io.Framerate);
+
+        for (const auto &entity : scene.entities)
+        {
+            auto &material = scene.material_manager[entity.material_key];
+
+            if (::ImGui::CollapsingHeader(entity.name.c_str()))
+            {
+                float color[3]{};
+                std::memcpy(color, &material.color, sizeof(color));
+                const auto label = std::format("{} color", entity.name);
+
+                if (::ImGui::ColorPicker3(label.c_str(), color))
+                {
+                    std::memcpy(&material.color, color, sizeof(color));
+                }
+            }
+        }
 
         ::ImGui::Render();
         ::ImGui_ImplOpenGL3_RenderDrawData(::ImGui::GetDrawData());
