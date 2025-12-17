@@ -150,6 +150,7 @@ auto main(int argc, char **argv) -> int
             auto material_manager = ufps::MaterialManager{};
             auto renderer = ufps::Renderer{};
             auto debug_ui = ufps::DebugUI{window};
+            auto show_debug_ui = false;
 
             [[maybe_unused]] const auto material_key_r = material_manager.add(ufps::Color{1.0f, 0.f, 0.f});
             [[maybe_unused]] const auto material_key_g = material_manager.add(ufps::Color{0.0f, 1.f, 0.f});
@@ -212,6 +213,18 @@ auto main(int argc, char **argv) -> int
                                     ufps::log::info("stopping");
                                     running = false;
                                 }
+                                else if (arg.key() == ufps::Key::F1 && arg.state() == ufps::KeyState::UP)
+                                {
+                                    if (!show_debug_ui)
+                                    {
+                                        ufps::log::info("showing Debug UI");
+                                    }
+                                    else
+                                    {
+                                        ufps::log::info("hiding Debug UI");
+                                    }
+                                    show_debug_ui = !show_debug_ui;
+                                }
                                 else
                                 {
                                     key_state[arg.key()] = arg.state() == ufps::KeyState::DOWN;
@@ -219,15 +232,21 @@ auto main(int argc, char **argv) -> int
                             }
                             else if constexpr (std::same_as<T, ufps::MouseEvent>)
                             {
-                                static constexpr auto sensitivity = float{0.002f};
-                                const auto delta_x = arg.delta_x() * sensitivity;
-                                const auto delta_y = arg.delta_y() * sensitivity;
-                                scene.camera.adjust_yaw(-delta_x);
-                                scene.camera.adjust_pitch(delta_y);
+                                if (!show_debug_ui)
+                                {
+                                    static constexpr auto sensitivity = float{0.002f};
+                                    const auto delta_x = arg.delta_x() * sensitivity;
+                                    const auto delta_y = arg.delta_y() * sensitivity;
+                                    scene.camera.adjust_yaw(-delta_x);
+                                    scene.camera.adjust_pitch(delta_y);
+                                }
                             }
                             else if constexpr (std::same_as<T, ufps::MouseButtonEvent>)
                             {
-                                debug_ui.add_mouse_event(arg);
+                                if (show_debug_ui)
+                                {
+                                    debug_ui.add_mouse_event(arg);
+                                }
                             }
                         },
                         *event);
@@ -239,7 +258,10 @@ auto main(int argc, char **argv) -> int
                 scene.camera.update();
 
                 renderer.render(scene);
-                debug_ui.render(scene);
+                if (show_debug_ui)
+                {
+                    debug_ui.render(scene);
+                }
 
                 window.swap();
             }

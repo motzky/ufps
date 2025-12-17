@@ -19,6 +19,8 @@ namespace ufps
 
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        ::ShowCursor();
+        io.MouseDrawCursor = io.WantCaptureMouse;
 
         ::ImGui::StyleColorsDark();
 
