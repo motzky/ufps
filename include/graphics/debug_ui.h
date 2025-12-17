@@ -18,5 +18,7 @@ namespace ufps
 
     private:
         const Window &_window;
+
+        auto new_frame() const -> void;
     };
 }
