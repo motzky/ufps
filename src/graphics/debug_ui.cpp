@@ -9,6 +9,7 @@
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
+#include "core/scene.h"
 #include "events/mouse_button_event.h"
 #include "graphics/scene.h"
 #include "log.h"

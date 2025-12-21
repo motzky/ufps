@@ -1,7 +1,7 @@
 #pragma once
 
+#include "core/scene.h"
 #include "events/mouse_button_event.h"
-#include "graphics/scene.h"
 #include "window.h"
 
 namespace ufps

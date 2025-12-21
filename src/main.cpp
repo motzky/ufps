@@ -13,6 +13,7 @@
 #endif
 
 #include "config.h"
+#include "core/scene.h"
 #include "graphics/command_buffer.h"
 #include "graphics/debug_ui.h"
 #include "graphics/material_manager.h"
@@ -21,7 +22,6 @@
 #include "graphics/multi_buffer.h"
 #include "graphics/persistent_buffer.h"
 #include "graphics/renderer.h"
-#include "graphics/scene.h"
 #include "graphics/vertex_data.h"
 #include "log.h"
 #include "utils/data_buffer.h"
