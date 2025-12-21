@@ -6,6 +6,7 @@
 #include <print>
 #include <source_location>
 #include <string>
+#include <vector>
 
 #include "config.h"
 #include "utils/exception.h"
@@ -39,6 +40,8 @@ namespace ufps::log
         ERR
 #endif
     };
+
+    inline std::vector<std::pair<Level, std::string>> history{};
 
     template <Level L, class... Args>
     struct Print
@@ -81,6 +84,8 @@ namespace ufps::log
             {
                 impl::log_file << log_line << std::endl;
             }
+
+            history.push_back(std::make_pair(L, std::move(log_line)));
         }
     };
 

@@ -61,7 +61,7 @@ namespace ufps
 
             // const auto header_flags = is_selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None;
             // if (::ImGui::CollapsingHeader(entity.name.c_str()), header_flags)
-            if (::ImGui::CollapsingHeader(entity.name.c_str()), header_flags)
+            if (::ImGui::CollapsingHeader(entity.name.c_str()))
             {
                 float color[3]{};
                 std::memcpy(color, &material.color, sizeof(color));
@@ -93,6 +93,59 @@ namespace ufps
                 entity.transform = Transform{transform};
             }
         }
+
+        static auto follow = true;
+        ::ImGui::Begin("Log");
+
+        auto following_again = false;
+        if (::ImGui::Checkbox("follow log", &follow))
+        {
+            log::debug("checkbox pressed");
+            following_again = true;
+        }
+
+        ::ImGui::BeginChild("log output");
+
+        for (const auto &pair : log::history)
+        {
+            switch (pair.first)
+            {
+                using enum log::Level;
+            case DEBUG:
+                ::ImGui::TextColored({0.f, .5f, 1.f, 1.f}, "%s\n", pair.second.c_str());
+                break;
+            case INFO:
+                ::ImGui::TextColored({1.f, 1.f, 1.f, 1.f}, "%s\n", pair.second.c_str());
+                break;
+            case WARN:
+                ::ImGui::TextColored({0.f, 1.f, 1.f, 1.f}, "%s\n", pair.second.c_str());
+                break;
+#ifndef WIN32
+            case ERROR:
+#else
+            case ERR:
+#endif
+                ::ImGui::TextColored({1.f, 0.f, 0.f, 1.f}, "%s\n", pair.second.c_str());
+                break;
+            default:
+                ::ImGui::TextColored({1.f, 1.f, 1.f, 1.f}, "%s\n", pair.second.c_str());
+                break;
+            }
+        }
+
+        if (!following_again && ::ImGui::GetScrollY() != ::ImGui::GetScrollMaxY())
+        {
+            follow = false;
+        }
+
+        if (follow)
+        {
+            ::ImGui::SetScrollHereY(1.f);
+        }
+
+        ::ImGui::EndChild();
+
+        ::ImGui::End();
 
         ::ImGui::Render();
         ::ImGui_ImplOpenGL3_RenderDrawData(::ImGui::GetDrawData());
