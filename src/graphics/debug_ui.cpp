@@ -11,14 +11,34 @@
 
 #include "core/scene.h"
 #include "events/mouse_button_event.h"
-#include "graphics/scene.h"
 #include "log.h"
 #include "math/matrix4.h"
+#include "math/ray.h"
 #include "window.h"
+
+namespace
+{
+    auto screen_ray(const ufps::MouseButtonEvent &evt, const ufps::Window &window, const ufps::Camera &camera) -> ufps::Ray
+    {
+        const auto x = 2.0f * evt.x() / window.width() - 1.f;
+        const auto y = 1.f - 2.f * evt.y() / window.height();
+        const auto ray_clip = ufps::Vector4{x, y, -1.f, 1.f};
+
+        const auto inv_proj = ufps::Matrix4::invert(camera.data().projection);
+        auto ray_eye = inv_proj * ray_clip;
+        ray_eye = ufps::Vector4{ray_eye.x, ray_eye.y, -1.f, 0.f};
+
+        const auto inv_view = ufps::Matrix4::invert(camera.data().view);
+        const auto dir_world_space = ufps::Vector3::normalize(ufps::Vector3{inv_view * ray_eye});
+        const auto origin_world_space = ufps::Vector3{inv_view[12], inv_view[13], inv_view[14]};
+
+        return {origin_world_space, dir_world_space};
+    }
+}
 
 namespace ufps
 {
-    auto DebugUI::render([[maybe_unused]] Scene &scene) const -> void
+    auto DebugUI::render([[maybe_unused]] Scene &scene) -> void
     {
         auto &io = ::ImGui::GetIO();
 
@@ -35,9 +55,13 @@ namespace ufps
 
         for (auto &entity : scene.entities)
         {
+            // TODO: make opening work reliably
+            // const auto is_selected = &entity == _selected_entity;
             auto &material = scene.material_manager[entity.material_key];
 
-            if (::ImGui::CollapsingHeader(entity.name.c_str()))
+            // const auto header_flags = is_selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None;
+            // if (::ImGui::CollapsingHeader(entity.name.c_str()), header_flags)
+            if (::ImGui::CollapsingHeader(entity.name.c_str()), header_flags)
             {
                 float color[3]{};
                 std::memcpy(color, &material.color, sizeof(color));
@@ -47,7 +71,10 @@ namespace ufps
                 {
                     std::memcpy(&material.color, color, sizeof(color));
                 }
+            }
 
+            if (&entity == _selected_entity)
+            {
                 auto transform = Matrix4{entity.transform};
 
                 const auto &camera_data = scene.camera.data();
@@ -69,29 +96,29 @@ namespace ufps
 
         ::ImGui::Render();
         ::ImGui_ImplOpenGL3_RenderDrawData(::ImGui::GetDrawData());
+
+        if (_click)
+        {
+            const auto pick_ray = screen_ray(_click.value(), _window, scene.camera);
+            const auto intersection = scene.intersect_ray(pick_ray);
+            _selected_entity = intersection.transform([](const auto &e)
+                                                      { return e.entity; })
+                                   .value_or(nullptr);
+
+            _click.reset();
+        }
     }
 
-    auto DebugUI::add_mouse_event(const MouseButtonEvent &evt) const -> void
+    auto DebugUI::add_mouse_event(const MouseButtonEvent &evt) -> void
     {
         auto &io = ::ImGui::GetIO();
 
         io.AddMouseButtonEvent(0, evt.state() == MouseButtonState::DOWN);
 
-        std::uint8_t buffer[4]{};
-
-        ::glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-        ::glReadBuffer(GL_BACK);
-
-        ::glReadPixels(
-            static_cast<::GLint>(evt.x()),
-            static_cast<::GLint>(evt.y()),
-            1,
-            1,
-            GL_RGB,
-            GL_UNSIGNED_BYTE,
-            buffer);
-
-        log::debug("r: {} g: {} b: {}", buffer[0], buffer[1], buffer[2]);
+        if (!io.WantCaptureMouse)
+        {
+            _click = evt;
+        }
     }
 
 }

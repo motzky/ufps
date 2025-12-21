@@ -11,7 +11,8 @@
 namespace ufps
 {
     DebugUI::DebugUI(const Window &window)
-        : _window{window}
+        : _window{window} _click{},
+          _selected_entity{}
     {
         IMGUI_CHECKVERSION();
         ::ImGui::CreateContext();

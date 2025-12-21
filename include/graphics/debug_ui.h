@@ -12,12 +12,14 @@ namespace ufps
         DebugUI(const Window &window);
         ~DebugUI();
 
-        auto render(Scene &scene) const -> void;
+        auto render(Scene &scene) -> void;
 
-        auto add_mouse_event(const MouseButtonEvent &evt) const -> void;
+        auto add_mouse_event(const MouseButtonEvent &evt) -> void;
 
     private:
         const Window &_window;
+        std::optional<MouseButtonEvent> _click;
+        const Entity *_selected_entity;
 
         auto new_frame() const -> void;
     };
