@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <span>
 #include <string>
 
 #include "graphics/buffer.h"
@@ -19,7 +20,11 @@ namespace ufps
 
         auto native_handle() const -> std::tuple<::GLuint, ::GLuint>;
 
-        auto to_string() const -> std::string;
+        auto index_data(MeshView view) -> std::span<std::uint32_t>;
+        auto vertex_data(MeshView view) -> std::span<VertexData>;
+
+        auto
+        to_string() const -> std::string;
 
     private:
         std::vector<VertexData> _vertex_data_cpu;
