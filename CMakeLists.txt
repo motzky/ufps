@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.30)
 
 project(
     ufps
-    VERSION 0.0.10
+    VERSION 0.1.0
     DESCRIPTION "A simple C++/OpenGL FPS following Nathan's stream"
     LANGUAGES C CXX
 )
