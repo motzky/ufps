@@ -8,6 +8,7 @@
 
 #include "math/quaternion.h"
 #include "math/vector3.h"
+#include "math/vector4.h"
 #include "utils/ensure.h"
 
 namespace ufps
@@ -157,6 +158,8 @@ namespace ufps
             return {v1};
         }
 
+        static constexpr auto invert(const Matrix4 &matrix) -> Matrix4;
+
         constexpr auto data() const -> std::span<const float>
         {
             return _elements;
@@ -175,6 +178,7 @@ namespace ufps
         // }
 
         friend constexpr auto operator*=(Matrix4 &m1, const Matrix4 &m2) -> Matrix4 &;
+        friend constexpr auto operator*(Matrix4 &m1, const Vector4 &v) -> Vector4;
 
         constexpr auto operator==(const Matrix4 &) const -> bool = default;
 
@@ -210,15 +214,15 @@ namespace ufps
         return tmp *= m2;
     }
 
-    // constexpr auto operator*(const Matrix4 &m, const Vector4 &v) -> Vector4
-    // {
-    //     return {
-    //         m[0] * v.x + m[4] * v.y + m[8] * v.z + m[12] * v.w,
-    //         m[1] * v.x + m[5] * v.y + m[9] * v.z + m[13] * v.w,
-    //         m[2] * v.x + m[6] * v.y + m[10] * v.z + m[14] * v.w,
-    //         m[3] * v.x + m[7] * v.y + m[11] * v.z + m[15] * v.w,
-    //     };
-    // }
+    constexpr auto operator*(const Matrix4 &m, const Vector4 &v) -> Vector4
+    {
+        return {
+            m[0] * v.x + m[4] * v.y + m[8] * v.z + m[12] * v.w,
+            m[1] * v.x + m[5] * v.y + m[9] * v.z + m[13] * v.w,
+            m[2] * v.x + m[6] * v.y + m[10] * v.z + m[14] * v.w,
+            m[3] * v.x + m[7] * v.y + m[11] * v.z + m[15] * v.w,
+        };
+    }
 
     inline constexpr auto Matrix4::look_at(const Vector3 &eye, const Vector3 &look_at, const Vector3 &up) -> Matrix4
     {
@@ -270,6 +274,73 @@ namespace ufps
                         0.f, 2.f / (top - bottom), 0.f, 0.f,
                         0.f, 0.f, -2.f / (far_p - near_p), 0.f,
                         -(right + left) / (right - left), -(top + bottom) / (top - bottom), -(far_p + near_p) / (far_p - near_p), 1.f}};
+    }
+
+    constexpr auto Matrix4::invert(const Matrix4 &matrix) -> Matrix4
+    {
+        const auto &m = matrix._elements;
+        auto result = Matrix4{};
+        auto &inv = result._elements;
+
+        inv[0] = m[5] * m[10] * m[15] - m[5] * m[11] * m[14] - m[9] * m[6] * m[15] + m[9] * m[7] * m[14] +
+                 m[13] * m[6] * m[11] - m[13] * m[7] * m[10];
+
+        inv[1] = -m[1] * m[10] * m[15] + m[1] * m[11] * m[14] + m[9] * m[2] * m[15] - m[9] * m[3] * m[14] -
+                 m[13] * m[2] * m[11] + m[13] * m[3] * m[10];
+
+        inv[2] = m[1] * m[6] * m[15] - m[1] * m[7] * m[14] - m[5] * m[2] * m[15] + m[5] * m[3] * m[14] +
+                 m[13] * m[2] * m[7] - m[13] * m[3] * m[6];
+
+        inv[3] = -m[1] * m[6] * m[11] + m[1] * m[7] * m[10] + m[5] * m[2] * m[11] - m[5] * m[3] * m[10] -
+                 m[9] * m[2] * m[7] + m[9] * m[3] * m[6];
+
+        inv[4] = -m[4] * m[10] * m[15] + m[4] * m[11] * m[14] + m[8] * m[6] * m[15] - m[8] * m[7] * m[14] -
+                 m[12] * m[6] * m[11] + m[12] * m[7] * m[10];
+
+        inv[5] = m[0] * m[10] * m[15] - m[0] * m[11] * m[14] - m[8] * m[2] * m[15] + m[8] * m[3] * m[14] +
+                 m[12] * m[2] * m[11] - m[12] * m[3] * m[10];
+
+        inv[6] = -m[0] * m[6] * m[15] + m[0] * m[7] * m[14] + m[4] * m[2] * m[15] - m[4] * m[3] * m[14] -
+                 m[12] * m[2] * m[7] + m[12] * m[3] * m[6];
+
+        inv[7] = m[0] * m[6] * m[11] - m[0] * m[7] * m[10] - m[4] * m[2] * m[11] + m[4] * m[3] * m[10] +
+                 m[8] * m[2] * m[7] - m[8] * m[3] * m[6];
+
+        inv[8] = m[4] * m[9] * m[15] - m[4] * m[11] * m[13] - m[8] * m[5] * m[15] + m[8] * m[7] * m[13] +
+                 m[12] * m[5] * m[11] - m[12] * m[7] * m[9];
+
+        inv[9] = -m[0] * m[9] * m[15] + m[0] * m[11] * m[13] + m[8] * m[1] * m[15] - m[8] * m[3] * m[13] -
+                 m[12] * m[1] * m[11] + m[12] * m[3] * m[9];
+
+        inv[10] = m[0] * m[5] * m[15] - m[0] * m[7] * m[13] - m[4] * m[1] * m[15] + m[4] * m[3] * m[13] +
+                  m[12] * m[1] * m[7] - m[12] * m[3] * m[5];
+
+        inv[11] = -m[0] * m[5] * m[11] + m[0] * m[7] * m[9] + m[4] * m[1] * m[11] - m[4] * m[3] * m[9] -
+                  m[8] * m[1] * m[7] + m[8] * m[3] * m[5];
+
+        inv[12] = -m[4] * m[9] * m[14] + m[4] * m[10] * m[13] + m[8] * m[5] * m[14] - m[8] * m[6] * m[13] -
+                  m[12] * m[5] * m[10] + m[12] * m[6] * m[9];
+
+        inv[13] = m[0] * m[9] * m[14] - m[0] * m[10] * m[13] - m[8] * m[1] * m[14] + m[8] * m[2] * m[13] +
+                  m[12] * m[1] * m[10] - m[12] * m[2] * m[9];
+
+        inv[14] = -m[0] * m[5] * m[14] + m[0] * m[6] * m[13] + m[4] * m[1] * m[14] - m[4] * m[2] * m[13] -
+                  m[12] * m[1] * m[6] + m[12] * m[2] * m[5];
+
+        inv[15] = m[0] * m[5] * m[10] - m[0] * m[6] * m[9] - m[4] * m[1] * m[10] + m[4] * m[2] * m[9] + m[8] * m[1] * m[6] -
+                  m[8] * m[2] * m[5];
+
+        auto det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+        expect(det != 0.0f, "matrix is singular and cannot be inverted");
+
+        det = 1.0f / det;
+
+        for (auto &x : inv)
+        {
+            x *= det;
+        }
+
+        return result;
     }
 
     inline auto Matrix4::to_string() const -> std::string
