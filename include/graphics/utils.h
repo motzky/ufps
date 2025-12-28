@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "graphics/opengl.h"
+#include "graphics/texture_data.h"
 #include "log.h"
 
 namespace ufps
@@ -36,4 +37,5 @@ namespace ufps
         }
     }
 
+    auto load_texture(DataBufferView image_data) -> TextureData;
 }

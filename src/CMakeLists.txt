@@ -70,6 +70,7 @@ elseif(UNIX)
 endif()
 
 # target_include_directories(ufpslib PUBLIC ${stb_lib_SOURCE_DIR} ${imgui_SOURCE_DIR} ${imguizmo_SOURCE_DIR} ${JoltPhysics_SOURCE_DIR} ${lua_SOURCE_DIR})
+target_include_directories(ufpslib PUBLIC ${stb_lib_SOURCE_DIR})
 
 # if(${Freetype_FOUND})
 # target_include_directories(ufpslib PUBLIC ${FREETYPE_INCLUDE_DIRS})
