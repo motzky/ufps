@@ -42,6 +42,7 @@ add_subdirectory(core)
 add_subdirectory(events)
 add_subdirectory(graphics)
 add_subdirectory(math)
+# add_subdirectory(resources)
 add_subdirectory(utils)
 
 configure_file(${PROJECT_SOURCE_DIR}/include/config.h.in ${PROJECT_SOURCE_DIR}/include/config.h)
@@ -49,7 +50,7 @@ configure_file(${PROJECT_SOURCE_DIR}/include/config.h.in ${PROJECT_SOURCE_DIR}/i
 if(WIN32)
     target_sources(
         ufpslib
-        PRIVATE win32/window.cpp win32/debug_ui.cpp
+        PRIVATE win32/window.cpp win32/debug_ui.cpp win32/file_resource_loader.cpp
         # PRIVATE win32/window.cpp win32/debug_ui.cpp win32/file.cpp win32/sound_routine.cpp
     )
     # target_sources(
@@ -59,7 +60,7 @@ if(WIN32)
 elseif(UNIX)
     target_sources(
         ufpslib
-        PRIVATE posix/window.cpp posix/debug_ui.cpp
+        PRIVATE posix/window.cpp posix/debug_ui.cpp posix/file.cpp posix/file_resource_loader.cpp
         # PRIVATE posix/window.cpp posix/debug_ui.cpp posix/file.cpp posix/sound_routine.cpp
     )
     # target_sources(
