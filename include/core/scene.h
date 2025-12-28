@@ -8,6 +8,7 @@
 #include "core/entity.h"
 #include "graphics/material_manager.h"
 #include "graphics/mesh_manager.h"
+#include "graphics/texture.h"
 #include "math/ray.h"
 #include "math/utils.h"
 #include "math/vector4.h"
@@ -62,5 +63,6 @@ namespace ufps
         MeshManager &mesh_manager;
         MaterialManager &material_manager;
         Camera camera;
+        const Texture &the_one_texture;
     };
 }

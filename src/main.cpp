@@ -22,8 +22,11 @@
 #include "graphics/multi_buffer.h"
 #include "graphics/persistent_buffer.h"
 #include "graphics/renderer.h"
+#include "graphics/sampler.h"
+#include "graphics/texture.h"
 #include "graphics/vertex_data.h"
 #include "log.h"
+#include "resources/file_resource_loader.h"
 #include "utils/data_buffer.h"
 #include "utils/exception.h"
 #include "window.h"
@@ -32,6 +35,16 @@ using namespace std::literals;
 
 namespace
 {
+    template <class... Args>
+    auto vertices(Args &&...args) -> std::vector<ufps::VertexData>
+    {
+        return std::views::zip_transform(
+                   []<class... A>(A &&...a)
+                   { return ufps::VertexData{std::forward<A>(a)...}; },
+                   std::forward<Args>(args)...) |
+               std::ranges::to<std::vector>();
+    }
+
     auto cube() -> ufps::MeshData
     {
         const ufps::Vector3 positions[] = {
@@ -60,6 +73,33 @@ namespace
             {1.f, -1.f, 1.f},
             {-1.f, -1.f, 1.f}};
 
+        const ufps::UV uvs[] = {
+            {0.0f, 0.0f},
+            {1.0f, 0.0f},
+            {1.0f, 1.0f},
+            {0.0f, 1.0f},
+            {0.0f, 0.0f},
+            {1.0f, 0.0f},
+            {1.0f, 1.0f},
+            {0.0f, 1.0f},
+            {0.0f, 0.0f},
+            {1.0f, 0.0f},
+            {1.0f, 1.0f},
+            {0.0f, 1.0f},
+            {0.0f, 0.0f},
+            {1.0f, 0.0f},
+            {1.0f, 1.0f},
+            {0.0f, 1.0f},
+            {0.0f, 0.0f},
+            {1.0f, 0.0f},
+            {1.0f, 1.0f},
+            {0.0f, 1.0f},
+            {0.0f, 0.0f},
+            {1.0f, 0.0f},
+            {1.0f, 1.0f},
+            {0.0f, 1.0f},
+        };
+
         auto indices = std::vector<std::uint32_t>{
             // Each face: 2 triangles (6 indices)
             // Front face
@@ -75,10 +115,7 @@ namespace
             // Bottom face
             20, 21, 22, 22, 23, 20};
 
-        return {.vertices = positions |
-                            std::views::transform([](const auto &e)
-                                                  { return ufps::VertexData{.position = e}; }) |
-                            std::ranges::to<std::vector>(),
+        return {.vertices = vertices(positions, uvs),
                 .indices = std::move(indices)};
     }
 
@@ -146,6 +183,12 @@ auto main(int argc, char **argv) -> int
             auto window = ufps::Window{1920u, 1080u, 0u, 0u};
             auto running = true;
 
+            auto resouce_loader = ufps::FileResrouceLoader{"assets"};
+            const auto albedo_data = resouce_loader.load_data_buffer("textures/diamond_floor_albedo.png");
+            const auto albedo = ufps::load_texture(albedo_data);
+            const auto sampler = ufps::Sampler{ufps::FilterType::LINEAR, ufps::FilterType::LINEAR, "sampler"};
+            const auto texture = ufps::Texture{albedo, "diamond_floor_albedo", sampler};
+
             auto mesh_manager = ufps::MeshManager{};
             auto material_manager = ufps::MaterialManager{};
             auto renderer = ufps::Renderer{};
@@ -169,7 +212,8 @@ auto main(int argc, char **argv) -> int
                     static_cast<float>(window.width()),
                     static_cast<float>(window.height()),
                     0.01f,
-                    1000.f}};
+                    1000.f},
+                .the_one_texture = texture};
 
             scene.entities.push_back(ufps::Entity{
                 .name = "cube1",
