@@ -162,32 +162,68 @@ TEST(matrix4, perspective)
     }
 }
 
-// TEST(matrix4, mul_vector4)
-// {
-//     const auto m = ufps::Matrix4{
-//         {1.f,
-//          2.f,
-//          3.f,
-//          4.f,
-//          5.f,
-//          6.f,
-//          7.f,
-//          8.f,
-//          9.f,
-//          10.f,
-//          11.f,
-//          12.f,
-//          13.f,
-//          14.f,
-//          15.f,
-//          16.f}};
+TEST(matrix4, invert)
+{
 
-//     const auto v = ufps::Vector4{.5f, 1.5f, 2.5f, 3.5f};
+    const auto m = ufps::Matrix4{
+        {0.6f, 2.4f, 1.1f, 0.0f, 2.4f, 0.6f, -0.4f, 1.0f, 1.1f, -0.4f, 0.6f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f}};
 
-//     const auto result = m * v;
-//     std::println("{}", result);
+    const auto inv = ufps::Matrix4::invert(m);
 
-//     const auto expected = ufps::Vector4{76.f, 84.f, 92.f, 100.f};
+    const auto expected = ufps::Matrix4{
 
-//     ASSERT_EQ(result, expected);
-// }
+        {-0.0323939,
+         0.304503,
+         0.262391,
+         -0.304503,
+         0.304503,
+         0.137674,
+         -0.466472,
+         -0.137674,
+         0.262391,
+         -0.466472,
+         0.874636,
+         0.466472,
+         0,
+         0,
+         0,
+         1}};
+
+    const auto inv_spn = inv.data();
+    const auto expected_spn = expected.data();
+
+    for (auto i = 0u; i < 16u; ++i)
+    {
+        ASSERT_NEAR(inv_spn[i], expected_spn[i], 0.001f);
+    }
+}
+
+TEST(matrix4, mul_vector4)
+{
+    const auto m = ufps::Matrix4{
+        {1.f,
+         2.f,
+         3.f,
+         4.f,
+         5.f,
+         6.f,
+         7.f,
+         8.f,
+         9.f,
+         10.f,
+         11.f,
+         12.f,
+         13.f,
+         14.f,
+         15.f,
+         16.f}};
+
+    const auto v = ufps::Vector4{.5f, 1.5f, 2.5f, 3.5f};
+
+    const auto result = m * v;
+    std::println("{}", result);
+
+    const auto expected = ufps::Vector4{76.f, 84.f, 92.f, 100.f};
+
+    ASSERT_EQ(result, expected);
+}
