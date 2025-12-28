@@ -21,6 +21,7 @@
     DO(::PFNGLGETSHADERIVPROC, glGetShaderiv)                                                 \
     DO(::PFNGLCREATEPROGRAMPROC, glCreateProgram)                                             \
     DO(::PFNGLDELETEPROGRAMPROC, glDeleteProgram)                                             \
+    DO(::PFNGLPROGRAMUNIFORMHANDLEUI64ARBPROC, glProgramUniformHandleui64ARB)                 \
     DO(::PFNGLATTACHSHADERPROC, glAttachShader)                                               \
     DO(::PFNGLLINKPROGRAMPROC, glLinkProgram)                                                 \
     DO(::PFNGLDELETEVERTEXARRAYSPROC, glDeleteVertexArrays)                                   \
@@ -63,6 +64,9 @@
     DO(::PFNGLCREATESAMPLERSPROC, glCreateSamplers)                                           \
     DO(::PFNGLDELETESAMPLERSPROC, glDeleteSamplers)                                           \
     DO(::PFNGLBINDTEXTUREUNITPROC, glBindTextureUnit)                                         \
+    DO(::PFNGLGETTEXTURESAMPLERHANDLEARBPROC, glGetTextureSamplerHandleARB)                   \
+    DO(::PFNGLMAKETEXTUREHANDLERESIDENTARBPROC, glMakeTextureHandleResitentARB)               \
+    DO(::PFNGLMAKETEXTUREHANDLENONRESIDENTARBPROC, glMakeTextureHandleNonResitentARB)         \
     DO(::PFNGLBINDSAMPLERPROC, glBindSampler)                                                 \
     DO(::PFNGLSAMPLERPARAMETERIPROC, glSamplerParamerteri)                                    \
     DO(::PFNGLSAMPLERPARAMETERFPROC, glSamplerParamerterf)                                    \
