@@ -50,6 +50,11 @@ namespace ufps
         check_state(_handle, GL_VALIDATE_STATUS, name, "failed to validate program");
     }
 
+    auto Program::native_handle() const -> ::GLuint
+    {
+        return _handle;
+    }
+
     auto Program::use() -> void
     {
         ::glUseProgram(_handle);
