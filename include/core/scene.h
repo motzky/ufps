@@ -8,6 +8,7 @@
 #include "core/entity.h"
 #include "graphics/material_manager.h"
 #include "graphics/mesh_manager.h"
+#include "graphics/point_light.h"
 #include "graphics/texture.h"
 #include "math/ray.h"
 #include "math/utils.h"
@@ -64,5 +65,6 @@ namespace ufps
         MaterialManager &material_manager;
         Camera camera;
         const Texture &the_one_texture;
+        PointLight light;
     };
 }
