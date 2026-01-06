@@ -73,6 +73,33 @@ namespace
             {1.f, -1.f, 1.f},
             {-1.f, -1.f, 1.f}};
 
+        const ufps::Vector3 normals[] = {
+            {0.f, 0.f, 1.f},
+            {0.f, 0.f, 1.f},
+            {0.f, 0.f, 1.f},
+            {0.f, 0.f, 1.f},
+            {1.f, 0.f, 0.f},
+            {1.f, 0.f, 0.f},
+            {1.f, 0.f, 0.f},
+            {1.f, 0.f, 0.f},
+            {0.f, 0.f, -1.f},
+            {0.f, 0.f, -1.f},
+            {0.f, 0.f, -1.f},
+            {0.f, 0.f, -1.f},
+            {-1.f, 0.f, 0.f},
+            {-1.f, 0.f, 0.f},
+            {-1.f, 0.f, 0.f},
+            {-1.f, 0.f, 0.f},
+            {0.f, 1.f, 0.f},
+            {0.f, 1.f, 0.f},
+            {0.f, 1.f, 0.f},
+            {0.f, 1.f, 0.f},
+            {0.f, -1.f, 0.f},
+            {0.f, -1.f, 0.f},
+            {0.f, -1.f, 0.f},
+            {0.f, -1.f, 0.f},
+        };
+
         const ufps::UV uvs[] = {
             {0.0f, 0.0f},
             {1.0f, 0.0f},
@@ -115,7 +142,7 @@ namespace
             // Bottom face
             20, 21, 22, 22, 23, 20};
 
-        return {.vertices = vertices(positions, uvs),
+        return {.vertices = vertices(positions, normals, uvs),
                 .indices = std::move(indices)};
     }
 

@@ -25,6 +25,7 @@ namespace
 struct VertexData
 {
     float position[3];
+    float normal[3];
     float uv[2];
 };
 
@@ -68,6 +69,14 @@ vec3 get_position(uint index)
         data[index].position[2]
     );
 }
+vec3 get_normal(uint index)
+{
+    return vec3(
+        data[index].normal[0],
+        data[index].normal[1],
+        data[index].normal[2]
+    );
+}
 vec2 get_uv(uint index)
 {
     return vec2(data[index].uv[0],
@@ -76,12 +85,14 @@ vec2 get_uv(uint index)
 
 layout (location = 0) out flat uint material_index;
 layout (location = 1) out vec2 uv;
+layout (location = 2) out vec3 normal;
 
 void main()
 {
     gl_Position = projection * view * object_data[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
     material_index = object_data[gl_DrawID].material_index;
     uv = get_uv(gl_VertexID);
+    normal = get_normal(gl_VertexID);
 }
 
 )"sv;
@@ -93,6 +104,7 @@ void main()
 struct VertexData
 {
     float position[3];
+    float normal[3];
     float uv[2];
 };
 
@@ -129,6 +141,7 @@ layout(location = 0, bindless_sampler) uniform sampler2D tex;
 
 layout(location = 0) in flat uint material_index;
 layout(location = 1) in vec2 uv;
+layout(location = 2) in vec3 normal;
 
 layout(location = 0) out vec4 color;
 
@@ -143,7 +156,8 @@ vec3 get_color(uint index)
 
 void main()
 {
-    color = vec4(get_color(material_index) * texture(tex, uv).rgb, 1.0);
+    //color = vec4(get_color(material_index) * texture(tex, uv).rgb, 1.0);
+    color = vec4(normal, 1.0);
 }
 )"sv;
 
