@@ -21,6 +21,7 @@ namespace ufps
         AutoRelease<::GLuint> _dummy_vao;
         CommandBuffer _command_buffer;
         MultiBuffer<PersistentBuffer> _camera_buffer;
+        MultiBuffer<PersistentBuffer> _light_buffer;
         MultiBuffer<PersistentBuffer> _object_data_buffer;
         Program _program;
     };

@@ -9,6 +9,7 @@
 #include "graphics/command_buffer.h"
 #include "graphics/object_data.h"
 #include "graphics/opengl.h"
+#include "graphics/point_light.h"
 #include "graphics/program.h"
 #include "graphics/shader.h"
 #include "graphics/utils.h"
@@ -19,7 +20,7 @@ using namespace std::literals;
 namespace
 {
 
-    constexpr auto sample_vertex_shader = R"(
+    constexpr auto sample_vertex_shader = R"glsl(
 #version 460 core
 
 struct VertexData
@@ -61,6 +62,13 @@ layout(binding = 3, std430) readonly buffer materials
     MaterialData material_data[];
 };
 
+layout(binding = 4, std430) readonly buffer lights
+{
+    float point_light_pos[3];
+    float point_light_color[3];
+    float point_light_attenuation[3];
+};
+
 vec3 get_position(uint index)
 {
     return vec3(
@@ -86,18 +94,20 @@ vec2 get_uv(uint index)
 layout (location = 0) out flat uint material_index;
 layout (location = 1) out vec2 uv;
 layout (location = 2) out vec3 normal;
+layout (location = 3) out vec4 frag_position;
 
 void main()
 {
-    gl_Position = projection * view * object_data[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
+    frag_position = object_data[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
+    gl_Position = projection * view * frag_position;
     material_index = object_data[gl_DrawID].material_index;
     uv = get_uv(gl_VertexID);
     normal = get_normal(gl_VertexID);
 }
 
-)"sv;
+)glsl"sv;
 
-    constexpr auto sample_fragment_shader = R"(
+    constexpr auto sample_fragment_shader = R"glsl(
 #version 460 core
 #extension GL_ARB_bindless_texture : require
 
@@ -137,11 +147,19 @@ layout(binding = 3, std430) readonly buffer materials
     MaterialData material_data[];
 };
 
+layout(binding = 4, std430) readonly buffer lights
+{
+    float point_light_pos[3];
+    float point_light_color[3];
+    float point_light_attenuation[3];
+};
+
 layout(location = 0, bindless_sampler) uniform sampler2D tex;
 
 layout(location = 0) in flat uint material_index;
 layout(location = 1) in vec2 uv;
 layout(location = 2) in vec3 normal;
+layout(location = 3) in vec4 frag_position;
 
 layout(location = 0) out vec4 color;
 
@@ -154,12 +172,34 @@ vec3 get_color(uint index)
     );
 }
 
+vec3 calc_point(vec3 frag_pos, vec3 n)
+{
+    vec3 pos = vec3(point_light_pos[0], point_light_pos[1], point_light_pos[2]);
+    vec3 color = vec3(point_light_color[0], point_light_color[1], point_light_color[2]);
+    vec3 attenuation = vec3(point_light_attenuation[0], point_light_attenuation[1], point_light_attenuation[2]);
+
+    vec3 nn = normalize(n);
+
+    float dist = length(pos - frag_pos);
+    float att = 1.0 / (attenuation.x + (attenuation.y * dist) + (attenuation.z * (dist * dist)));
+
+    vec3 light_dir = normalize(pos - frag_pos);
+    float diff = max(dot(nn, light_dir), 0.0);
+
+    return (diff * color);
+
+    // vec3 reflect_dir = reflect(-light_dir, nn);
+    // float spec = pow(max(dot(normalize(eye - frag_pos), reflect_dir), 0.0), 32) * texture(tex1, tex_coord).r;
+
+    // return ((diff + spec) * att) * color;
+}
+
 void main()
 {
-    //color = vec4(get_color(material_index) * texture(tex, uv).rgb, 1.0);
-    color = vec4(normal, 1.0);
+    //color = vec4(calc_point(frag_position.xyz, normal) * get_color(material_index) * texture(tex, uv).rgb, 1.0);
+    color = vec4(calc_point(frag_position.xyz, normal), 1.0);
 }
-)"sv;
+)glsl"sv;
 
     auto create_program() -> ufps::Program
     {
@@ -178,6 +218,7 @@ namespace ufps
                      { ::glDeleteBuffers(1, &e); }},
           _command_buffer{},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},
+          _light_buffer{sizeof(PointLight), "light_buffer"},
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},
           _program{create_program()}
     {
@@ -219,6 +260,9 @@ namespace ufps
         scene.material_manager.sync();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, scene.material_manager.native_handle());
 
+        _light_buffer.write(std::as_bytes(std::span<const PointLight>{&scene.light, 1zu}), 0zu);
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, _light_buffer.native_handle());
+
         ::glProgramUniformHandleui64ARB(_program.native_handle(), 0, scene.the_one_texture.native_handle());
 
         ::glMultiDrawElementsIndirect(GL_TRIANGLES,
@@ -229,6 +273,7 @@ namespace ufps
 
         _command_buffer.advance();
         _camera_buffer.advance();
+        _light_buffer.advance();
         _object_data_buffer.advance();
         scene.material_manager.advance();
     }

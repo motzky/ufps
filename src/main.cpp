@@ -240,7 +240,14 @@ auto main(int argc, char **argv) -> int
                     static_cast<float>(window.height()),
                     0.01f,
                     1000.f},
-                .the_one_texture = texture};
+                .the_one_texture = texture,
+                .light = {
+                    .position = {},
+                    .color = {.r = 1.f, .g = 1.f, .b = 1.f},
+                    .constant_attenuation = 1.f,
+                    .linear_attenuation = .007f,
+                    .quadratic_attenuation = .0002f,
+                }};
 
             scene.entities.push_back(ufps::Entity{
                 .name = "cube1",
