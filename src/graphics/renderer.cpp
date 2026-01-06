@@ -27,6 +27,8 @@ struct VertexData
 {
     float position[3];
     float normal[3];
+    float tangent[3];
+    float bitangent[3];
     float uv[2];
 };
 
@@ -86,6 +88,22 @@ vec3 get_normal(uint index)
         data[index].normal[2]
     );
 }
+vec3 get_tangent(uint index)
+{
+    return vec3(
+        data[index].tangent[0],
+        data[index].tangent[1],
+        data[index].tangent[2]
+    );
+}
+vec3 get_bitangent(uint index)
+{
+    return vec3(
+        data[index].bitangent[0],
+        data[index].bitangent[1],
+        data[index].bitangent[2]
+    );
+}
 vec2 get_uv(uint index)
 {
     return vec2(data[index].uv[0],
@@ -94,16 +112,23 @@ vec2 get_uv(uint index)
 
 layout (location = 0) out flat uint material_index;
 layout (location = 1) out vec2 uv;
-layout (location = 2) out vec3 normal;
-layout (location = 3) out vec4 frag_position;
+layout (location = 2) out vec4 frag_position;
+layout (location = 3) out mat3 tbn;
 
 void main()
 {
+    mat3 normal_mat = transpose(inverse(mat3(object_data[gl_DrawID].model)));
+
     frag_position = object_data[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
     gl_Position = projection * view * frag_position;
     material_index = object_data[gl_DrawID].material_index;
     uv = get_uv(gl_VertexID);
-    normal = get_normal(gl_VertexID);
+
+    vec3 t = normalize(vec3(object_data[gl_DrawID].model * vec4(get_tangent(gl_VertexID), 0.0)));
+    vec3 b = normalize(vec3(object_data[gl_DrawID].model * vec4(get_bitangent(gl_VertexID), 0.0)));
+    vec3 n = normalize(vec3(object_data[gl_DrawID].model * vec4(get_normal(gl_VertexID), 0.0)));
+
+    tbn = mat3(t,b,n);
 }
 
 )glsl"sv;
@@ -116,6 +141,8 @@ struct VertexData
 {
     float position[3];
     float normal[3];
+    float tangent[3];
+    float bitangent[3];
     float uv[2];
 };
 
@@ -156,12 +183,13 @@ layout(binding = 4, std430) readonly buffer lights
     float point_light_attenuation[3];
 };
 
-layout(location = 0, bindless_sampler) uniform sampler2D tex;
+layout(location = 0, bindless_sampler) uniform sampler2D albedo_tex;
+layout(location = 1, bindless_sampler) uniform sampler2D normal_tex;
 
 layout(location = 0) in flat uint material_index;
 layout(location = 1) in vec2 uv;
-layout(location = 2) in vec3 normal;
-layout(location = 3) in vec4 frag_position;
+layout(location = 2) in vec4 frag_position;
+layout(location = 3) in mat3 tbn;
 
 layout(location = 0) out vec4 color;
 
@@ -180,13 +208,11 @@ vec3 calc_point(vec3 frag_pos, vec3 n)
     vec3 color = vec3(point_light_color[0], point_light_color[1], point_light_color[2]);
     vec3 attenuation = vec3(point_light_attenuation[0], point_light_attenuation[1], point_light_attenuation[2]);
 
-    vec3 nn = normalize(n);
-
     float dist = length(pos - frag_pos);
     float att = 1.0 / (attenuation.x + (attenuation.y * dist) + (attenuation.z * (dist * dist)));
 
     vec3 light_dir = normalize(pos - frag_pos);
-    float diff = max(dot(nn, light_dir), 0.0);
+    float diff = max(dot(n, light_dir), 0.0);
 
     return (diff * color);
 
@@ -198,9 +224,18 @@ vec3 calc_point(vec3 frag_pos, vec3 n)
 
 void main()
 {
-    //color = vec4(calc_point(frag_position.xyz, normal) * get_color(material_index) * texture(tex, uv).rgb, 1.0);
+    // need to flip V for textures...
+    // should better be done on CPU during texture loading
+    vec2 uv_inv = vec2(uv.x, -uv.y);
+    vec3 nm = texture(normal_tex, uv_inv).xyz;
+    nm = (nm*2.0 - 1.0);
+    vec3 n = normalize(tbn * nm);
+
+    vec3 albedo = texture(albedo_tex, uv_inv).rgb;
     vec3 ambient_col = vec3(ambient_color[0], ambient_color[1], ambient_color[2]);
-    color = vec4(ambient_col + calc_point(frag_position.xyz, normal), 1.0);
+    vec3 point_col = calc_point(frag_position.xyz, n);
+
+    color = vec4(albedo * (ambient_col + point_col), 1.0);
 }
 )glsl"sv;
 
@@ -267,6 +302,7 @@ namespace ufps
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, _light_buffer.native_handle());
 
         ::glProgramUniformHandleui64ARB(_program.native_handle(), 0, scene.the_one_texture.native_handle());
+        ::glProgramUniformHandleui64ARB(_program.native_handle(), 1, scene.the_one_normal_map.native_handle());
 
         ::glMultiDrawElementsIndirect(GL_TRIANGLES,
                                       GL_UNSIGNED_INT,

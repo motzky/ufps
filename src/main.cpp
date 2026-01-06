@@ -100,6 +100,80 @@ namespace
             {0.f, -1.f, 0.f},
         };
 
+        const ufps::Vector3 tangents[] = {
+            // Face 1: Front (+Z Normal) -> Tangent points Right (+X)
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f},
+
+            // Face 2: Right (+X Normal) -> Tangent points Backward (-Z)
+            {0.0f, 0.0f, -1.0f},
+            {0.0f, 0.0f, -1.0f},
+            {0.0f, 0.0f, -1.0f},
+            {0.0f, 0.0f, -1.0f},
+
+            // Face 3: Back (-Z Normal) -> Tangent points Left (-X)
+            {-1.0f, 0.0f, 0.0f},
+            {-1.0f, 0.0f, 0.0f},
+            {-1.0f, 0.0f, 0.0f},
+            {-1.0f, 0.0f, 0.0f},
+
+            // Face 4: Left (-X Normal) -> Tangent points Forward (+Z)
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f},
+
+            // Face 5: Top (+Y Normal) -> Tangent points Right (+X)
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f},
+
+            // Face 6: Bottom (-Y Normal) -> Tangent points Right (+X)
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f},
+            {1.0f, 0.0f, 0.0f}};
+
+        const ufps::Vector3 bitangents[] = {
+            // Face 1: Front -> Bitangent points Up (+Y)
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+
+            // Face 2: Right -> Bitangent points Up (+Y)
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+
+            // Face 3: Back -> Bitangent points Up (+Y)
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+
+            // Face 4: Left -> Bitangent points Up (+Y)
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+            {0.0f, 1.0f, 0.0f},
+
+            // Face 5: Top -> Bitangent points Backward (-Z)
+            {0.0f, 0.0f, -1.0f},
+            {0.0f, 0.0f, -1.0f},
+            {0.0f, 0.0f, -1.0f},
+            {0.0f, 0.0f, -1.0f},
+
+            // Face 6: Bottom -> Bitangent points Forward (+Z)
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f},
+            {0.0f, 0.0f, 1.0f}};
+
         const ufps::UV uvs[] = {
             {0.0f, 0.0f},
             {1.0f, 0.0f},
@@ -142,7 +216,7 @@ namespace
             // Bottom face
             20, 21, 22, 22, 23, 20};
 
-        return {.vertices = vertices(positions, normals, uvs),
+        return {.vertices = vertices(positions, normals, tangents, bitangents, uvs),
                 .indices = std::move(indices)};
     }
 
