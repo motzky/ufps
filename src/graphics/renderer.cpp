@@ -64,6 +64,7 @@ layout(binding = 3, std430) readonly buffer materials
 
 layout(binding = 4, std430) readonly buffer lights
 {
+    float ambient_color[3];
     float point_light_pos[3];
     float point_light_color[3];
     float point_light_attenuation[3];
@@ -149,6 +150,7 @@ layout(binding = 3, std430) readonly buffer materials
 
 layout(binding = 4, std430) readonly buffer lights
 {
+    float ambient_color[3];
     float point_light_pos[3];
     float point_light_color[3];
     float point_light_attenuation[3];
@@ -197,7 +199,8 @@ vec3 calc_point(vec3 frag_pos, vec3 n)
 void main()
 {
     //color = vec4(calc_point(frag_position.xyz, normal) * get_color(material_index) * texture(tex, uv).rgb, 1.0);
-    color = vec4(calc_point(frag_position.xyz, normal), 1.0);
+    vec3 ambient_col = vec3(ambient_color[0], ambient_color[1], ambient_color[2]);
+    color = vec4(ambient_col + calc_point(frag_position.xyz, normal), 1.0);
 }
 )glsl"sv;
 
@@ -218,7 +221,7 @@ namespace ufps
                      { ::glDeleteBuffers(1, &e); }},
           _command_buffer{},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},
-          _light_buffer{sizeof(PointLight), "light_buffer"},
+          _light_buffer{sizeof(LightData), "light_buffer"},
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},
           _program{create_program()}
     {
@@ -260,7 +263,7 @@ namespace ufps
         scene.material_manager.sync();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, scene.material_manager.native_handle());
 
-        _light_buffer.write(std::as_bytes(std::span<const PointLight>{&scene.light, 1zu}), 0zu);
+        _light_buffer.write(std::as_bytes(std::span<const LightData>{&scene.lights, 1zu}), 0zu);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, _light_buffer.native_handle());
 
         ::glProgramUniformHandleui64ARB(_program.native_handle(), 0, scene.the_one_texture.native_handle());

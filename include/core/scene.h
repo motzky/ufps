@@ -6,6 +6,7 @@
 
 #include "core/camera.h"
 #include "core/entity.h"
+#include "graphics/color.h"
 #include "graphics/material_manager.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/point_light.h"
@@ -20,6 +21,12 @@ namespace ufps
     {
         const Entity *entity;
         Vector3 position;
+    };
+
+    struct LightData
+    {
+        Color ambient;
+        PointLight light;
     };
 
     struct Scene
@@ -65,6 +72,6 @@ namespace ufps
         MaterialManager &material_manager;
         Camera camera;
         const Texture &the_one_texture;
-        PointLight light;
+        LightData lights;
     };
 }
