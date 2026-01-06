@@ -52,6 +52,7 @@ layout(binding = 1, std430) readonly buffer camera
 {
     mat4 view;
     mat4 projection;
+    vec3 camera_position;
 };
 
 layout(binding = 2, std430) readonly buffer objects
@@ -164,6 +165,7 @@ layout(binding = 0, std430) readonly buffer vertices {
 layout(binding = 1, std430) readonly buffer camera {
     mat4 view;
     mat4 projection;
+    vec3 camera_position;
 };
 
 layout(binding = 2, std430) readonly buffer objects {
@@ -202,7 +204,7 @@ vec3 get_color(uint index)
     );
 }
 
-vec3 calc_point(vec3 frag_pos, vec3 n)
+vec3 calc_point(vec3 frag_pos, vec3 view_pos, vec3 n)
 {
     vec3 pos = vec3(point_light_pos[0], point_light_pos[1], point_light_pos[2]);
     vec3 color = vec3(point_light_color[0], point_light_color[1], point_light_color[2]);
@@ -214,12 +216,15 @@ vec3 calc_point(vec3 frag_pos, vec3 n)
     vec3 light_dir = normalize(pos - frag_pos);
     float diff = max(dot(n, light_dir), 0.0);
 
-    return (diff * color);
-
+    vec3 view_dir = normalize(view_pos - frag_pos);
+    vec3 half_way = normalize(light_dir + view_dir);
+    
+    float spec = pow(max(dot(n, half_way), 0.0), 32);
     // vec3 reflect_dir = reflect(-light_dir, nn);
     // float spec = pow(max(dot(normalize(eye - frag_pos), reflect_dir), 0.0), 32) * texture(tex1, tex_coord).r;
-
+    
     // return ((diff + spec) * att) * color;
+    return ((diff + spec) * color);
 }
 
 void main()
@@ -233,7 +238,7 @@ void main()
 
     vec3 albedo = texture(albedo_tex, uv_inv).rgb;
     vec3 ambient_col = vec3(ambient_color[0], ambient_color[1], ambient_color[2]);
-    vec3 point_col = calc_point(frag_position.xyz, n);
+    vec3 point_col = calc_point(frag_position.xyz, camera_position.xyz, n);
 
     color = vec4(albedo * (ambient_col + point_col), 1.0);
 }

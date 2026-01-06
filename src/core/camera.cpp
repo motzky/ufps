@@ -23,7 +23,8 @@ namespace ufps
     Camera::Camera(const Vector3 &position, const Vector3 &look_at, const Vector3 &up,
                    float fov, float width, float height, float near_plane, float far_plane)
         : _data{.view = Matrix4::look_at(position, look_at, up),
-                .projection = Matrix4::perspective(fov, width, height, near_plane, far_plane)},
+                .projection = Matrix4::perspective(fov, width, height, near_plane, far_plane),
+                .position = position},
           _position(position),
           _direction(look_at),
           _up(up),
@@ -42,7 +43,8 @@ namespace ufps
 
     Camera::Camera(float width, float height, float depth)
         : _data{.view = Matrix4::look_at({0.f, 0.f, 1.f}, {}, {0.f, 1.f, 0.f}),
-                .projection = Matrix4::orthographic(width, height, depth)},
+                .projection = Matrix4::orthographic(width, height, depth),
+                .position = {}},
           _position{Vector3{0.f, 0.f, 1.f}},
           _direction{Vector3{0.f, 0.f, -1.f}},
           _up{Vector3{0.f, 1.f, 0.f}},
@@ -55,6 +57,7 @@ namespace ufps
           _near_plane(0.001f),
           _far_plane(depth)
     {
+        _data.position = _position;
     }
 
     auto Camera::direction() const -> Vector3
@@ -142,6 +145,8 @@ namespace ufps
         _right = Vector3::normalize(Vector3::cross(_direction, world_up));
         _up = Vector3::normalize(Vector3::cross(_right, _direction));
         recalculate_view();
+
+        _data.position = _position;
     }
 
     auto Camera::fov() const -> float

@@ -14,6 +14,7 @@ namespace ufps
     {
         Matrix4 view;
         Matrix4 projection;
+        Vector3 position;
     };
 
     class Camera
