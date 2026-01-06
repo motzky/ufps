@@ -72,6 +72,7 @@ namespace ufps
         MaterialManager &material_manager;
         Camera camera;
         const Texture &the_one_texture;
+        const Texture &the_one_normal_map;
         LightData lights;
     };
 }

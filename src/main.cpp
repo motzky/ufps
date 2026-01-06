@@ -211,10 +211,15 @@ auto main(int argc, char **argv) -> int
             auto running = true;
 
             auto resouce_loader = ufps::FileResrouceLoader{"assets"};
-            const auto albedo_data = resouce_loader.load_data_buffer("textures/diamond_floor_albedo.png");
-            const auto albedo = ufps::load_texture(albedo_data);
             const auto sampler = ufps::Sampler{ufps::FilterType::LINEAR, ufps::FilterType::LINEAR, "sampler"};
-            const auto texture = ufps::Texture{albedo, "diamond_floor_albedo", sampler};
+
+            const auto diamond_floor_albedo_data = resouce_loader.load_data_buffer("textures/diamond_floor_albedo.png");
+            const auto diamond_floor_albedo = ufps::load_texture(diamond_floor_albedo_data);
+            const auto diamond_floor_albedo_texture = ufps::Texture{diamond_floor_albedo, "diamond_floor_albedo", sampler};
+
+            const auto diamond_floor_normal_data = resouce_loader.load_data_buffer("textures/diamond_floor_normal.png");
+            const auto diamond_floor_normal = ufps::load_texture(diamond_floor_normal_data);
+            const auto diamond_floor_normal_texture = ufps::Texture{diamond_floor_normal, "diamond_floor_normal", sampler};
 
             auto mesh_manager = ufps::MeshManager{};
             auto material_manager = ufps::MaterialManager{};
@@ -240,7 +245,8 @@ auto main(int argc, char **argv) -> int
                     static_cast<float>(window.height()),
                     0.01f,
                     1000.f},
-                .the_one_texture = texture,
+                .the_one_texture = diamond_floor_albedo_texture,
+                .the_one_normal_map = diamond_floor_normal_texture,
                 .lights = {
                     .ambient = {.r = .5f, .g = .5f, .b = .5f},
                     .light = {
