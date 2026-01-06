@@ -181,7 +181,7 @@ namespace
             direction -= camera.up();
         }
 
-        return direction;
+        return direction / 4.0f;
     }
 }
 
