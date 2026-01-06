@@ -94,6 +94,54 @@ namespace ufps
             }
         }
 
+        if (::ImGui::CollapsingHeader("lights"))
+        {
+            float pos[3] = {scene.light.position.x, scene.light.position.y, scene.light.position.z};
+
+            if (::ImGui::SliderFloat3("position", pos, 0.f, 2.f))
+            {
+                scene.light.position = {pos[0], pos[1], pos[2]};
+            }
+
+            float color[3]{};
+            std::memcpy(color, &scene.light.color, sizeof(color));
+
+            if (::ImGui::ColorPicker3("light color", color))
+            {
+                std::memcpy(&scene.light.color, color, sizeof(color));
+            }
+
+            float att[3] = {scene.light.constant_attenuation, scene.light.linear_attenuation, scene.light.quadratic_attenuation};
+
+            if (::ImGui::SliderFloat3("attenuation", att, -100.f, 100.f))
+            {
+                scene.light.constant_attenuation = att[0];
+                scene.light.linear_attenuation = att[1];
+                scene.light.quadratic_attenuation = att[2];
+            }
+
+            if (!_selected_entity)
+            {
+                auto transform = Matrix4{scene.light.position};
+
+                const auto &camera_data = scene.camera.data();
+
+                ::ImGuizmo::Manipulate(
+                    camera_data.view.data().data(),
+                    camera_data.projection.data().data(),
+                    ::ImGuizmo::TRANSLATE,
+                    ::ImGuizmo::WORLD,
+                    const_cast<float *>(transform.data().data()),
+                    nullptr,
+                    nullptr,
+                    nullptr,
+                    nullptr);
+
+                const auto new_transform = Transform{transform};
+                scene.light.position = new_transform.position;
+            }
+        }
+
         static auto follow = true;
         ::ImGui::Begin("Log");
 
