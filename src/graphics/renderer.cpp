@@ -220,11 +220,8 @@ vec3 calc_point(vec3 frag_pos, vec3 view_pos, vec3 n)
     vec3 half_way = normalize(light_dir + view_dir);
     
     float spec = pow(max(dot(n, half_way), 0.0), 32);
-    // vec3 reflect_dir = reflect(-light_dir, nn);
-    // float spec = pow(max(dot(normalize(eye - frag_pos), reflect_dir), 0.0), 32) * texture(tex1, tex_coord).r;
     
-    // return ((diff + spec) * att) * color;
-    return ((diff + spec) * color);
+    return ((diff + spec) * att) * color;
 }
 
 void main()
