@@ -322,13 +322,13 @@ auto main(int argc, char **argv) -> int
                 .the_one_texture = diamond_floor_albedo_texture,
                 .the_one_normal_map = diamond_floor_normal_texture,
                 .lights = {
-                    .ambient = {.r = .5f, .g = .5f, .b = .5f},
+                    .ambient = {.r = .15f, .g = .15f, .b = .15f},
                     .light = {
                         .position = {},
                         .color = {.r = 1.f, .g = 1.f, .b = 1.f},
                         .constant_attenuation = 1.f,
-                        .linear_attenuation = .007f,
-                        .quadratic_attenuation = .0002f,
+                        .linear_attenuation = .045f,
+                        .quadratic_attenuation = .0075f,
                     },
                 }};
 
