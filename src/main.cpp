@@ -288,6 +288,7 @@ auto main(int argc, char **argv) -> int
                         .constant_attenuation = 1.f,
                         .linear_attenuation = .045f,
                         .quadratic_attenuation = .0075f,
+                        .specular_poewr = 32.f,
                     },
                 }};
 

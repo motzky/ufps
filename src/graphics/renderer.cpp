@@ -52,7 +52,7 @@ layout(binding = 1, std430) readonly buffer camera
 {
     mat4 view;
     mat4 projection;
-    vec3 camera_position;
+    float camera_position[3];
 };
 
 layout(binding = 2, std430) readonly buffer objects
@@ -71,6 +71,7 @@ layout(binding = 4, std430) readonly buffer lights
     float point_light_pos[3];
     float point_light_color[3];
     float point_light_attenuation[3];
+    float point_light_specular_power;
 };
 
 vec3 get_position(uint index)
@@ -165,7 +166,7 @@ layout(binding = 0, std430) readonly buffer vertices {
 layout(binding = 1, std430) readonly buffer camera {
     mat4 view;
     mat4 projection;
-    vec3 camera_position;
+    float camera_position[3];
 };
 
 layout(binding = 2, std430) readonly buffer objects {
@@ -183,6 +184,7 @@ layout(binding = 4, std430) readonly buffer lights
     float point_light_pos[3];
     float point_light_color[3];
     float point_light_attenuation[3];
+    float point_light_specular_power;
 };
 
 layout(location = 0, bindless_sampler) uniform sampler2D albedo_tex;
@@ -219,7 +221,7 @@ vec3 calc_point(vec3 frag_pos, vec3 view_pos, vec3 n)
     vec3 view_dir = normalize(view_pos - frag_pos);
     vec3 half_way = normalize(light_dir + view_dir);
     
-    float spec = pow(max(dot(n, half_way), 0.0), 32);
+    float spec = pow(max(dot(n, half_way), 0.0), point_light_specular_power);
     
     return ((diff + spec) * att) * color;
 }
@@ -235,7 +237,7 @@ void main()
 
     vec3 albedo = texture(albedo_tex, uv_inv).rgb;
     vec3 ambient_col = vec3(ambient_color[0], ambient_color[1], ambient_color[2]);
-    vec3 point_col = calc_point(frag_position.xyz, camera_position.xyz, n);
+    vec3 point_col = calc_point(frag_position.xyz, vec3(camera_position[0],camera_position[1],camera_position[2]), n);
 
     color = vec4(albedo * (ambient_col + point_col), 1.0);
 }

@@ -119,6 +119,8 @@ namespace ufps
                 std::memcpy(&scene.lights.light.color, color, sizeof(color));
             }
 
+            ::ImGui::SliderFloat("power", &scene.lights.light.specular_poewr, 0.f, 128.f);
+
             float att[3] = {scene.lights.light.constant_attenuation, scene.lights.light.linear_attenuation, scene.lights.light.quadratic_attenuation};
 
             if (::ImGui::SliderFloat3("attenuation", att, 0.f, 2.f))
