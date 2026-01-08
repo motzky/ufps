@@ -254,6 +254,10 @@ auto main(int argc, char **argv) -> int
             const auto diamond_floor_normal = ufps::load_texture(diamond_floor_normal_data);
             const auto diamond_floor_normal_texture = ufps::Texture{diamond_floor_normal, "diamond_floor_normal", sampler};
 
+            const auto diamond_floor_specular_data = resouce_loader.load_data_buffer("textures/diamond_floor_specular.png");
+            const auto diamond_floor_specular = ufps::load_texture(diamond_floor_specular_data);
+            const auto diamond_floor_specular_texture = ufps::Texture{diamond_floor_specular, "diamond_floor_specular", sampler};
+
             auto mesh_manager = ufps::MeshManager{};
             auto material_manager = ufps::MaterialManager{};
             auto renderer = ufps::Renderer{};
@@ -280,6 +284,7 @@ auto main(int argc, char **argv) -> int
                     1000.f},
                 .the_one_texture = diamond_floor_albedo_texture,
                 .the_one_normal_map = diamond_floor_normal_texture,
+                .the_one_specular_map = diamond_floor_specular_texture,
                 .lights = {
                     .ambient = {.r = .15f, .g = .15f, .b = .15f},
                     .light = {

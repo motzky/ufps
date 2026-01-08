@@ -16,6 +16,8 @@ namespace
         switch (format)
         {
             using enum ufps::TextureFormat;
+        case R:
+            return include_size ? GL_R8 : GL_RED;
         case RGB:
             return include_size ? GL_RGB8 : GL_RGB;
         case RGBA:

@@ -189,6 +189,7 @@ layout(binding = 4, std430) readonly buffer lights
 
 layout(location = 0, bindless_sampler) uniform sampler2D albedo_tex;
 layout(location = 1, bindless_sampler) uniform sampler2D normal_tex;
+layout(location = 2, bindless_sampler) uniform sampler2D specular_tex;
 
 layout(location = 0) in flat uint material_index;
 layout(location = 1) in vec2 uv;
@@ -206,7 +207,7 @@ vec3 get_color(uint index)
     );
 }
 
-vec3 calc_point(vec3 frag_pos, vec3 view_pos, vec3 n)
+vec3 calc_point(vec3 frag_pos, vec3 view_pos, vec3 n, vec2 uv)
 {
     vec3 pos = vec3(point_light_pos[0], point_light_pos[1], point_light_pos[2]);
     vec3 color = vec3(point_light_color[0], point_light_color[1], point_light_color[2]);
@@ -221,7 +222,7 @@ vec3 calc_point(vec3 frag_pos, vec3 view_pos, vec3 n)
     vec3 view_dir = normalize(view_pos - frag_pos);
     vec3 half_way = normalize(light_dir + view_dir);
     
-    float spec = pow(max(dot(n, half_way), 0.0), point_light_specular_power);
+    float spec = pow(max(dot(n, half_way), 0.0), point_light_specular_power) * texture(specular_tex, uv).r;
     
     return ((diff + spec) * att) * color;
 }
@@ -237,7 +238,7 @@ void main()
 
     vec3 albedo = texture(albedo_tex, uv_inv).rgb;
     vec3 ambient_col = vec3(ambient_color[0], ambient_color[1], ambient_color[2]);
-    vec3 point_col = calc_point(frag_position.xyz, vec3(camera_position[0],camera_position[1],camera_position[2]), n);
+    vec3 point_col = calc_point(frag_position.xyz, vec3(camera_position[0],camera_position[1],camera_position[2]), n, uv_inv);
 
     color = vec4(albedo * (ambient_col + point_col), 1.0);
 }
@@ -307,6 +308,7 @@ namespace ufps
 
         ::glProgramUniformHandleui64ARB(_program.native_handle(), 0, scene.the_one_texture.native_handle());
         ::glProgramUniformHandleui64ARB(_program.native_handle(), 1, scene.the_one_normal_map.native_handle());
+        ::glProgramUniformHandleui64ARB(_program.native_handle(), 2, scene.the_one_specular_map.native_handle());
 
         ::glMultiDrawElementsIndirect(GL_TRIANGLES,
                                       GL_UNSIGNED_INT,

@@ -73,6 +73,7 @@ namespace ufps
         Camera camera;
         const Texture &the_one_texture;
         const Texture &the_one_normal_map;
+        const Texture &the_one_specular_map;
         LightData lights;
     };
 }

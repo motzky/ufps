@@ -9,6 +9,7 @@ namespace ufps
 {
     enum class TextureFormat
     {
+        R,
         RGB,
         RGBA,
     };
@@ -26,6 +27,8 @@ namespace ufps
         switch (obj)
         {
             using enum TextureFormat;
+        case R:
+            return "R";
         case RGB:
             return "RGB";
         case RGBA:

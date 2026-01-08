@@ -18,10 +18,13 @@ namespace
     {
         switch (num_channels)
         {
+            using enum ufps::TextureFormat;
+        case 1:
+            return R;
         case 3:
-            return ufps::TextureFormat::RGB;
+            return RGB;
         case 4:
-            return ufps::TextureFormat::RGBA;
+            return RGBA;
         default:
             throw ufps::Exception("unsupported channel count: {}", num_channels);
         }
