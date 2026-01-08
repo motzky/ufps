@@ -207,7 +207,7 @@ vec3 get_color(uint index)
     );
 }
 
-vec3 calc_point(vec3 frag_pos, vec3 view_pos, vec3 n, vec2 uv)
+vec3 calc_point(vec3 frag_pos, vec3 view_pos, vec3 n)
 {
     vec3 pos = vec3(point_light_pos[0], point_light_pos[1], point_light_pos[2]);
     vec3 color = vec3(point_light_color[0], point_light_color[1], point_light_color[2]);
@@ -229,16 +229,13 @@ vec3 calc_point(vec3 frag_pos, vec3 view_pos, vec3 n, vec2 uv)
 
 void main()
 {
-    // need to flip V for textures...
-    // should better be done on CPU during texture loading
-    vec2 uv_inv = vec2(uv.x, -uv.y);
-    vec3 nm = texture(normal_tex, uv_inv).xyz;
+    vec3 nm = texture(normal_tex, uv).xyz;
     nm = (nm*2.0 - 1.0);
     vec3 n = normalize(tbn * nm);
 
-    vec3 albedo = texture(albedo_tex, uv_inv).rgb;
+    vec3 albedo = texture(albedo_tex, uv).rgb;
     vec3 ambient_col = vec3(ambient_color[0], ambient_color[1], ambient_color[2]);
-    vec3 point_col = calc_point(frag_position.xyz, vec3(camera_position[0],camera_position[1],camera_position[2]), n, uv_inv);
+    vec3 point_col = calc_point(frag_position.xyz, vec3(camera_position[0],camera_position[1],camera_position[2]), n);
 
     color = vec4(albedo * (ambient_col + point_col), 1.0);
 }
