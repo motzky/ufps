@@ -25,7 +25,6 @@ namespace ufps
         : _data{.view = Matrix4::look_at(position, look_at, up),
                 .projection = Matrix4::perspective(fov, width, height, near_plane, far_plane),
                 .position = position},
-          _position(position),
           _direction(look_at),
           _up(up),
           _right(),
@@ -44,8 +43,7 @@ namespace ufps
     Camera::Camera(float width, float height, float depth)
         : _data{.view = Matrix4::look_at({0.f, 0.f, 1.f}, {}, {0.f, 1.f, 0.f}),
                 .projection = Matrix4::orthographic(width, height, depth),
-                .position = {}},
-          _position{Vector3{0.f, 0.f, 1.f}},
+                .position = Vector3{0.f, 0.f, 1.f}},
           _direction{Vector3{0.f, 0.f, -1.f}},
           _up{Vector3{0.f, 1.f, 0.f}},
           _right{},
@@ -57,7 +55,6 @@ namespace ufps
           _near_plane(0.001f),
           _far_plane(depth)
     {
-        _data.position = _position;
     }
 
     auto Camera::direction() const -> Vector3
@@ -74,17 +71,17 @@ namespace ufps
     }
     auto Camera::position() const -> Vector3
     {
-        return _position;
+        return _data.position;
     }
 
     auto Camera::set_position(const Vector3 &position) -> void
     {
-        _position = position;
+        _data.position = position;
     }
 
     auto Camera::translate(const Vector3 &translation) -> void
     {
-        _position += translation;
+        _data.position += translation;
         _direction += translation;
     }
 
@@ -145,8 +142,6 @@ namespace ufps
         _right = Vector3::normalize(Vector3::cross(_direction, world_up));
         _up = Vector3::normalize(Vector3::cross(_right, _direction));
         recalculate_view();
-
-        _data.position = _position;
     }
 
     auto Camera::fov() const -> float
@@ -176,7 +171,7 @@ namespace ufps
 
     auto Camera::recalculate_view() -> void
     {
-        _data.view = Matrix4::look_at(_position, _position + _direction, _up);
+        _data.view = Matrix4::look_at(_data.position, _data.position + _direction, _up);
     }
 
     auto Camera::frustum_corners() const -> std::array<Vector3, 8u>
@@ -196,13 +191,13 @@ namespace ufps
         const auto right = Vector3::normalize(Vector3::cross(forward, _up));
         const auto up = Vector3::normalize(Vector3::cross(right, forward));
 
-        const auto near_center = _position + _direction * _near_plane;
+        const auto near_center = _data.position + _direction * _near_plane;
         corners[0] = near_center + up * (near_height / 2.0f) - right * (near_width / 2.0f);
         corners[1] = near_center + up * (near_height / 2.0f) + right * (near_width / 2.0f);
         corners[2] = near_center - up * (near_height / 2.0f) + right * (near_width / 2.0f);
         corners[3] = near_center - up * (near_height / 2.0f) - right * (near_width / 2.0f);
 
-        const auto far_center = _position + _direction * _far_plane;
+        const auto far_center = _data.position + _direction * _far_plane;
         corners[4] = far_center + up * (far_height / 2.0f) - right * (far_width / 2.0f);
         corners[5] = far_center + up * (far_height / 2.0f) + right * (far_width / 2.0f);
         corners[6] = far_center - up * (far_height / 2.0f) + right * (far_width / 2.0f);

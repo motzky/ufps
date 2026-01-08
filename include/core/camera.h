@@ -56,7 +56,6 @@ namespace ufps
 
     private:
         CameraData _data;
-        Vector3 _position;
         Vector3 _direction;
         Vector3 _up;
         Vector3 _right;
