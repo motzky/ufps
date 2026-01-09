@@ -3,6 +3,7 @@
 #include <array>
 #include <cstring>
 #include <format>
+#include <initializer_list>
 #include <ranges>
 #include <span>
 
@@ -33,9 +34,21 @@ namespace ufps
         {
         }
 
+        constexpr explicit Matrix3(std::initializer_list<float> il)
+            : Matrix3(std::span<const float>{std::move(il)})
+        {
+        }
+
         constexpr Matrix3(const std::array<float, 9u> &elements)
             : _elements{elements}
         {
+        }
+
+        constexpr explicit Matrix3(const std::span<const float> &elements)
+            : Matrix3{}
+        {
+            ensure(elements.size() == 9u, "require exactly 9 elements");
+            std::ranges::copy(elements, std::ranges::begin(_elements));
         }
 
         constexpr Matrix3(const Vector3 &v1, const Vector3 &v2, const Vector3 &v3)
@@ -44,13 +57,6 @@ namespace ufps
                    v2.x, v2.y, v2.z,
                    v3.x, v3.y, v3.z})
         {
-        }
-
-        Matrix3(const std::span<const float> &elements)
-            : Matrix3{}
-        {
-            ensure(elements.size() == 9u, "not enough elements");
-            std::memcpy(_elements.data(), elements.data(), elements.size_bytes());
         }
 
         constexpr auto data() const -> std::span<const float>

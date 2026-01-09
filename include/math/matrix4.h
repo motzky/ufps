@@ -3,6 +3,7 @@
 #include <array>
 #include <cstring>
 #include <format>
+#include <initializer_list>
 #include <ranges>
 #include <span>
 
@@ -37,6 +38,11 @@ namespace ufps
                          0.f,
                          0.f,
                          1.f})
+        {
+        }
+
+        constexpr explicit Matrix4(std::initializer_list<float> il)
+            : Matrix4{std::span<const float>{std::move(il)}}
         {
         }
 

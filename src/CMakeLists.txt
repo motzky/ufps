@@ -78,8 +78,8 @@ target_include_directories(ufpslib PUBLIC ${stb_lib_SOURCE_DIR})
 # target_include_directories(ufpslib PUBLIC ${freetype_SOURCE_DIR}/include)
 # endif()
 
-target_compile_features(ufpslib PUBLIC cxx_std_23)
-target_compile_features(ufps PUBLIC cxx_std_23)
+target_compile_features(ufpslib PUBLIC cxx_std_26)
+target_compile_features(ufps PUBLIC cxx_std_26)
 
 if(MSVC)
 target_include_directories(ufpslib PUBLIC third_party)
