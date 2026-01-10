@@ -21,11 +21,15 @@ namespace
 {
 
     constexpr const char sample_vertex_shader[] = {
+#ifndef __INTELLISENSE__
 #embed "../../assets/shaders/simple.vert" suffix(, )
+#endif
         0};
 
     constexpr const char sample_fragment_shader[] = {
+#ifndef __INTELLISENSE__
 #embed "../../assets/shaders/simple.frag" suffix(, )
+#endif
         0};
 
     auto create_program() -> ufps::Program
