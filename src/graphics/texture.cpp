@@ -49,7 +49,10 @@ namespace ufps
 
     Texture::~Texture()
     {
-        ::glMakeTextureHandleNonResitentARB(_bindless_handle);
+        if (_handle)
+        {
+            ::glMakeTextureHandleNonResitentARB(_bindless_handle);
+        }
     }
 
     auto Texture::native_handle() const -> ::GLuint64
