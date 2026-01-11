@@ -51,12 +51,11 @@ namespace ufps
         {
         }
 
-        constexpr explicit Matrix4(const std::span<const float> &elements)
+        constexpr explicit Matrix4(std::span<const float> elements)
             : Matrix4{}
         {
             ensure(elements.size() == 16u, "not enough elements");
             std::ranges::copy(elements, std::ranges::begin(_elements));
-            // std::memcpy(_elements.data(), elements.data(), elements.size_bytes());
         }
 
         constexpr Matrix4(const Vector3 &translation)

@@ -44,7 +44,7 @@ namespace ufps
         {
         }
 
-        constexpr explicit Matrix3(const std::span<const float> &elements)
+        constexpr explicit Matrix3(const std::span<const float> elements)
             : Matrix3{}
         {
             ensure(elements.size() == 9u, "require exactly 9 elements");
