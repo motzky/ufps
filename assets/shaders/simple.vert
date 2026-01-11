@@ -18,6 +18,9 @@ struct ObjectData
 struct MaterialData
 {
     float color[3];
+    uint albedo_index;
+    uint normal_index;
+    uint specular_index;
 };
 
 layout(binding = 0, std430) readonly buffer vertices

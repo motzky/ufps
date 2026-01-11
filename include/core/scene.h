@@ -10,7 +10,7 @@
 #include "graphics/material_manager.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/point_light.h"
-#include "graphics/texture.h"
+#include "graphics/texture_manager.h"
 #include "math/ray.h"
 #include "math/utils.h"
 #include "math/vector4.h"
@@ -70,10 +70,8 @@ namespace ufps
         std::vector<Entity> entities;
         MeshManager &mesh_manager;
         MaterialManager &material_manager;
+        TextureManager &texture_manager;
         Camera camera;
-        const Texture &the_one_texture;
-        const Texture &the_one_normal_map;
-        const Texture &the_one_specular_map;
         LightData lights;
     };
 }

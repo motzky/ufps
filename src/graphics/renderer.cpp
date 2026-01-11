@@ -82,9 +82,7 @@ namespace ufps
         _light_buffer.write(std::as_bytes(std::span<const LightData>{&scene.lights, 1zu}), 0zu);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, _light_buffer.native_handle());
 
-        ::glProgramUniformHandleui64ARB(_program.native_handle(), 0, scene.the_one_texture.native_handle());
-        ::glProgramUniformHandleui64ARB(_program.native_handle(), 1, scene.the_one_normal_map.native_handle());
-        ::glProgramUniformHandleui64ARB(_program.native_handle(), 2, scene.the_one_specular_map.native_handle());
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, scene.texture_manager.native_handle());
 
         ::glMultiDrawElementsIndirect(GL_TRIANGLES,
                                       GL_UNSIGNED_INT,

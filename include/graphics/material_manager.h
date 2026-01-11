@@ -48,6 +48,9 @@ namespace ufps
     struct MaterialData
     {
         Color color;
+        std::uint32_t albedo_texture_index;
+        std::uint32_t normal_texture_index;
+        std::uint32_t specular_texture_index;
     };
 
     class MaterialManager
@@ -65,7 +68,7 @@ namespace ufps
             static auto key_num = 0u;
             const auto key = MaterialKey{key_num++};
 
-            _material_data_cpu.emplace(key, std::forward<Args>(args)...);
+            _material_data_cpu.emplace(key, MaterialData{std::forward<Args>(args)...});
             resize_gpu_buffer(data(), _material_data_gpu, "material_manager_buffer");
 
             return key;

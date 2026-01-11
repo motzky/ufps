@@ -25,6 +25,7 @@
 #include "graphics/renderer.h"
 #include "graphics/sampler.h"
 #include "graphics/texture.h"
+#include "graphics/texture_manager.h"
 #include "graphics/vertex_data.h"
 #include "log.h"
 #include "resources/embedded_resource_loader.h"
@@ -245,36 +246,43 @@ auto main(int argc, char **argv) -> int
             auto window = ufps::Window{1920u, 1080u, 0u, 0u};
             auto running = true;
 
-            std::unique_ptr<ufps::ResourceLoader> resource_loader = std::make_unique<ufps::EmbeddedResourceLoader>();
             const auto sampler = ufps::Sampler{ufps::FilterType::LINEAR, ufps::FilterType::LINEAR, "sampler"};
+
+            std::unique_ptr<ufps::ResourceLoader> resource_loader = std::make_unique<ufps::EmbeddedResourceLoader>();
+            auto textures = std::vector<ufps::Texture>{};
 
             const auto diamond_floor_albedo_data = resource_loader->load_data_buffer("textures/diamond_floor_albedo.png");
             const auto diamond_floor_albedo = ufps::load_texture(diamond_floor_albedo_data);
-            const auto diamond_floor_albedo_texture = ufps::Texture{diamond_floor_albedo, "diamond_floor_albedo", sampler};
+            textures.push_back(ufps::Texture{diamond_floor_albedo, "diamond_floor_albedo", sampler});
 
             const auto diamond_floor_normal_data = resource_loader->load_data_buffer("textures/diamond_floor_normal.png");
             const auto diamond_floor_normal = ufps::load_texture(diamond_floor_normal_data);
-            const auto diamond_floor_normal_texture = ufps::Texture{diamond_floor_normal, "diamond_floor_normal", sampler};
+            textures.push_back(ufps::Texture{diamond_floor_normal, "diamond_floor_normal", sampler});
 
             const auto diamond_floor_specular_data = resource_loader->load_data_buffer("textures/diamond_floor_specular.png");
             const auto diamond_floor_specular = ufps::load_texture(diamond_floor_specular_data);
-            const auto diamond_floor_specular_texture = ufps::Texture{diamond_floor_specular, "diamond_floor_specular", sampler};
+            textures.push_back(ufps::Texture{diamond_floor_specular, "diamond_floor_specular", sampler});
 
             auto mesh_manager = ufps::MeshManager{};
             auto material_manager = ufps::MaterialManager{};
+            auto texture_manager = ufps::TextureManager{};
+
+            const auto tex_index = texture_manager.add(std::move(textures));
+
             auto renderer = ufps::Renderer{*resource_loader};
             auto debug_ui = ufps::DebugUI{window};
             auto show_debug_ui = false;
 
-            [[maybe_unused]] const auto material_key_r = material_manager.add(ufps::Color{1.0f, 0.f, 0.f});
-            [[maybe_unused]] const auto material_key_g = material_manager.add(ufps::Color{0.0f, 1.f, 0.f});
-            [[maybe_unused]] const auto material_key_b = material_manager.add(ufps::Color{0.0f, 0.f, 1.f});
+            [[maybe_unused]] const auto material_key_r = material_manager.add(ufps::Color{1.0f, 0.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u);
+            [[maybe_unused]] const auto material_key_g = material_manager.add(ufps::Color{0.0f, 1.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u);
+            [[maybe_unused]] const auto material_key_b = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, tex_index, tex_index + 1u, tex_index + 2u);
             material_manager.remove(material_key_b);
 
             auto scene = ufps::Scene{
                 .entities = {},
                 .mesh_manager = mesh_manager,
                 .material_manager = material_manager,
+                .texture_manager = texture_manager,
                 .camera = {
                     {},
                     {0.f, 0.f, -1.f},
@@ -284,9 +292,6 @@ auto main(int argc, char **argv) -> int
                     static_cast<float>(window.height()),
                     0.01f,
                     1000.f},
-                .the_one_texture = diamond_floor_albedo_texture,
-                .the_one_normal_map = diamond_floor_normal_texture,
-                .the_one_specular_map = diamond_floor_specular_texture,
                 .lights = {
                     .ambient = {.r = .15f, .g = .15f, .b = .15f},
                     .light = {
