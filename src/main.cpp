@@ -243,7 +243,7 @@ auto main(int argc, char **argv) -> int
             auto window = ufps::Window{1920u, 1080u, 0u, 0u};
             auto running = true;
 
-            auto resouce_loader = ufps::FileResrouceLoader{"assets"};
+            auto resouce_loader = ufps::FileResourceLoader{"assets"};
             const auto sampler = ufps::Sampler{ufps::FilterType::LINEAR, ufps::FilterType::LINEAR, "sampler"};
 
             const auto diamond_floor_albedo_data = resouce_loader.load_data_buffer("textures/diamond_floor_albedo.png");

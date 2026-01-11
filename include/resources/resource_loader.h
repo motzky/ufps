@@ -7,10 +7,10 @@
 
 namespace ufps
 {
-    class ResrouceLoader
+    class ResourceLoader
     {
     public:
-        virtual ~ResrouceLoader() = default;
+        virtual ~ResourceLoader() = default;
 
         virtual auto load_string(std::string_view name) -> std::string = 0;
         virtual auto load_data_buffer(std::string_view name) -> DataBuffer = 0;

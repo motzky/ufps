@@ -9,11 +9,11 @@
 
 namespace ufps
 {
-    class FileResrouceLoader : public ResrouceLoader
+    class FileResourceLoader : public ResourceLoader
     {
     public:
-        FileResrouceLoader(const std::filesystem::path &root);
-        ~FileResrouceLoader() override = default;
+        FileResourceLoader(const std::filesystem::path &root);
+        ~FileResourceLoader() override = default;
 
         auto load_string(std::string_view name) -> std::string override;
         auto load_data_buffer(std::string_view name) -> DataBuffer override;

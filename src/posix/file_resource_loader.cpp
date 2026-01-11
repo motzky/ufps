@@ -11,12 +11,12 @@
 namespace ufps
 {
 
-    FileResrouceLoader::FileResrouceLoader(const std::filesystem::path &root)
+    FileResourceLoader::FileResourceLoader(const std::filesystem::path &root)
         : _root{root}
     {
     }
 
-    auto FileResrouceLoader::load_string(std::string_view name) -> std::string
+    auto FileResourceLoader::load_string(std::string_view name) -> std::string
     {
         auto file = File{_root / name};
 
@@ -25,7 +25,7 @@ namespace ufps
         return {str_view.data(), str_view.length()};
     }
 
-    auto FileResrouceLoader::load_data_buffer(std::string_view name) -> DataBuffer
+    auto FileResourceLoader::load_data_buffer(std::string_view name) -> DataBuffer
     {
         auto file = File{_root / name};
 
