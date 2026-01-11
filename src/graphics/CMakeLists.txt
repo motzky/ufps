@@ -13,6 +13,7 @@ target_sources(ufpslib PUBLIC
     shader.cpp
     # shape_wireframe_renderer.cpp
     # text_factory.cpp
+    texture_manager.cpp
     sampler.cpp
     texture.cpp
     utils.cpp
