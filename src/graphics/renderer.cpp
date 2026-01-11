@@ -13,29 +13,17 @@
 #include "graphics/program.h"
 #include "graphics/shader.h"
 #include "graphics/utils.h"
+#include "resources/resource_loader.h"
 #include "utils/auto_release.h"
 
 using namespace std::literals;
 
 namespace
 {
-
-    constexpr const char sample_vertex_shader[] = {
-#ifndef __INTELLISENSE__
-#embed "../../assets/shaders/simple.vert" suffix(, )
-#endif
-        0};
-
-    constexpr const char sample_fragment_shader[] = {
-#ifndef __INTELLISENSE__
-#embed "../../assets/shaders/simple.frag" suffix(, )
-#endif
-        0};
-
-    auto create_program() -> ufps::Program
+    auto create_program(ufps::ResourceLoader &resource_loader) -> ufps::Program
     {
-        const auto sample_vert = ufps::Shader{sample_vertex_shader, ufps::ShaderType::VERTEX, "sample_vertex_shader"sv};
-        const auto sample_frag = ufps::Shader{sample_fragment_shader, ufps::ShaderType::FRAGMENT, "sample_fragement_shader"sv};
+        const auto sample_vert = ufps::Shader{resource_loader.load_string("shaders/simple.vert"sv), ufps::ShaderType::VERTEX, "sample_vertex_shader"sv};
+        const auto sample_frag = ufps::Shader{resource_loader.load_string("shaders/simple.frag"sv), ufps::ShaderType::FRAGMENT, "sample_fragement_shader"sv};
 
         return ufps::Program{sample_vert, sample_frag, "sample_program"sv};
     }
@@ -44,14 +32,14 @@ namespace
 
 namespace ufps
 {
-    Renderer::Renderer()
+    Renderer::Renderer(ResourceLoader &resource_loader)
         : _dummy_vao{0u, [](auto e)
                      { ::glDeleteBuffers(1, &e); }},
           _command_buffer{},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},
           _light_buffer{sizeof(LightData), "light_buffer"},
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},
-          _program{create_program()}
+          _program{create_program(resource_loader)}
     {
         ::glGenVertexArrays(1u, &_dummy_vao);
 

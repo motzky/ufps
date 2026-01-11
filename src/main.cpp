@@ -1,4 +1,5 @@
 #include <iostream>
+#include <memory>
 #include <numbers>
 #include <print>
 #include <ranges>
@@ -26,6 +27,7 @@
 #include "graphics/texture.h"
 #include "graphics/vertex_data.h"
 #include "log.h"
+#include "resources/embedded_resource_loader.h"
 #include "resources/file_resource_loader.h"
 #include "utils/data_buffer.h"
 #include "utils/exception.h"
@@ -243,24 +245,24 @@ auto main(int argc, char **argv) -> int
             auto window = ufps::Window{1920u, 1080u, 0u, 0u};
             auto running = true;
 
-            auto resouce_loader = ufps::FileResourceLoader{"assets"};
+            std::unique_ptr<ufps::ResourceLoader> resource_loader = std::make_unique<ufps::EmbeddedResourceLoader>();
             const auto sampler = ufps::Sampler{ufps::FilterType::LINEAR, ufps::FilterType::LINEAR, "sampler"};
 
-            const auto diamond_floor_albedo_data = resouce_loader.load_data_buffer("textures/diamond_floor_albedo.png");
+            const auto diamond_floor_albedo_data = resource_loader->load_data_buffer("textures/diamond_floor_albedo.png");
             const auto diamond_floor_albedo = ufps::load_texture(diamond_floor_albedo_data);
             const auto diamond_floor_albedo_texture = ufps::Texture{diamond_floor_albedo, "diamond_floor_albedo", sampler};
 
-            const auto diamond_floor_normal_data = resouce_loader.load_data_buffer("textures/diamond_floor_normal.png");
+            const auto diamond_floor_normal_data = resource_loader->load_data_buffer("textures/diamond_floor_normal.png");
             const auto diamond_floor_normal = ufps::load_texture(diamond_floor_normal_data);
             const auto diamond_floor_normal_texture = ufps::Texture{diamond_floor_normal, "diamond_floor_normal", sampler};
 
-            const auto diamond_floor_specular_data = resouce_loader.load_data_buffer("textures/diamond_floor_specular.png");
+            const auto diamond_floor_specular_data = resource_loader->load_data_buffer("textures/diamond_floor_specular.png");
             const auto diamond_floor_specular = ufps::load_texture(diamond_floor_specular_data);
             const auto diamond_floor_specular_texture = ufps::Texture{diamond_floor_specular, "diamond_floor_specular", sampler};
 
             auto mesh_manager = ufps::MeshManager{};
             auto material_manager = ufps::MaterialManager{};
-            auto renderer = ufps::Renderer{};
+            auto renderer = ufps::Renderer{*resource_loader};
             auto debug_ui = ufps::DebugUI{window};
             auto show_debug_ui = false;
 
