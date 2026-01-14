@@ -4,7 +4,7 @@ target_sources(ufpslib PUBLIC
     # camera.cpp
     # cube_map.cpp
     debug_ui.cpp
-    # frame_buffer.cpp
+    frame_buffer.cpp
     # material.cpp
     mesh_manager.cpp    
     persistent_buffer.cpp
