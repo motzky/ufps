@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <ranges>
 #include <span>
+#include <vector>
 
 #include "graphics/opengl.h"
 #include "graphics/texture.h"
@@ -12,11 +13,12 @@
 
 namespace ufps
 {
-    FrameBuffer::FrameBuffer(std::span<const Texture *> color_textures, const Texture *depth_texture)
+    FrameBuffer::FrameBuffer(std::vector<const Texture *> color_textures, const Texture *depth_texture, const std::string &name)
         : _handle{0u, [](const auto buffer)
                   { ::glDeleteFramebuffers(1, &buffer); }},
           _color_textures{color_textures},
-          _depth_texture{depth_texture}
+          _depth_texture{depth_texture},
+          _name{name}
     {
         expect(!color_textures.empty(), "must have at least one color texture");
         expect(color_textures.size() < 10u, "only 10 color textures are supported");
@@ -26,6 +28,8 @@ namespace ufps
         expect(depth_texture != nullptr, "must have a depth texture");
 
         ::glCreateFramebuffers(1, &_handle);
+
+        ::glObjectLabel(GL_FRAMEBUFFER, _handle, name.length(), name.data());
 
         for (const auto &[index, tex] : std::views::enumerate(_color_textures))
         {
@@ -50,6 +54,11 @@ namespace ufps
         return _handle;
     }
 
+    auto FrameBuffer::name() const -> std::string
+    {
+        return _name;
+    }
+
     auto FrameBuffer::bind() const -> void
     {
         ::glBindFramebuffer(GL_FRAMEBUFFER, _handle);
@@ -62,15 +71,15 @@ namespace ufps
 
     auto FrameBuffer::width() const -> std::uint32_t
     {
-        return _color_textures[0]->width();
+        return _color_textures.front()->width();
     }
 
     auto FrameBuffer::height() const -> std::uint32_t
     {
-        return _color_textures[0]->height();
+        return _color_textures.front()->height();
     }
 
-    auto FrameBuffer::color_textures() const -> std::span<const Texture *>
+    auto FrameBuffer::color_textures() const -> std::span<const Texture *const>
     {
         return _color_textures;
     }
