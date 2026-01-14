@@ -35,7 +35,9 @@ namespace ufps
         : _handle{0u, [](auto texture)
                   { ::glDeleteTextures(1u, &texture); }},
           _bindless_handle{},
-          _name{name}
+          _name{name},
+          _width{texture.width},
+          _height{texture.height}
     {
         ::glCreateTextures(GL_TEXTURE_2D, 1, &_handle);
         ::glObjectLabel(GL_TEXTURE, _handle, name.length(), name.data());
@@ -64,4 +66,14 @@ namespace ufps
     {
         return _name;
     }
+
+    auto Texture::width() const -> std::uint32_t
+    {
+        return _width;
+    }
+    auto Texture::height() const -> std::uint32_t
+    {
+        return _height;
+    }
+
 }

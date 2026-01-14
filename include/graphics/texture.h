@@ -21,9 +21,14 @@ namespace ufps
 
         auto name() const -> std::string;
 
+        auto width() const -> std::uint32_t;
+        auto height() const -> std::uint32_t;
+
     private:
         AutoRelease<::GLuint> _handle;
         ::GLuint64 _bindless_handle;
         std::string _name;
+        std::uint32_t _width;
+        std::uint32_t _height;
     };
 }
