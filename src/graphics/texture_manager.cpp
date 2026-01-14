@@ -9,6 +9,7 @@
 #include "graphics/opengl.h"
 #include "graphics/texture.h"
 #include "graphics/utils.h"
+#include "utils/ensure.h"
 
 using namespace std::literals;
 
@@ -59,4 +60,21 @@ namespace ufps
         return _gpu_buffer.native_handle();
     }
 
+    auto TextureManager::texture(const std::uint32_t index) const -> const Texture *
+    {
+        expect(index <= _textures.size(), "index out of range");
+
+        return std::addressof(_textures[index]);
+    }
+
+    auto TextureManager::textures(const std::vector<std::uint32_t> &indices) const -> std::vector<const Texture *>
+    {
+
+        return indices |
+               std::views::transform([this](auto i)
+                                     { 
+                                        expect(i <= _textures.size(), "index out of range");
+                                        return std::addressof(_textures[i]); }) |
+               std::ranges::to<std::vector>();
+    }
 }

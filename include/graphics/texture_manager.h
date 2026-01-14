@@ -19,6 +19,9 @@ namespace ufps
 
         auto native_handle() -> ::GLuint;
 
+        auto texture(const std::uint32_t indiex) const -> const Texture *;
+        auto textures(const std::vector<std::uint32_t> &indices) const -> std::vector<const Texture *>;
+
     private:
         Buffer _gpu_buffer;
         std::vector<::GLuint64> _cpu_buffer;
