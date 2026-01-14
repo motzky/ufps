@@ -269,7 +269,7 @@ auto main(int argc, char **argv) -> int
 
             const auto tex_index = texture_manager.add(std::move(textures));
 
-            auto renderer = ufps::Renderer{*resource_loader};
+            auto renderer = ufps::Renderer{window.width(), window.height(), *resource_loader, texture_manager};
             auto debug_ui = ufps::DebugUI{window};
             auto show_debug_ui = false;
 
@@ -391,7 +391,6 @@ auto main(int argc, char **argv) -> int
                 scene.camera.translate(walk_direction(key_state, scene.camera));
                 scene.camera.update();
 
-                ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 renderer.render(scene);
                 if (show_debug_ui)
                 {

@@ -1,5 +1,6 @@
 #include "graphics/renderer.h"
 
+#include <optional>
 #include <ranges>
 #include <span>
 #include <string_view>
@@ -12,6 +13,9 @@
 #include "graphics/point_light.h"
 #include "graphics/program.h"
 #include "graphics/shader.h"
+#include "graphics/texture.h"
+#include "graphics/texture_data.h"
+#include "graphics/texture_manager.h"
 #include "graphics/utils.h"
 #include "resources/resource_loader.h"
 #include "utils/auto_release.h"
@@ -28,21 +32,48 @@ namespace
         return ufps::Program{sample_vert, sample_frag, "sample_program"sv};
     }
 
+    auto create_frame_buffer(std::uint32_t width, std::uint32_t height, ufps::Sampler &sampler, ufps::TextureManager &texture_manager) -> ufps::FrameBuffer
+    {
+        const auto fb_texture_data = ufps::TextureData{
+            .width = width,
+            .height = height,
+            .format = ufps::TextureFormat::RGB16F,
+            .data = std::nullopt,
+        };
+
+        auto fb_texture = ufps::Texture{fb_texture_data, "fb_texture", sampler};
+        const auto fb_texture_index = texture_manager.add(std::move(fb_texture));
+
+        const auto depth_texture_data = ufps::TextureData{
+            .width = width,
+            .height = height,
+            .format = ufps::TextureFormat::DEPTH24,
+            .data = std::nullopt,
+        };
+
+        auto depth_texture = ufps::Texture{depth_texture_data, "depth_texture", sampler};
+        const auto depth_texture_index = texture_manager.add(std::move(depth_texture));
+
+        return {texture_manager.textures({fb_texture_index}), texture_manager.texture(depth_texture_index), "main_frame_buffer"};
+    }
+
 }
 
 namespace ufps
 {
-    Renderer::Renderer(ResourceLoader &resource_loader)
+    Renderer::Renderer(std::uint32_t width, std::uint32_t height, ResourceLoader &resource_loader, TextureManager &texture_manager)
         : _dummy_vao{0u, [](auto e)
                      { ::glDeleteBuffers(1, &e); }},
           _command_buffer{},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},
           _light_buffer{sizeof(LightData), "light_buffer"},
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},
-          _program{create_program(resource_loader)}
+          _program{create_program(resource_loader)},
+          _fb_sampler{FilterType::NEAREST, FilterType::LINEAR, "fb_sampler"},
+          _fb{create_frame_buffer(width, height, _fb_sampler, texture_manager)}
     {
-        ::glGenVertexArrays(1u, &_dummy_vao);
 
+        ::glGenVertexArrays(1u, &_dummy_vao);
         ::glBindVertexArray(_dummy_vao);
 
         _program.use();
@@ -50,6 +81,9 @@ namespace ufps
 
     auto Renderer::render(const Scene &scene) -> void
     {
+        _fb.bind();
+        ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         _camera_buffer.write(scene.camera.data_view(), 0zu);
 
         const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager.native_handle();
@@ -95,5 +129,21 @@ namespace ufps
         _light_buffer.advance();
         _object_data_buffer.advance();
         scene.material_manager.advance();
+
+        _fb.unbind();
+
+        ::glBlitNamedFramebuffer(
+            _fb.native_handle(),
+            0u,
+            0u,
+            0u,
+            _fb.width(),
+            _fb.height(),
+            0u,
+            0u,
+            _fb.width(),
+            _fb.height(),
+            GL_COLOR_BUFFER_BIT,
+            GL_NEAREST);
     }
 }
