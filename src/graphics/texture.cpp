@@ -22,6 +22,10 @@ namespace
             return include_size ? GL_RGB8 : GL_RGB;
         case RGBA:
             return include_size ? GL_RGBA8 : GL_RGB;
+        case RGB16F:
+            return GL_RGB16F;
+        case DEPTH24:
+            return GL_DEPTH_COMPONENT24;
 
         default:
             throw ufps::Exception("unknown texture format: {}", format);
@@ -43,7 +47,10 @@ namespace ufps
         ::glObjectLabel(GL_TEXTURE, _handle, name.length(), name.data());
 
         ::glTextureStorage2D(_handle, 1, to_opengl(texture.format, true), texture.width, texture.height);
-        ::glTextureSubImage2D(_handle, 0, 0, 0, texture.width, texture.height, to_opengl(texture.format, false), GL_UNSIGNED_BYTE, texture.data.data());
+        if (const auto &data = texture.data; data)
+        {
+            ::glTextureSubImage2D(_handle, 0, 0, 0, texture.width, texture.height, to_opengl(texture.format, false), GL_UNSIGNED_BYTE, data->data());
+        }
 
         _bindless_handle = ::glGetTextureSamplerHandleARB(_handle, sampler.native_handle());
         ::glMakeTextureHandleResitentARB(_bindless_handle);
