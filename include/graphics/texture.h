@@ -17,7 +17,8 @@ namespace ufps
         Texture(Texture &&) = default;
         auto operator=(Texture &&) -> Texture & = default;
 
-        auto native_handle() const -> ::GLuint64;
+        auto bindless_handle() const -> ::GLuint64;
+        auto native_handle() const -> ::GLuint;
 
         auto name() const -> std::string;
 

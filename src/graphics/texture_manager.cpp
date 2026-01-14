@@ -27,7 +27,7 @@ namespace ufps
 
         auto &new_tex = _textures.emplace_back(std::move(texture));
 
-        _cpu_buffer.push_back(new_tex.native_handle());
+        _cpu_buffer.push_back(new_tex.bindless_handle());
 
         resize_gpu_buffer(_cpu_buffer, _gpu_buffer, "bindless_textures"sv);
 
@@ -44,7 +44,7 @@ namespace ufps
 
         _cpu_buffer = _textures |
                       std::views::transform([](auto &e)
-                                            { return e.native_handle(); }) |
+                                            { return e.bindless_handle(); }) |
                       std::ranges::to<std::vector>();
 
         resize_gpu_buffer(_cpu_buffer, _gpu_buffer, "bindless_textures"sv);

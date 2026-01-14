@@ -57,7 +57,12 @@ namespace ufps
         }
     }
 
-    auto Texture::native_handle() const -> ::GLuint64
+    auto Texture::bindless_handle() const -> ::GLuint64
+    {
+        return _bindless_handle;
+    }
+
+    auto Texture::native_handle() const -> ::GLuint
     {
         return _handle;
     }
