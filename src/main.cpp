@@ -26,6 +26,7 @@
 #include "graphics/sampler.h"
 #include "graphics/texture.h"
 #include "graphics/texture_manager.h"
+#include "graphics/utils.h"
 #include "graphics/vertex_data.h"
 #include "log.h"
 #include "resources/embedded_resource_loader.h"
@@ -38,16 +39,6 @@ using namespace std::literals;
 
 namespace
 {
-    template <class... Args>
-    auto vertices(Args &&...args) -> std::vector<ufps::VertexData>
-    {
-        return std::views::zip_transform(
-                   []<class... A>(A &&...a)
-                   { return ufps::VertexData{std::forward<A>(a)...}; },
-                   std::forward<Args>(args)...) |
-               std::ranges::to<std::vector>();
-    }
-
     auto cube() -> ufps::MeshData
     {
         const ufps::Vector3 positions[] = {

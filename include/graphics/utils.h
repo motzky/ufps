@@ -2,11 +2,13 @@
 
 #include <concepts>
 #include <cstddef>
+#include <ranges>
 #include <string_view>
 #include <vector>
 
 #include "graphics/opengl.h"
 #include "graphics/texture_data.h"
+#include "graphics/vertex_data.h"
 #include "log.h"
 
 namespace ufps
@@ -38,4 +40,15 @@ namespace ufps
     }
 
     auto load_texture(DataBufferView image_data) -> TextureData;
+
+    template <class... Args>
+    auto vertices(Args &&...args) -> std::vector<ufps::VertexData>
+    {
+        return std::views::zip_transform(
+                   []<class... A>(A &&...a)
+                   { return ufps::VertexData{std::forward<A>(a)...}; },
+                   std::forward<Args>(args)...) |
+               std::ranges::to<std::vector>();
+    }
+
 }
