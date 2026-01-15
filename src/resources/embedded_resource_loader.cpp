@@ -9,7 +9,7 @@
 
 namespace
 {
-    constexpr const std::uint8_t sample_vertex_shader[] = {
+    constexpr const std::uint8_t simple_vertex_shader[] = {
 #ifndef __INTELLISENSE__
 #embed "../../assets/shaders/simple.vert"
 #else
@@ -17,9 +17,25 @@ namespace
 #endif
     };
 
-    constexpr const std::uint8_t sample_fragment_shader[] = {
+    constexpr const std::uint8_t simple_fragment_shader[] = {
 #ifndef __INTELLISENSE__
 #embed "../../assets/shaders/simple.frag"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t light_pass_vertex_shader[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/shaders/light_pass.vert"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t light_pass_fragment_shader[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/shaders/light_pass.frag"
 #else
         0
 #endif
@@ -64,8 +80,10 @@ namespace ufps
     EmbeddedResourceLoader::EmbeddedResourceLoader()
     {
         _lookup = {
-            {"shaders/simple.vert", sample_vertex_shader},
-            {"shaders/simple.frag", sample_fragment_shader},
+            {"shaders/simple.vert", simple_vertex_shader},
+            {"shaders/simple.frag", simple_fragment_shader},
+            {"shaders/light_pass.vert", light_pass_vertex_shader},
+            {"shaders/light_pass.frag", light_pass_fragment_shader},
             {"textures/diamond_floor_albedo.png", diamond_floor_albedo},
             {"textures/diamond_floor_normal.png", diamond_floor_normal},
             {"textures/diamond_floor_specular.png", diamond_floor_specular},
