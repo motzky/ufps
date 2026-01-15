@@ -8,6 +8,7 @@
 #include "core/camera.h"
 #include "core/scene.h"
 #include "graphics/command_buffer.h"
+#include "graphics/mesh_manager.h"
 #include "graphics/object_data.h"
 #include "graphics/opengl.h"
 #include "graphics/point_light.h"
@@ -24,15 +25,21 @@ using namespace std::literals;
 
 namespace
 {
-    auto create_program(ufps::ResourceLoader &resource_loader) -> ufps::Program
+    auto create_program(
+        ufps::ResourceLoader &resource_loader,
+        std::string_view program_name,
+        std::string_view vertex_path,
+        std::string_view vertex_name,
+        std::string_view fragment_path,
+        std::string_view fragment_name) -> ufps::Program
     {
-        const auto sample_vert = ufps::Shader{resource_loader.load_string("shaders/simple.vert"sv), ufps::ShaderType::VERTEX, "sample_vertex_shader"sv};
-        const auto sample_frag = ufps::Shader{resource_loader.load_string("shaders/simple.frag"sv), ufps::ShaderType::FRAGMENT, "sample_fragement_shader"sv};
+        const auto sample_vert = ufps::Shader{resource_loader.load_string(vertex_path), ufps::ShaderType::VERTEX, vertex_name};
+        const auto sample_frag = ufps::Shader{resource_loader.load_string(fragment_path), ufps::ShaderType::FRAGMENT, fragment_name};
 
-        return ufps::Program{sample_vert, sample_frag, "sample_program"sv};
+        return ufps::Program{sample_vert, sample_frag, program_name};
     }
 
-    auto create_frame_buffer(std::uint32_t width, std::uint32_t height, ufps::Sampler &sampler, ufps::TextureManager &texture_manager) -> ufps::FrameBuffer
+    auto create_frame_buffer(std::uint32_t width, std::uint32_t height, ufps::Sampler &sampler, ufps::TextureManager &texture_manager, std::uint32_t &fb_texture_index) -> ufps::FrameBuffer
     {
         const auto fb_texture_data = ufps::TextureData{
             .width = width,
@@ -42,7 +49,7 @@ namespace
         };
 
         auto fb_texture = ufps::Texture{fb_texture_data, "fb_texture", sampler};
-        const auto fb_texture_index = texture_manager.add(std::move(fb_texture));
+        fb_texture_index = texture_manager.add(std::move(fb_texture));
 
         const auto depth_texture_data = ufps::TextureData{
             .width = width,
@@ -57,32 +64,70 @@ namespace
         return {texture_manager.textures({fb_texture_index}), texture_manager.texture(depth_texture_index), "main_frame_buffer"};
     }
 
+    auto sprite() -> ufps::MeshData
+    {
+        const ufps::Vector3 positions[] = {
+            {-1.f, -1.f, 0.f},
+            {1.f, -1.f, 0.f},
+            {1.f, 1.f, 0.f},
+            {-1.f, 1.f, 0.f},
+        };
+
+        const ufps::UV uvs[] = {
+            {0.0f, 0.0f},
+            {1.0f, 0.0f},
+            {1.0f, 1.0f},
+            {0.0f, 1.0f},
+        };
+
+        auto indices = std::vector<std::uint32_t>{0, 1, 2, 2, 3, 0};
+
+        return {.vertices = vertices(positions, positions, positions, positions, uvs),
+                .indices = std::move(indices)};
+    }
 }
 
 namespace ufps
 {
-    Renderer::Renderer(std::uint32_t width, std::uint32_t height, ResourceLoader &resource_loader, TextureManager &texture_manager)
+    Renderer::Renderer(std::uint32_t width, std::uint32_t height, ResourceLoader &resource_loader, TextureManager &texture_manager, MeshManager &mesh_manager)
         : _dummy_vao{0u, [](auto e)
                      { ::glDeleteBuffers(1, &e); }},
           _command_buffer{},
+          _post_processing_command_buffer{},
+          _post_process_sprite{
+              .name = "post_process_sprite",
+              .mesh_view = mesh_manager.load(sprite()),
+              .transform = {},
+              .material_key = {0u}},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},
           _light_buffer{sizeof(LightData), "light_buffer"},
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},
-          _program{create_program(resource_loader)},
+          _gbuffer_program{create_program(resource_loader, "sample_program"sv, "shaders/simple.vert"sv, "simple_vertex_shader"sv, "shaders/simple.frag"sv, "simple_fragement_shader"sv)},
+          _light_pass_program{create_program(resource_loader, "light_pass_program"sv, "shaders/light_pass.vert"sv, "light_pass_vertex_shader"sv, "shaders/light_pass.frag"sv, "light_pass_fragement_shader"sv)},
           _fb_sampler{FilterType::NEAREST, FilterType::LINEAR, "fb_sampler"},
-          _fb{create_frame_buffer(width, height, _fb_sampler, texture_manager)}
+          _fb_texture_index{},
+          _light_pass_fb_texture_index{},
+          _fb{create_frame_buffer(width, height, _fb_sampler, texture_manager, _fb_texture_index)},
+          _light_pass_fb{create_frame_buffer(width, height, _fb_sampler, texture_manager, _light_pass_fb_texture_index)}
     {
 
         ::glGenVertexArrays(1u, &_dummy_vao);
         ::glBindVertexArray(_dummy_vao);
 
-        _program.use();
+        _post_processing_command_buffer.build(_post_process_sprite);
+        _gbuffer_program.use();
+
+        // ::glFrontFace(GL_CCW);
+        // ::glCullFace(GL_BACK);
+        // ::glEnable(GL_CULL_FACE);
     }
 
     auto Renderer::render(const Scene &scene) -> void
     {
         _fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        _gbuffer_program.use();
 
         _camera_buffer.write(scene.camera.data_view(), 0zu);
 
@@ -124,26 +169,53 @@ namespace ufps
                                       command_count,
                                       0);
 
+        _light_pass_fb.bind();
+        ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        _light_pass_program.use();
+        ::glProgramUniform1ui(_light_pass_program.native_handle(), 0u, _fb_texture_index);
+
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager.native_handle());
+        ::glMultiDrawElementsIndirect(GL_TRIANGLES,
+                                      GL_UNSIGNED_INT,
+                                      reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
+                                      1,
+                                      0);
+        _light_pass_fb.unbind();
+
+        ::glBlitNamedFramebuffer(
+            _light_pass_fb.native_handle(),
+            0u,
+            0u,
+            0u,
+            _light_pass_fb.width(),
+            _light_pass_fb.height(),
+            0u,
+            0u,
+            _light_pass_fb.width(),
+            _light_pass_fb.height(),
+            GL_COLOR_BUFFER_BIT,
+            GL_NEAREST);
+
         _command_buffer.advance();
         _camera_buffer.advance();
         _light_buffer.advance();
         _object_data_buffer.advance();
         scene.material_manager.advance();
 
-        _fb.unbind();
-
-        ::glBlitNamedFramebuffer(
-            _fb.native_handle(),
-            0u,
-            0u,
-            0u,
-            _fb.width(),
-            _fb.height(),
-            0u,
-            0u,
-            _fb.width(),
-            _fb.height(),
-            GL_COLOR_BUFFER_BIT,
-            GL_NEAREST);
+        // ::glBlitNamedFramebuffer(
+        //     _fb.native_handle(),
+        //     0u,
+        //     0u,
+        //     0u,
+        //     _fb.width(),
+        //     _fb.height(),
+        //     0u,
+        //     0u,
+        //     _fb.width(),
+        //     _fb.height(),
+        //     GL_COLOR_BUFFER_BIT,
+        //     GL_NEAREST);
     }
 }

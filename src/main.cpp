@@ -260,7 +260,7 @@ auto main(int argc, char **argv) -> int
 
             const auto tex_index = texture_manager.add(std::move(textures));
 
-            auto renderer = ufps::Renderer{window.width(), window.height(), *resource_loader, texture_manager};
+            auto renderer = ufps::Renderer{window.width(), window.height(), *resource_loader, texture_manager, mesh_manager};
             auto debug_ui = ufps::DebugUI{window};
             auto show_debug_ui = false;
 
