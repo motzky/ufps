@@ -12,10 +12,11 @@ namespace ufps
     class Transform
     {
     public:
-        // Transform()
-        //     : Transform({0.f}, {1.f})
-        // {
-        // }
+        constexpr Transform()
+            : Transform({0.f}, {1.f}, {})
+        {
+        }
+
         // Transform(const Vector3 &position, const Vector3 &scale)
         //     : Transform(position, scale, {0.f, 0.f, 0.f, 1.f})
         // {
