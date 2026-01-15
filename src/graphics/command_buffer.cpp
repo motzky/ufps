@@ -58,6 +58,24 @@ namespace ufps
         return command.size();
     }
 
+    auto CommandBuffer::build(const Entity &entity) -> std::uint32_t
+    {
+        const auto cmd = IndirectCommand{
+            .count = entity.mesh_view.index_count,
+            .instanceCount = 1u,
+            .first_index = entity.mesh_view.index_offset,
+            .base_vertex = static_cast<std::int32_t>(entity.mesh_view.vertex_offset),
+            .baseInstance = 0u};
+
+        const auto command_view = std::as_bytes(std::span{&cmd, 1});
+
+        resize_gpu_buffer(std::vector<IndirectCommand>{cmd}, _command_buffer, "command_buffer");
+
+        _command_buffer.write(command_view, 0u);
+
+        return 1u;
+    }
+
     auto CommandBuffer::native_handle() const -> ::GLuint
     {
         return _command_buffer.buffer().native_handle();
