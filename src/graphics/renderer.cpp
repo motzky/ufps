@@ -92,7 +92,7 @@ namespace ufps
           _camera_buffer{sizeof(CameraData), "camera_buffer"},
           _light_buffer{sizeof(LightData), "light_buffer"},
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},
-          _gbuffer_program{create_program(resource_loader, "sample_program"sv, "shaders/simple.vert"sv, "simple_vertex_shader"sv, "shaders/simple.frag"sv, "simple_fragement_shader"sv)},
+          _gbuffer_program{create_program(resource_loader, "gbuffer_program"sv, "shaders/simple.vert"sv, "simple_vertex_shader"sv, "shaders/simple.frag"sv, "simple_fragement_shader"sv)},
           _light_pass_program{create_program(resource_loader, "light_pass_program"sv, "shaders/light_pass.vert"sv, "light_pass_vertex_shader"sv, "shaders/light_pass.frag"sv, "light_pass_fragement_shader"sv)},
           _fb_sampler{FilterType::NEAREST, FilterType::LINEAR, "fb_sampler"},
           _fb_texture_index{},
@@ -105,7 +105,6 @@ namespace ufps
         ::glBindVertexArray(_dummy_vao);
 
         _post_processing_command_buffer.build(_post_process_sprite);
-        _gbuffer_program.use();
 
         // ::glFrontFace(GL_CCW);
         // ::glCullFace(GL_BACK);
@@ -137,7 +136,7 @@ namespace ufps
                                                          return ObjectData{
                                                             .model = e.transform, 
                                                             .material_id_index = index,
-                                                             .padding={},}; }) |
+                                                            .padding={}}; }) |
                                  std::ranges::to<std::vector>();
 
         resize_gpu_buffer(object_data, _object_data_buffer, "object_data_buffer");
@@ -153,11 +152,12 @@ namespace ufps
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, scene.texture_manager.native_handle());
 
-        ::glMultiDrawElementsIndirect(GL_TRIANGLES,
-                                      GL_UNSIGNED_INT,
-                                      reinterpret_cast<const void *>(_command_buffer.offset_bytes()),
-                                      command_count,
-                                      0);
+        ::glMultiDrawElementsIndirect(
+            GL_TRIANGLES,
+            GL_UNSIGNED_INT,
+            reinterpret_cast<const void *>(_command_buffer.offset_bytes()),
+            command_count,
+            0);
 
         _light_pass_fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -167,11 +167,19 @@ namespace ufps
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager.native_handle());
-        ::glMultiDrawElementsIndirect(GL_TRIANGLES,
-                                      GL_UNSIGNED_INT,
-                                      reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
-                                      1,
-                                      0);
+        ::glMultiDrawElementsIndirect(
+            GL_TRIANGLES,
+            GL_UNSIGNED_INT,
+            reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
+            1u,
+            0);
+
+        _command_buffer.advance();
+        _camera_buffer.advance();
+        _light_buffer.advance();
+        _object_data_buffer.advance();
+        scene.material_manager.advance();
+
         _light_pass_fb.unbind();
 
         ::glBlitNamedFramebuffer(
@@ -187,12 +195,6 @@ namespace ufps
             _light_pass_fb.height(),
             GL_COLOR_BUFFER_BIT,
             GL_NEAREST);
-
-        _command_buffer.advance();
-        _camera_buffer.advance();
-        _light_buffer.advance();
-        _object_data_buffer.advance();
-        scene.material_manager.advance();
 
         // ::glBlitNamedFramebuffer(
         //     _fb.native_handle(),
