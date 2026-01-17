@@ -67,21 +67,11 @@ namespace
     auto sprite() -> ufps::MeshData
     {
         const ufps::Vector3 positions[] = {
-            {-1.f, -1.f, 0.f},
-            {1.f, -1.f, 0.f},
-            {1.f, 1.f, 0.f},
-            {-1.f, 1.f, 0.f},
-        };
+            {-1.0f, 1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}, {1.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}};
 
-        const ufps::UV uvs[] = {
-            {0.0f, 0.0f},
-            {1.0f, 0.0f},
-            {1.0f, 1.0f},
-            {0.0f, 1.0f},
-        };
+        const ufps::UV uvs[] = {{0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}};
 
-        auto indices = std::vector<std::uint32_t>{0, 1, 2, 2, 3, 0};
-
+        auto indices = std::vector<std::uint32_t>{0, 1, 2, 0, 2, 3};
         return {.vertices = vertices(positions, positions, positions, positions, uvs),
                 .indices = std::move(indices)};
     }
