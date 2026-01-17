@@ -34,17 +34,15 @@ namespace ufps
 
     auto CommandBuffer::build(const Scene &scene) -> std::uint32_t
     {
-        auto base = 0;
         const auto command = scene.entities |
                              std::views::transform(
-                                 [&base](const auto &e)
+                                 [](const auto &e)
                                  {
-                                     base += e.mesh_view.vertex_offset;
                                      return IndirectCommand{
                                          .count = e.mesh_view.index_count,
                                          .instanceCount = 1u,
                                          .first_index = e.mesh_view.index_offset,
-                                         .base_vertex = base,
+                                         .base_vertex = static_cast<std::int32_t>(e.mesh_view.vertex_offset),
                                          .baseInstance = 0u};
                                  }) |
                              std::ranges::to<std::vector>();
