@@ -81,7 +81,7 @@ namespace ufps
 {
     Renderer::Renderer(std::uint32_t width, std::uint32_t height, ResourceLoader &resource_loader, TextureManager &texture_manager, MeshManager &mesh_manager)
         : _dummy_vao{0u, [](auto e)
-                     { ::glDeleteBuffers(1, &e); }},
+                     { ::glDeleteVertexArrays(1, &e); }},
           _command_buffer{},
           _post_processing_command_buffer{},
           _post_process_sprite{
