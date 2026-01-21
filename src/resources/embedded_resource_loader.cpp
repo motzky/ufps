@@ -25,6 +25,22 @@ namespace
 #endif
     };
 
+    constexpr const std::uint8_t gbuffer_vertex_shader[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/shaders/gbuffer.vert"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t gbuffer_fragment_shader[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/shaders/gbuffer.frag"
+#else
+        0
+#endif
+    };
+
     constexpr const std::uint8_t light_pass_vertex_shader[] = {
 #ifndef __INTELLISENSE__
 #embed "../../assets/shaders/light_pass.vert"
@@ -82,6 +98,8 @@ namespace ufps
         _lookup = {
             {"shaders/simple.vert", simple_vertex_shader},
             {"shaders/simple.frag", simple_fragment_shader},
+            {"shaders/gbuffer.vert", gbuffer_vertex_shader},
+            {"shaders/gbuffer.frag", gbuffer_fragment_shader},
             {"shaders/light_pass.vert", light_pass_vertex_shader},
             {"shaders/light_pass.frag", light_pass_fragment_shader},
             {"textures/diamond_floor_albedo.png", diamond_floor_albedo},
