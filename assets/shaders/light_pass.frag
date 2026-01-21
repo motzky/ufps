@@ -30,8 +30,10 @@ void main()
 {
     vec3 input_color = texture(textures[tex_index], uv).rgb;
 
-    float grey = (0.299 * input_color.r) + (0.587 * input_color.g) + (0.114 * input_color.b);
+    // float grey = (0.299 * input_color.r) + (0.587 * input_color.g) + (0.114 * input_color.b);
 
-    color = vec4(grey, grey, grey, 1.0);
+    // color = vec4(grey, grey, grey, 1.0);
+
+    color = vec4(input_color, 1.0);
 }
 
