@@ -167,6 +167,7 @@ namespace ufps
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager.native_handle());
+        ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
         ::glMultiDrawElementsIndirect(
             GL_TRIANGLES,
             GL_UNSIGNED_INT,
