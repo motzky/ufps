@@ -8,8 +8,13 @@
 
 namespace ufps
 {
-    DebugRenderer::DebugRenderer(const Window &window)
-        : _window{window},
+    DebugRenderer::DebugRenderer(
+        const Window &window,
+        ResourceLoader &resource_loader,
+        TextureManager &texture_manager,
+        MeshManager &mesh_manager)
+        : Renderer{window, resource_loader, texture_manager, mesh_manager},
+          _enabled{false},
           _click{},
           _selected_entity{}
     {

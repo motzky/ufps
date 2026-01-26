@@ -14,6 +14,7 @@
 #include "graphics/texture_manager.h"
 #include "resources/resource_loader.h"
 #include "utils/auto_release.h"
+#include "window.h"
 
 namespace ufps
 {
@@ -28,11 +29,15 @@ namespace ufps
     class Renderer
     {
     public:
-        Renderer(std::uint32_t width, std::uint32_t height, ResourceLoader &resource_loader, TextureManager &texture_manager, MeshManager &mesh_manager);
+        Renderer(const Window &window, ResourceLoader &resource_loader, TextureManager &texture_manager, MeshManager &mesh_manager);
+        virtual ~Renderer() = default;
 
-        auto render(const Scene &scene) -> void;
+        auto render(Scene &scene) -> void;
 
-    private:
+    protected:
+        virtual auto post_render(Scene &scene) -> void;
+
+        const Window &_window;
         AutoRelease<::GLuint> _dummy_vao;
         CommandBuffer _command_buffer;
         CommandBuffer _post_processing_command_buffer;

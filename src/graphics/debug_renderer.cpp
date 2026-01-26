@@ -38,8 +38,15 @@ namespace
 
 namespace ufps
 {
-    auto DebugRenderer::render(Scene &scene) -> void
+    auto DebugRenderer::post_render(Scene &scene) -> void
     {
+        Renderer::post_render(scene);
+
+        if (!_enabled)
+        {
+            return;
+        }
+
         auto &io = ::ImGui::GetIO();
 
         ::ImGui_ImplOpenGL3_NewFrame();
@@ -220,6 +227,11 @@ namespace ufps
         {
             _click = evt;
         }
+    }
+
+    auto DebugRenderer::set_enabled(bool enabled) -> void
+    {
+        _enabled = enabled;
     }
 
 }

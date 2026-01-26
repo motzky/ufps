@@ -21,6 +21,7 @@
 #include "graphics/utils.h"
 #include "resources/resource_loader.h"
 #include "utils/auto_release.h"
+#include "window.h"
 
 using namespace std::literals;
 
@@ -103,8 +104,9 @@ namespace
 
 namespace ufps
 {
-    Renderer::Renderer(std::uint32_t width, std::uint32_t height, ResourceLoader &resource_loader, TextureManager &texture_manager, MeshManager &mesh_manager)
-        : _dummy_vao{0u, [](auto e)
+    Renderer::Renderer(const Window &window, ResourceLoader &resource_loader, TextureManager &texture_manager, MeshManager &mesh_manager)
+        : _window{window},
+          _dummy_vao{0u, [](auto e)
                      { ::glDeleteVertexArrays(1, &e); }},
           _command_buffer{"gbuffer_command_buffer"},
           _post_processing_command_buffer{"post_processing_command_buffer"},
@@ -133,8 +135,8 @@ namespace ufps
                   "shaders/light_pass.frag"sv,
                   "light_pass_fragement_shader"sv)},
           _fb_sampler{FilterType::NEAREST, FilterType::LINEAR, "fb_sampler"},
-          _gbuffer_rt{create_render_taget(4u, width, height, _fb_sampler, texture_manager, "gbuffer"sv)},
-          _light_pass_rt{create_render_taget(1u, width, height, _fb_sampler, texture_manager, "light_pass"sv)}
+          _gbuffer_rt{create_render_taget(4u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},
+          _light_pass_rt{create_render_taget(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")}
     {
 
         ::glGenVertexArrays(1u, &_dummy_vao);
@@ -147,7 +149,7 @@ namespace ufps
         // ::glEnable(GL_CULL_FACE);
     }
 
-    auto Renderer::render(const Scene &scene) -> void
+    auto Renderer::render(Scene &scene) -> void
     {
         _gbuffer_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -217,6 +219,11 @@ namespace ufps
         _light_buffer.advance();
         _object_data_buffer.advance();
 
+        post_render(scene);
+    }
+
+    auto Renderer::post_render(Scene &) -> void
+    {
         _light_pass_rt.fb.unbind();
 
         ::glBlitNamedFramebuffer(

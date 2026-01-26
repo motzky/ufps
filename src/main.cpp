@@ -260,8 +260,7 @@ auto main(int argc, char **argv) -> int
 
             const auto tex_index = texture_manager.add(std::move(textures));
 
-            auto renderer = ufps::Renderer{window.width(), window.height(), *resource_loader, texture_manager, mesh_manager};
-            auto debug_ui = ufps::DebugRenderer{window};
+            auto renderer = ufps::DebugRenderer{window, *resource_loader, texture_manager, mesh_manager};
             auto show_debug_ui = false;
 
             [[maybe_unused]] const auto material_index_r = material_manager.add(ufps::Color{1.0f, 0.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u);
@@ -348,6 +347,7 @@ auto main(int argc, char **argv) -> int
                                         ufps::log::info("hiding Debug UI");
                                     }
                                     show_debug_ui = !show_debug_ui;
+                                    renderer.set_enabled(show_debug_ui);
                                 }
                                 else
                                 {
@@ -369,7 +369,7 @@ auto main(int argc, char **argv) -> int
                             {
                                 if (show_debug_ui)
                                 {
-                                    debug_ui.add_mouse_event(arg);
+                                    renderer.add_mouse_event(arg);
                                 }
                             }
                         },
@@ -382,10 +382,6 @@ auto main(int argc, char **argv) -> int
                 scene.camera.update();
 
                 renderer.render(scene);
-                if (show_debug_ui)
-                {
-                    debug_ui.render(scene);
-                }
 
                 window.swap();
             }
