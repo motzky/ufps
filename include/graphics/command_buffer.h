@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 #include "core/scene.h"
 #include "graphics/multi_buffer.h"
@@ -23,6 +24,7 @@ namespace ufps
         auto advance() -> void;
         auto offset_bytes() const -> std::size_t;
         auto to_string() const -> std::string;
+        auto name() const -> std::string_view;
 
     private:
         MultiBuffer<PersistentBuffer> _command_buffer;

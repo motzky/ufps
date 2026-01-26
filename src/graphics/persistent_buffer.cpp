@@ -15,7 +15,8 @@ namespace ufps
         : _buffer{0u, [](auto buffer)
                   { ::glUnmapNamedBuffer(buffer); ::glDeleteBuffers(1, &buffer); }},
           _size{size},
-          _map{}
+          _map{},
+          _name{name}
     {
         const auto flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
         ::glCreateBuffers(1, &_buffer);
@@ -33,6 +34,15 @@ namespace ufps
     auto PersistentBuffer::native_handle() const -> ::GLuint
     {
         return _buffer;
+    }
+    auto PersistentBuffer::name() const -> std::string_view
+    {
+        return _name;
+    }
+
+    auto PersistentBuffer::to_string() const -> std::string
+    {
+        return std::format("{} {}", _name, _size);
     }
 
 }

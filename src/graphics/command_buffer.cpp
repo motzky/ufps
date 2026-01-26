@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <ranges>
 #include <string>
+#include <string_view>
 
 #include "core/scene.h"
 #include "graphics/multi_buffer.h"
@@ -92,5 +93,10 @@ namespace ufps
     auto CommandBuffer::to_string() const -> std::string
     {
         return std::format("command buffer {} size", _command_buffer.size());
+    }
+
+    auto CommandBuffer::name() const -> std::string_view
+    {
+        return _command_buffer.name();
     }
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstddef>
-#include <cstdint>
+#include <string>
 #include <string_view>
 
 #include "graphics/opengl.h"
@@ -19,9 +19,14 @@ namespace ufps
 
         auto native_handle() const -> ::GLuint;
 
+        auto name() const -> std::string_view;
+
+        auto to_string() const -> std::string;
+
     private:
         AutoRelease<::GLuint> _buffer;
         std::size_t _size;
         void *_map;
+        std::string _name;
     };
 }

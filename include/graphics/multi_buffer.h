@@ -52,6 +52,11 @@ namespace ufps
             return _frame_offset;
         }
 
+        auto name() const -> std::string_view
+        {
+            return _buffer.name();
+        }
+
     private:
         Buffer _buffer;
         std::size_t _size;

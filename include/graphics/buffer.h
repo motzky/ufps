@@ -1,8 +1,7 @@
 #pragma once
 
 #include <cstddef>
-#include <cstdint>
-#include <span>
+#include <string>
 #include <string_view>
 
 #include "graphics/opengl.h"
@@ -22,8 +21,13 @@ namespace ufps
 
         auto size() const -> std::size_t;
 
+        auto name() const -> std::string_view;
+
+        auto to_string() const -> std::string;
+
     private:
         AutoRelease<::GLuint> _buffer;
         std::size_t _size;
+        std::string _name;
     };
 }

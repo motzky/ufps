@@ -13,7 +13,8 @@ namespace ufps
     Buffer::Buffer(std::size_t size, std::string_view name)
         : _buffer{0u, [](auto vbo)
                   { ::glDeleteBuffers(1, &vbo); }},
-          _size(size)
+          _size{size},
+          _name{name}
     {
         ensure(size > 0, "Cannot create Buffor of size <= 0");
         ::glCreateBuffers(1, &_buffer);
@@ -35,4 +36,15 @@ namespace ufps
     {
         return _size;
     }
+
+    auto Buffer::name() const -> std::string_view
+    {
+        return _name;
+    }
+
+    auto Buffer::to_string() const -> std::string
+    {
+        return std::format("{} {}", _name, _size);
+    }
+
 }
