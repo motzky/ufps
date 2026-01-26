@@ -52,8 +52,7 @@ configure_file(${PROJECT_SOURCE_DIR}/include/config.h.in ${PROJECT_SOURCE_DIR}/i
 if(WIN32)
     target_sources(
         ufpslib
-        PRIVATE win32/window.cpp win32/debug_ui.cpp win32/file_resource_loader.cpp
-        # PRIVATE win32/window.cpp win32/debug_ui.cpp win32/file.cpp win32/sound_routine.cpp
+        PRIVATE win32/window.cpp win32/debug_renderer.cpp win32/file_resource_loader.cpp
     )
     # target_sources(
     #     imguilib
@@ -62,8 +61,7 @@ if(WIN32)
 elseif(UNIX)
     target_sources(
         ufpslib
-        PRIVATE posix/window.cpp posix/debug_ui.cpp posix/file.cpp posix/file_resource_loader.cpp
-        # PRIVATE posix/window.cpp posix/debug_ui.cpp posix/file.cpp posix/sound_routine.cpp
+        PRIVATE posix/window.cpp posix/debug_renderer.cpp posix/file.cpp posix/file_resource_loader.cpp
     )
     # target_sources(
     #     imguilib

@@ -1,4 +1,4 @@
-#include "graphics/debug_ui.h"
+#include "graphics/debug_renderer.h"
 
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -8,7 +8,7 @@
 
 namespace ufps
 {
-    DebugUI::DebugUI(const Window &window)
+    DebugRenderer::DebugRenderer(const Window &window)
         : _window{window},
           _click{},
           _selected_entity{}
@@ -28,14 +28,14 @@ namespace ufps
         ::ImGui_ImplOpenGL3_Init();
     }
 
-    DebugUI::~DebugUI()
+    DebugRenderer::~DebugRenderer()
     {
         ::ImGui_ImplOpenGL3_Shutdown();
         ::ImGui_ImplGlfw_Shutdown();
         ::ImGui::DestroyContext();
     }
 
-    auto DebugUI::new_frame() const -> void
+    auto DebugRenderer::new_frame() const -> void
     {
         ::ImGui_ImplGlfw_NewFrame();
     }

@@ -16,7 +16,7 @@
 #include "config.h"
 #include "core/scene.h"
 #include "graphics/command_buffer.h"
-#include "graphics/debug_ui.h"
+#include "graphics/debug_renderer.h"
 #include "graphics/material_manager.h"
 #include "graphics/mesh_data.h"
 #include "graphics/mesh_manager.h"
@@ -261,7 +261,7 @@ auto main(int argc, char **argv) -> int
             const auto tex_index = texture_manager.add(std::move(textures));
 
             auto renderer = ufps::Renderer{window.width(), window.height(), *resource_loader, texture_manager, mesh_manager};
-            auto debug_ui = ufps::DebugUI{window};
+            auto debug_ui = ufps::DebugRenderer{window};
             auto show_debug_ui = false;
 
             [[maybe_unused]] const auto material_index_r = material_manager.add(ufps::Color{1.0f, 0.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u);

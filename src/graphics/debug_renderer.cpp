@@ -1,4 +1,4 @@
-#include "graphics/debug_ui.h"
+#include "graphics/debug_renderer.h"
 
 #include <cstring>
 #include <string>
@@ -38,7 +38,7 @@ namespace
 
 namespace ufps
 {
-    auto DebugUI::render(Scene &scene) -> void
+    auto DebugRenderer::render(Scene &scene) -> void
     {
         auto &io = ::ImGui::GetIO();
 
@@ -210,7 +210,7 @@ namespace ufps
         }
     }
 
-    auto DebugUI::add_mouse_event(const MouseButtonEvent &evt) -> void
+    auto DebugRenderer::add_mouse_event(const MouseButtonEvent &evt) -> void
     {
         auto &io = ::ImGui::GetIO();
 

@@ -3,7 +3,7 @@ target_sources(ufpslib PUBLIC
     command_buffer.cpp
     # camera.cpp
     # cube_map.cpp
-    debug_ui.cpp
+    debug_renderer.cpp
     frame_buffer.cpp
     # material.cpp
     mesh_manager.cpp    

@@ -6,11 +6,11 @@
 
 namespace ufps
 {
-    class DebugUI
+    class DebugRenderer
     {
     public:
-        DebugUI(const Window &window);
-        ~DebugUI();
+        DebugRenderer(const Window &window);
+        ~DebugRenderer();
 
         auto render(Scene &scene) -> void;
 
