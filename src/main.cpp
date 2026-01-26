@@ -264,10 +264,9 @@ auto main(int argc, char **argv) -> int
             auto debug_ui = ufps::DebugUI{window};
             auto show_debug_ui = false;
 
-            [[maybe_unused]] const auto material_key_r = material_manager.add(ufps::Color{1.0f, 0.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u);
-            [[maybe_unused]] const auto material_key_g = material_manager.add(ufps::Color{0.0f, 1.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u);
-            [[maybe_unused]] const auto material_key_b = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, tex_index, tex_index + 1u, tex_index + 2u);
-            material_manager.remove(material_key_b);
+            [[maybe_unused]] const auto material_index_r = material_manager.add(ufps::Color{1.0f, 0.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u);
+            [[maybe_unused]] const auto material_index_g = material_manager.add(ufps::Color{0.0f, 1.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u);
+            [[maybe_unused]] const auto material_index_b = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, tex_index, tex_index + 1u, tex_index + 2u);
 
             auto scene = ufps::Scene{
                 .entities = {},
@@ -299,14 +298,14 @@ auto main(int argc, char **argv) -> int
                 .name = "cube1",
                 .mesh_view = mesh_manager.load(cube()),
                 .transform = {{10.f, 0.f, -10.f}, {5.f}, {}},
-                .material_key = material_key_r,
+                .material_index = material_index_r,
             });
 
             scene.entities.push_back(ufps::Entity{
                 .name = "cube2",
                 .mesh_view = mesh_manager.load(cube()),
                 .transform = {{-10.f, 0.f, -10.f}, {5.f}, {}},
-                .material_key = material_key_g,
+                .material_index = material_index_g,
             });
 
             auto key_state = std::unordered_map<ufps::Key, bool>{

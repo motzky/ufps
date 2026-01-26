@@ -55,23 +55,7 @@ namespace ufps
 
         for (auto &entity : scene.entities)
         {
-            // TODO: make opening work reliably
-            // const auto is_selected = &entity == _selected_entity;
-            auto &material = scene.material_manager[entity.material_key];
-
-            // const auto header_flags = is_selected ? ImGuiTreeNodeFlags_Selected : ImGuiTreeNodeFlags_None;
-            // if (::ImGui::CollapsingHeader(entity.name.c_str()), header_flags)
-            if (::ImGui::CollapsingHeader(entity.name.c_str()))
-            {
-                float color[3]{};
-                std::memcpy(color, &material.color, sizeof(color));
-                const auto label = std::format("{} color", entity.name);
-
-                if (::ImGui::ColorPicker3(label.c_str(), color))
-                {
-                    std::memcpy(&material.color, color, sizeof(color));
-                }
-            }
+            ::ImGui::CollapsingHeader(entity.name.c_str());
 
             if (&entity == _selected_entity)
             {

@@ -112,7 +112,7 @@ namespace ufps
               .name = "post_process_sprite",
               .mesh_view = mesh_manager.load(sprite()),
               .transform = {},
-              .material_key = {0u}},
+              .material_index = 0u},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},
           _light_buffer{sizeof(LightData), "light_buffer"},
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},
@@ -166,13 +166,11 @@ namespace ufps
         ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _command_buffer.native_handle());
 
         const auto object_data = scene.entities |
-                                 std::views::transform([&scene](const auto &e)
-                                                       { 
-                                                        const auto index = scene.material_manager.index(e.material_key);
-                                                         return ObjectData{
-                                                            .model = e.transform, 
-                                                            .material_id_index = index,
-                                                            .padding={}}; }) |
+                                 std::views::transform([](const auto &e)
+                                                       { return ObjectData{
+                                                             .model = e.transform,
+                                                             .material_id_index = e.material_index,
+                                                             .padding = {}}; }) |
                                  std::ranges::to<std::vector>();
 
         resize_gpu_buffer(object_data, _object_data_buffer);
@@ -180,7 +178,6 @@ namespace ufps
         _object_data_buffer.write(std::as_bytes(std::span{object_data.data(), object_data.size()}), 0zu);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _object_data_buffer.native_handle());
 
-        scene.material_manager.sync();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, scene.material_manager.native_handle());
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, scene.texture_manager.native_handle());
@@ -219,7 +216,6 @@ namespace ufps
         _camera_buffer.advance();
         _light_buffer.advance();
         _object_data_buffer.advance();
-        scene.material_manager.advance();
 
         _light_pass_rt.fb.unbind();
 
