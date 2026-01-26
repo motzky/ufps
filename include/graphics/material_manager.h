@@ -34,6 +34,7 @@ namespace ufps
             const auto new_index = _material_data_cpu.size();
             _material_data_cpu.emplace_back(std::forward<Args>(args)...);
             resize_gpu_buffer(_material_data_cpu, _material_data_gpu);
+            _material_data_gpu.write(std::as_bytes(std::span{_material_data_cpu.data(), _material_data_cpu.size()}), 0zu);
 
             return new_index;
         }
