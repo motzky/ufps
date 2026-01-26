@@ -50,7 +50,7 @@ namespace ufps
 
         const auto command_view = DataBufferView{reinterpret_cast<const std::byte *>(command.data()), command.size() * sizeof(IndirectCommand)};
 
-        resize_gpu_buffer(command, _command_buffer, "command_buffer");
+        resize_gpu_buffer(command, _command_buffer);
 
         _command_buffer.write(command_view, 0u);
 
@@ -68,7 +68,7 @@ namespace ufps
 
         const auto command_view = std::as_bytes(std::span{&cmd, 1});
 
-        resize_gpu_buffer(std::vector<IndirectCommand>{cmd}, _command_buffer, "command_buffer");
+        resize_gpu_buffer(std::vector<IndirectCommand>{cmd}, _command_buffer);
 
         _command_buffer.write(command_view, 0u);
 

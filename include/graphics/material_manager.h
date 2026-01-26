@@ -69,7 +69,7 @@ namespace ufps
             const auto key = MaterialKey{key_num++};
 
             _material_data_cpu.emplace(key, MaterialData{std::forward<Args>(args)...});
-            resize_gpu_buffer(data(), _material_data_gpu, "material_manager_buffer");
+            resize_gpu_buffer(data(), _material_data_gpu);
 
             return key;
         }

@@ -175,7 +175,7 @@ namespace ufps
                                                             .padding={}}; }) |
                                  std::ranges::to<std::vector>();
 
-        resize_gpu_buffer(object_data, _object_data_buffer, "object_data_buffer");
+        resize_gpu_buffer(object_data, _object_data_buffer);
 
         _object_data_buffer.write(std::as_bytes(std::span{object_data.data(), object_data.size()}), 0zu);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _object_data_buffer.native_handle());

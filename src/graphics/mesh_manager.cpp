@@ -29,12 +29,12 @@ namespace ufps
         _vertex_data_cpu.append_range(mesh_data.vertices);
         _index_data_cpu.append_range(mesh_data.indices);
 
-        resize_gpu_buffer(_vertex_data_cpu, _vertex_data_gpu, "vertex_mesh_data");
+        resize_gpu_buffer(_vertex_data_cpu, _vertex_data_gpu);
 
         auto vertex_data_view = DataBufferView{reinterpret_cast<const std::byte *>(_vertex_data_cpu.data()), _vertex_data_cpu.size() * sizeof(VertexData)};
         _vertex_data_gpu.write(vertex_data_view, 0zu);
 
-        resize_gpu_buffer(_index_data_cpu, _index_data_gpu, "index_mesh_data");
+        resize_gpu_buffer(_index_data_cpu, _index_data_gpu);
         auto index_data_view = DataBufferView{reinterpret_cast<const std::byte *>(_index_data_cpu.data()), _index_data_cpu.size() * sizeof(std::uint32_t)};
         _index_data_gpu.write(index_data_view, 0zu);
 

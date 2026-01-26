@@ -30,7 +30,7 @@ namespace ufps
 
         _cpu_buffer.push_back(new_tex.bindless_handle());
 
-        resize_gpu_buffer(_cpu_buffer, _gpu_buffer, "bindless_textures"sv);
+        resize_gpu_buffer(_cpu_buffer, _gpu_buffer);
 
         _gpu_buffer.write(std::as_bytes(std::span{_cpu_buffer.data(), _cpu_buffer.size()}), 0zu);
 
@@ -48,7 +48,7 @@ namespace ufps
                                             { return e.bindless_handle(); }) |
                       std::ranges::to<std::vector>();
 
-        resize_gpu_buffer(_cpu_buffer, _gpu_buffer, "bindless_textures"sv);
+        resize_gpu_buffer(_cpu_buffer, _gpu_buffer);
 
         _gpu_buffer.write(std::as_bytes(std::span{_cpu_buffer.data(), _cpu_buffer.size()}), 0zu);
 

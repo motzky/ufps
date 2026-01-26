@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <iterator>
 #include <string_view>
 #include <tuple>
 #include <vector>
@@ -10,10 +11,11 @@
 
 using namespace std::literals;
 
-struct FakeBuffer
+class FakeBuffer
 {
+public:
     FakeBuffer(std::size_t size, std::string_view name)
-        : size{size}, name{name}
+        : _size{size}, _name{name}
     {
     }
 
@@ -22,9 +24,21 @@ struct FakeBuffer
         write_calls.push_back({data.data(), offset});
     }
 
+    auto size() const -> std::size_t
+    {
+        return _size;
+    }
+
+    auto name() const -> std::string_view
+    {
+        return _name;
+    }
+
     std::vector<std::tuple<const std::byte *, std::size_t>> write_calls;
-    std::size_t size;
-    std::string_view name;
+
+private:
+    std::size_t _size;
+    std::string _name;
 };
 
 TEST(multi_buffer, simple)
@@ -32,16 +46,16 @@ TEST(multi_buffer, simple)
     auto data = ufps::DataBuffer{std::byte{0x0}, std::byte{0x1}, std::byte{0x2}};
     auto data_view = ufps::DataBufferView{data};
 
-    auto mb = ufps::MultiBuffer<FakeBuffer, 3zu>{data_view.size_bytes(), "testbuffer"sv};
+    auto mb = ufps::MultiBuffer<FakeBuffer, 3zu>{data_view.size_bytes(), "testbuffer"};
     mb.write(data_view, 0zu);
 
     const auto &buffer = mb.buffer();
 
     const auto expected = std::vector{std::make_tuple(data_view.data(), 0zu)};
 
-    ASSERT_EQ(buffer.size, data_view.size_bytes() * 3zu);
+    ASSERT_EQ(buffer.size(), data_view.size_bytes() * 3zu);
     ASSERT_EQ(buffer.write_calls, expected);
-    ASSERT_EQ(buffer.name, "testbuffer"sv);
+    ASSERT_EQ(buffer.name(), "testbuffer"sv);
     ASSERT_EQ(mb.size(), data_view.size_bytes());
 }
 
@@ -50,7 +64,7 @@ TEST(multi_buffer, triple_write)
     auto data = ufps::DataBuffer{std::byte{0x0}, std::byte{0x1}, std::byte{0x2}};
     auto data_view = ufps::DataBufferView{data};
 
-    auto mb = ufps::MultiBuffer<FakeBuffer, 3zu>{data_view.size_bytes(), "testbuffer"sv};
+    auto mb = ufps::MultiBuffer<FakeBuffer, 3zu>{data_view.size_bytes(), "testbuffer"};
     mb.write(data_view, 0zu);
     mb.advance();
     mb.write(data_view, 0zu);
@@ -66,7 +80,7 @@ TEST(multi_buffer, triple_write)
         std::make_tuple(data_view.data(), data_view.size_bytes() * 2zu),
     };
 
-    ASSERT_EQ(buffer.size, data_view.size_bytes() * 3zu);
+    ASSERT_EQ(buffer.size(), data_view.size_bytes() * 3zu);
     ASSERT_EQ(buffer.write_calls, expected);
 }
 
@@ -75,7 +89,7 @@ TEST(multi_buffer, quadruple_write)
     auto data = ufps::DataBuffer{std::byte{0x0}, std::byte{0x1}, std::byte{0x2}};
     auto data_view = ufps::DataBufferView{data};
 
-    auto mb = ufps::MultiBuffer<FakeBuffer, 3zu>{data_view.size_bytes(), "testbuffer"sv};
+    auto mb = ufps::MultiBuffer<FakeBuffer, 3zu>{data_view.size_bytes(), "testbuffer"};
     mb.write(data_view, 0zu);
     ASSERT_EQ(mb.frame_offset_bytes(), 0zu);
     mb.advance();
@@ -97,7 +111,7 @@ TEST(multi_buffer, quadruple_write)
         std::make_tuple(data_view.data(), data_view.size_bytes() * 0zu),
     };
 
-    ASSERT_EQ(buffer.size, data_view.size_bytes() * 3zu);
+    ASSERT_EQ(buffer.size(), data_view.size_bytes() * 3zu);
     ASSERT_EQ(buffer.write_calls, expected);
 }
 TEST(multi_buffer, multi_write_offset)
@@ -105,7 +119,7 @@ TEST(multi_buffer, multi_write_offset)
     auto data = ufps::DataBuffer{std::byte{0x0}, std::byte{0x1}, std::byte{0x2}, std::byte{03}, std::byte{0x4}};
     auto data_view = ufps::DataBufferView{data};
 
-    auto mb = ufps::MultiBuffer<FakeBuffer, 3zu>{data_view.size_bytes(), "testbuffer"sv};
+    auto mb = ufps::MultiBuffer<FakeBuffer, 3zu>{data_view.size_bytes(), "testbuffer"};
     mb.write(data_view, 1zu);
     mb.advance();
     mb.write(data_view, 2zu);
@@ -124,6 +138,6 @@ TEST(multi_buffer, multi_write_offset)
         std::make_tuple(data_view.data(), data_view.size_bytes() * 0zu + 4zu),
     };
 
-    ASSERT_EQ(buffer.size, data_view.size_bytes() * 3zu);
+    ASSERT_EQ(buffer.size(), data_view.size_bytes() * 3zu);
     ASSERT_EQ(buffer.write_calls, expected);
 }
