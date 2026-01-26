@@ -28,8 +28,8 @@ namespace
 
 namespace ufps
 {
-    CommandBuffer::CommandBuffer()
-        : _command_buffer{1zu, "command_buffer"}
+    CommandBuffer::CommandBuffer(std::string_view name)
+        : _command_buffer{1zu, name}
     {
     }
 
