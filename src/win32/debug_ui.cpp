@@ -20,6 +20,7 @@ namespace ufps
 
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         ::ShowCursor();
         io.MouseDrawCursor = io.WantCaptureMouse;
 

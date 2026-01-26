@@ -100,7 +100,9 @@ set(LOG_ENABLE_DEBUG true)
 FetchContent_Declare(
     imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
-    GIT_TAG v1.91.6
+    # need to use latest docking branch due to support for #define IMGUI_IMPL_GLFW_DISABLE_X11
+    # GIT_TAG v1.92.5-docking
+    GIT_TAG docking
 )
 FetchContent_MakeAvailable(imgui)
 

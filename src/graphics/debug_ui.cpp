@@ -38,7 +38,7 @@ namespace
 
 namespace ufps
 {
-    auto DebugUI::render([[maybe_unused]] Scene &scene) -> void
+    auto DebugUI::render(Scene &scene) -> void
     {
         auto &io = ::ImGui::GetIO();
 
@@ -50,6 +50,10 @@ namespace ufps
         ::ImGuizmo::SetOrthographic(false);
         ::ImGuizmo::Enable(true);
         ::ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+
+        ::ImGui::DockSpaceOverViewport(0, ::ImGui::GetMainViewport(), ::ImGuiDockNodeFlags_PassthruCentralNode);
+
+        ::ImGui::Begin("scene");
 
         ::ImGui::LabelText("FPS", "%0.1f", io.Framerate);
 
@@ -135,6 +139,8 @@ namespace ufps
                 scene.lights.light.position = new_transform.position;
             }
         }
+
+        ::ImGui::End();
 
         static auto follow = true;
         ::ImGui::Begin("Log");

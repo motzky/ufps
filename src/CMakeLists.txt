@@ -22,6 +22,8 @@ add_library(imguilib STATIC
 
     ${imguizmo_SOURCE_DIR}/ImGuizmo.cpp
 )
+
+target_compile_definitions(imguilib PUBLIC -D IMGUI_IMPL_GLFW_DISABLE_X11)
 endif()
 
 target_include_directories(imguilib PUBLIC ${imgui_SOURCE_DIR} ${imguizmo_SOURCE_DIR})
