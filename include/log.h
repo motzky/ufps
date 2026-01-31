@@ -107,4 +107,7 @@ namespace ufps::log
 #else
     using error = Print<Level::ERR, Args...>;
 #endif
+
+    template <Level L, class... Args>
+    using log = Print<L, Args...>;
 }
