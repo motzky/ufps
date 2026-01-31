@@ -141,11 +141,13 @@ namespace ufps
                 std::ranges::to<std::vector>();
 
             models.push_back(
-                {.mesh_data = {.vertices = vertices(positions, normals, tangents, bitangents, uvs),
-                               .indices = std::move(indices)},
-                 .albedo = std::nullopt,
-                 .normal = std::nullopt,
-                 .specular = std::nullopt});
+                {
+                    .mesh_data = {.vertices = vertices(positions, normals, tangents, bitangents, uvs),
+                                  .indices = std::move(indices)},
+                    .albedo = std::nullopt,
+                    .normal = std::nullopt,
+                    .specular = std::nullopt,
+                });
         }
 
         return models;
