@@ -11,6 +11,7 @@
 #include "graphics/texture_data.h"
 #include "graphics/vertex_data.h"
 #include "log.h"
+#include "resources/resource_loader.h"
 
 namespace ufps
 {
@@ -43,7 +44,7 @@ namespace ufps
 
     auto load_texture(DataBufferView image_data) -> TextureData;
 
-    auto load_model(DataBufferView model_data, std::string format = "") -> std::vector<ModelData>;
+    auto load_model(DataBufferView model_data, ResourceLoader &resource_loader, std::string format = "") -> std::vector<ModelData>;
 
     template <class... Args>
     auto vertices(Args &&...args) -> std::vector<ufps::VertexData>

@@ -1,5 +1,7 @@
 #include "graphics/utils.h"
 
+#include <algorithm>
+#include <filesystem>
 #include <memory>
 #include <optional>
 #include <ranges>
@@ -21,6 +23,7 @@
 #include "graphics/texture_data.h"
 #include "graphics/vertex_data.h"
 #include "log.h"
+#include "resources/resource_loader.h"
 #include "utils/data_buffer.h"
 #include "utils/ensure.h"
 
@@ -90,7 +93,7 @@ namespace ufps
         };
     }
 
-    auto load_model(DataBufferView model_data, std::string format) -> std::vector<ModelData>
+    auto load_model(DataBufferView model_data, ResourceLoader &resource_loader, std::string format) -> std::vector<ModelData>
     {
         [[maybe_unused]] static auto *logger = []()
         {
@@ -115,13 +118,33 @@ namespace ufps
         ensure(scene != nullptr, "failed to parse assimp scene");
 
         const auto loaded_meshes = std::span<::aiMesh *>(scene->mMeshes, scene->mMeshes + scene->mNumMeshes);
-        log::info("found {} meshes", loaded_meshes.size());
+        const auto materials = std::span<::aiMaterial *>(scene->mMaterials, scene->mMaterials + scene->mNumMaterials);
+        log::info("found {} meshes, {} materials {} lights", scene->mName.C_Str(), loaded_meshes.size(), materials.size(), scene->mNumLights);
+
+        ensure(loaded_meshes.size() == materials.size(), "mismatch mesh/material count in model file");
 
         auto models = std::vector<ModelData>{};
 
-        for (const auto *mesh : loaded_meshes)
+        for (const auto &[index, mesh] : loaded_meshes | std::views::enumerate)
         {
             log::info("found mesh: {}", mesh->mName.C_Str());
+
+            const auto *material = scene->mMaterials[index];
+
+            const auto base_color_count = material->GetTextureCount(::aiTextureType_BASE_COLOR);
+            if (base_color_count != 1)
+            {
+                log::warn("unsupported base color count: {}", base_color_count);
+                continue;
+            }
+
+            auto path_str = ::aiString{};
+            material->GetTexture(::aiTextureType_BASE_COLOR, 0, &path_str);
+            auto str = std::string{path_str.C_Str()};
+            std::replace(str.begin(), str.end(), '\\', '/');
+            const auto path = std::filesystem::path{str};
+            const auto filename = path.filename();
+            log::info("found base color texture: {}", filename.string());
 
             const auto positions = std::span<::aiVector3D>{mesh->mVertices, mesh->mVertices + mesh->mNumVertices} | std::views::transform(to_native);
             const auto normals = std::span<::aiVector3D>{mesh->mNormals, mesh->mNormals + mesh->mNumVertices} | std::views::transform(to_native);
@@ -144,7 +167,7 @@ namespace ufps
                 {
                     .mesh_data = {.vertices = vertices(positions, normals, tangents, bitangents, uvs),
                                   .indices = std::move(indices)},
-                    .albedo = std::nullopt,
+                    .albedo = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", filename.string()))),
                     .normal = std::nullopt,
                     .specular = std::nullopt,
                 });

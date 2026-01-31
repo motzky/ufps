@@ -32,6 +32,7 @@
 #include "resources/embedded_resource_loader.h"
 #include "resources/file_resource_loader.h"
 #include "utils/data_buffer.h"
+#include "utils/ensure.h"
 #include "utils/exception.h"
 #include "window.h"
 
@@ -267,7 +268,7 @@ auto main(int argc, char **argv) -> int
             [[maybe_unused]] const auto material_index_g = material_manager.add(ufps::Color{0.0f, 1.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u);
             [[maybe_unused]] const auto material_index_b = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, tex_index, tex_index + 1u, tex_index + 2u);
 
-            const auto models = ufps::load_model(resource_loader->load_data_buffer("models/SM_Corner01_8_8_X.fbx"), "fbx");
+            const auto models = ufps::load_model(resource_loader->load_data_buffer("models/SM_Corner01_8_8_X.fbx"), *resource_loader, "fbx");
 
             auto scene = ufps::Scene{
                 .entities = {},
@@ -295,17 +296,22 @@ auto main(int argc, char **argv) -> int
                     },
                 }};
 
-            scene.entities = models |
-                             std::views::enumerate |
-                             std::views::transform([&](const auto &e)
-                                                   {
-                                                        const auto &[index, model] = e;
-                                                        return ufps::Entity{
-                                                            .name = std::format("SM_Corner01_8_8_X_{}", index),
-                                                            .mesh_view = mesh_manager.load(model.mesh_data),
-                                                            .transform = {{}, {1.f}, {}},
-                                                            .material_index = material_index_r}; }) |
-                             std::ranges::to<std::vector>();
+            for (const auto &[index, model] : models | std::views::enumerate)
+            {
+                auto albedo_index = tex_index;
+                if (const auto &a = model.albedo; a)
+                {
+                    auto albedo = ufps::Texture{*model.albedo, std::format("model_{}_albedo_texture", index), sampler};
+                    albedo_index = texture_manager.add(std::move(albedo));
+                }
+
+                [[maybe_unused]] const auto model_mat = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, albedo_index, tex_index + 1u, tex_index + 2u);
+                scene.entities.push_back(
+                    ufps::Entity{.name = std::format("SM_Corner01_8_8_X_{}", index),
+                                 .mesh_view = mesh_manager.load(model.mesh_data),
+                                 .transform = {{}, {1.f}, {}},
+                                 .material_index = material_index_r});
+            }
 
             auto key_state = std::unordered_map<ufps::Key, bool>{
                 {ufps::Key::A, false},
