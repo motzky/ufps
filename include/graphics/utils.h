@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <vector>
 
-#include "graphics/opengl.h"
+#include "graphics/model_data.h"
 #include "graphics/texture_data.h"
 #include "graphics/vertex_data.h"
 #include "log.h"
@@ -42,6 +42,8 @@ namespace ufps
     }
 
     auto load_texture(DataBufferView image_data) -> TextureData;
+
+    auto load_model(DataBufferView model_data, std::string format = "") -> std::vector<ModelData>;
 
     template <class... Args>
     auto vertices(Args &&...args) -> std::vector<ufps::VertexData>
