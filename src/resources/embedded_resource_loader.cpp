@@ -81,6 +81,14 @@ namespace
 #endif
     };
 
+    constexpr const std::uint8_t sm_corner_01_8_8_X_fbx[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/models/SM_Corner01_8_8_X.fbx"
+#else
+        0
+#endif
+    };
+
     template <class T>
     auto to_container(std::span<const std::uint8_t> data) -> T
     {
@@ -105,6 +113,7 @@ namespace ufps
             {"textures/diamond_floor_albedo.png", diamond_floor_albedo},
             {"textures/diamond_floor_normal.png", diamond_floor_normal},
             {"textures/diamond_floor_specular.png", diamond_floor_specular},
+            {"models/SM_Corner01_8_8_X.fbx", sm_corner_01_8_8_X_fbx},
         };
     }
 
