@@ -70,7 +70,7 @@ elseif(UNIX)
 endif()
 
 # target_include_directories(ufpslib PUBLIC ${stb_lib_SOURCE_DIR} ${imgui_SOURCE_DIR} ${imguizmo_SOURCE_DIR} ${JoltPhysics_SOURCE_DIR} ${lua_SOURCE_DIR})
-target_include_directories(ufpslib PUBLIC ${stb_lib_SOURCE_DIR})
+target_include_directories(ufpslib PUBLIC ${stb_lib_SOURCE_DIR} ${assimp_SOURCE_DIR}/include ${assimp_BINARY_DIR}/include)
 
 # if(${Freetype_FOUND})
 # target_include_directories(ufpslib PUBLIC ${FREETYPE_INCLUDE_DIRS})
@@ -104,7 +104,7 @@ target_link_libraries(
     ufpslib
     PUBLIC imguilib     
     # PUBLIC imguilib Jolt opengl32 lua
-    PRIVATE dwmapi
+    PRIVATE dwmapi assimp
     # PRIVATE libzstd_static ${FREETYPE_LIBRARY_NAME}
 )
 target_link_libraries(
@@ -117,7 +117,7 @@ target_link_libraries(
     ufpslib
     PUBLIC imguilib
     # PUBLIC imguilib Jolt lua
-    PRIVATE GL glfw Backtrace::Backtrace stdc++exp
+    PRIVATE GL glfw Backtrace::Backtrace stdc++exp assimp
     # PRIVATE GL glfw Backtrace::Backtrace stdc++exp libzstd_static ${FREETYPE_LIBRARY_NAME}
 )
 target_link_libraries(
