@@ -209,7 +209,7 @@ namespace
             direction -= camera.up();
         }
 
-        return direction / 4.0f;
+        return direction / 32.0f;
     }
 }
 
@@ -261,7 +261,6 @@ auto main(int argc, char **argv) -> int
 
             const auto tex_index = texture_manager.add(std::move(textures));
 
-            auto renderer = ufps::DebugRenderer{window, *resource_loader, texture_manager, mesh_manager};
             auto show_debug_ui = false;
 
             [[maybe_unused]] const auto material_index_r = material_manager.add(ufps::Color{1.0f, 0.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u);
@@ -287,8 +286,8 @@ auto main(int argc, char **argv) -> int
                 .lights = {
                     .ambient = {.r = .15f, .g = .15f, .b = .15f},
                     .light = {
-                        .position = {},
-                        .color = {.r = 1.f, .g = 1.f, .b = 1.f},
+                        .position = {0.f, 2.5f, 0.f},
+                        .color = {.r = .5f, .g = .5f, .b = .5f},
                         .constant_attenuation = 1.f,
                         .linear_attenuation = .045f,
                         .quadratic_attenuation = .0075f,
@@ -305,13 +304,31 @@ auto main(int argc, char **argv) -> int
                     albedo_index = texture_manager.add(std::move(albedo));
                 }
 
-                [[maybe_unused]] const auto model_mat = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, albedo_index, tex_index + 1u, tex_index + 2u);
+                auto normal_index = tex_index + 1u;
+                if (const auto &a = model.normal; a)
+                {
+                    auto normal = ufps::Texture{*model.normal, std::format("model_{}_normal_texture", index), sampler};
+                    normal_index = texture_manager.add(std::move(normal));
+                }
+
+                auto specular_index = tex_index + 2u;
+                if (const auto &a = model.specular; a)
+                {
+                    auto specular = ufps::Texture{*model.specular, std::format("model_{}_specular_texture", index), sampler};
+                    specular_index = texture_manager.add(std::move(specular));
+                }
+
+                const auto model_mat = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, albedo_index, normal_index, specular_index);
                 scene.entities.push_back(
                     ufps::Entity{.name = std::format("SM_Corner01_8_8_X_{}", index),
                                  .mesh_view = mesh_manager.load(model.mesh_data),
                                  .transform = {{}, {1.f}, {}},
-                                 .material_index = material_index_r});
+                                 .material_index = model_mat});
             }
+
+            // BUG: Render has to be instantiated last
+            //      because else framebuffer colorattachment pointers will become invalid
+            auto renderer = ufps::DebugRenderer{window, *resource_loader, texture_manager, mesh_manager};
 
             auto key_state = std::unordered_map<ufps::Key, bool>{
                 {ufps::Key::A, false},
