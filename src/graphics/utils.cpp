@@ -26,6 +26,7 @@
 #include "resources/resource_loader.h"
 #include "utils/data_buffer.h"
 #include "utils/ensure.h"
+#include "utils/formatter.h"
 
 namespace
 {
@@ -59,6 +60,32 @@ namespace
             throw ufps::Exception("unsupported channel count: {}", num_channels);
         }
     }
+
+    auto to_string(::aiTextureType type) -> std::string
+    {
+        const auto str = std::string{::aiTextureTypeToString(type)};
+        return str;
+    }
+
+    auto get_texture_file_name(const ::aiMaterial *material, ::aiTextureType type) -> std::optional<std::filesystem::path>
+    {
+        if (material->GetTextureCount(type) == 0)
+        {
+            ufps::log::warn("no texture of type {} found", to_string(type));
+            return std::nullopt;
+        }
+
+        auto path_str = ::aiString{};
+        material->GetTexture(type, 0, &path_str);
+        auto str = std::string{path_str.C_Str()};
+        std::replace(str.begin(), str.end(), '\\', '/');
+        const auto path = std::filesystem::path{str};
+        const auto filename = path.filename();
+        ufps::log::info("found texture: {} type: {}", filename.string(), to_string(type));
+
+        return filename;
+    }
+
 }
 
 namespace ufps
@@ -127,9 +154,8 @@ namespace ufps
 
         for (const auto &[index, mesh] : loaded_meshes | std::views::enumerate)
         {
-            log::info("found mesh: {}", mesh->mName.C_Str());
-
             const auto *material = scene->mMaterials[index];
+            log::info("found mesh: {}, material: {}", mesh->mName.C_Str(), material->GetName().C_Str());
 
             const auto base_color_count = material->GetTextureCount(::aiTextureType_BASE_COLOR);
             if (base_color_count != 1)
@@ -138,13 +164,16 @@ namespace ufps
                 continue;
             }
 
-            auto path_str = ::aiString{};
-            material->GetTexture(::aiTextureType_BASE_COLOR, 0, &path_str);
-            auto str = std::string{path_str.C_Str()};
-            std::replace(str.begin(), str.end(), '\\', '/');
-            const auto path = std::filesystem::path{str};
-            const auto filename = path.filename();
-            log::info("found base color texture: {}", filename.string());
+            // for (auto i = 0; i < 27; ++i)
+            // {
+            //     auto type = static_cast<::aiTextureType>(i);
+            //     const auto cnt = material->GetTextureCount(type);
+            //     log::debug("{}: Texture type: {}, count: {}", i, ::aiTextureTypeToString(type), cnt);
+            // }
+
+            const auto albedo_filename = get_texture_file_name(material, ::aiTextureType_BASE_COLOR);
+            const auto normal_filename = get_texture_file_name(material, ::aiTextureType_NORMAL_CAMERA);
+            const auto specular_filename = get_texture_file_name(material, ::aiTextureType_METALNESS);
 
             const auto positions = std::span<::aiVector3D>{mesh->mVertices, mesh->mVertices + mesh->mNumVertices} | std::views::transform(to_native);
             const auto normals = std::span<::aiVector3D>{mesh->mNormals, mesh->mNormals + mesh->mNumVertices} | std::views::transform(to_native);
@@ -163,14 +192,27 @@ namespace ufps
                 std::views::join |
                 std::ranges::to<std::vector>();
 
-            models.push_back(
-                {
-                    .mesh_data = {.vertices = vertices(positions, normals, tangents, bitangents, uvs),
-                                  .indices = std::move(indices)},
-                    .albedo = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", filename.string()))),
-                    .normal = std::nullopt,
-                    .specular = std::nullopt,
-                });
+            auto model = ModelData{
+                .mesh_data = {.vertices = vertices(positions, normals, tangents, bitangents, uvs),
+                              .indices = std::move(indices)},
+                .albedo = std::nullopt,
+                .normal = std::nullopt,
+                .specular = std::nullopt,
+            };
+            if (albedo_filename.has_value())
+            {
+                model.albedo = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", albedo_filename->string())));
+            }
+            if (normal_filename.has_value())
+            {
+                model.normal = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", normal_filename->string())));
+            }
+            if (specular_filename.has_value())
+            {
+                model.specular = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", specular_filename->string())));
+            }
+
+            models.push_back(model);
         }
 
         return models;
