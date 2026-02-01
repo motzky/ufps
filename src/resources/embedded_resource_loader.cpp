@@ -89,23 +89,7 @@ namespace
 #endif
     };
 
-    constexpr const std::uint8_t metal_plate_02_base_colour[] = {
-#ifndef __INTELLISENSE__
-#embed "../../assets/textures/MetalPlate02_BaseColor.png"
-#else
-        0
-#endif
-    };
-
-    constexpr const std::uint8_t metal_plate_03_base_colour[] = {
-#ifndef __INTELLISENSE__
-#embed "../../assets/textures/MetalPlate03_BaseColor.png"
-#else
-        0
-#endif
-    };
-
-    constexpr const std::uint8_t MetalPlate01_BaseColor[] = {
+    constexpr const std::uint8_t metal_plate_01_base_color[] = {
 #ifndef __INTELLISENSE__
 #embed "../../assets/textures/MetalPlate01_BaseColor.png"
 #else
@@ -113,7 +97,119 @@ namespace
 #endif
     };
 
-    constexpr const std::uint8_t Details03_BaseColor[] = {
+    constexpr const std::uint8_t metal_plate_01_normal[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/MetalPlate01_Normal.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t metal_plate_01_metallic[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/MetalPlate01_Metallic.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t metal_plate_02_base_color[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/MetalPlate02_BaseColor.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t metal_plate_02_normal[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/MetalPlate02_Normal.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t metal_plate_02_metallic[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/MetalPlate02_Metallic.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t metal_plate_03_base_color[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/MetalPlate03_BaseColor.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t metal_plate_03_normal[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/MetalPlate03_Normal.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t metal_plate_03_metallic[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/MetalPlate03_Metallic.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t details_01_base_color[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/Details01_BaseColor.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t details_01_normal[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/Details01_Normal.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t details_01_metallic[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/Details01_Metallic.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t detail_02_base_color[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/Detail02_BaseColor.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t detail_02_normal[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/Detail02_Normal.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t detail_02_metallic[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/Detail02_Metallic.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t details_03_base_color[] = {
 #ifndef __INTELLISENSE__
 #embed "../../assets/textures/Details03_BaseColor.png"
 #else
@@ -121,9 +217,41 @@ namespace
 #endif
     };
 
-    constexpr const std::uint8_t DeatilsBG_BaseColor[] = {
+    constexpr const std::uint8_t details_03_normal[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/Details03_Normal.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t details_03_metallic[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/Details03_Metallic.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t details_bg_base_color[] = {
 #ifndef __INTELLISENSE__
 #embed "../../assets/textures/DeatilsBG_BaseColor.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t details_bg_normal[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/DeatilsBG_Normal.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t details_bg_metallic[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/DeatilsBG_Metallic.png"
 #else
         0
 #endif
@@ -137,17 +265,9 @@ namespace
 #endif
     };
 
-    constexpr const std::uint8_t Detail02_BaseColor[] = {
+    constexpr const std::uint8_t T_Light_N[] = {
 #ifndef __INTELLISENSE__
-#embed "../../assets/textures/Detail02_BaseColor.png"
-#else
-        0
-#endif
-    };
-
-    constexpr const std::uint8_t Details01_BaseColor[] = {
-#ifndef __INTELLISENSE__
-#embed "../../assets/textures/Details01_BaseColor.png"
+#embed "../../assets/textures/T_Light_N.png"
 #else
         0
 #endif
@@ -156,6 +276,22 @@ namespace
     constexpr const std::uint8_t Pipes01_BaseColor[] = {
 #ifndef __INTELLISENSE__
 #embed "../../assets/textures/Pipes01_BaseColor.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t Pipes01_Normal[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/Pipes01_Normal.png"
+#else
+        0
+#endif
+    };
+
+    constexpr const std::uint8_t Pipes01_Metallic[] = {
+#ifndef __INTELLISENSE__
+#embed "../../assets/textures/Pipes01_Metallic.png"
 #else
         0
 #endif
@@ -188,15 +324,31 @@ namespace ufps
             {"textures/diamond_floor_albedo.png", diamond_floor_albedo},
             {"textures/diamond_floor_normal.png", diamond_floor_normal},
             {"textures/diamond_floor_specular.png", diamond_floor_specular},
-            {"textures/MetalPlate02_BaseColor.png", metal_plate_02_base_colour},
-            {"textures/MetalPlate03_BaseColor.png", metal_plate_03_base_colour},
-            {"textures/MetalPlate01_BaseColor.png", MetalPlate01_BaseColor},
-            {"textures/Details03_BaseColor.png", Details03_BaseColor},
-            {"textures/DeatilsBG_BaseColor.png", DeatilsBG_BaseColor},
+            {"textures/MetalPlate01_BaseColor.png", metal_plate_01_base_color},
+            {"textures/MetalPlate02_BaseColor.png", metal_plate_02_base_color},
+            {"textures/MetalPlate03_BaseColor.png", metal_plate_03_base_color},
+            {"textures/MetalPlate01_Normal.png", metal_plate_01_normal},
+            {"textures/MetalPlate02_Normal.png", metal_plate_02_normal},
+            {"textures/MetalPlate03_Normal.png", metal_plate_03_normal},
+            {"textures/MetalPlate01_Metallic.png", metal_plate_01_metallic},
+            {"textures/MetalPlate02_Metallic.png", metal_plate_02_metallic},
+            {"textures/MetalPlate03_Metallic.png", metal_plate_03_metallic},
+            {"textures/Details01_BaseColor.png", details_01_base_color},
+            {"textures/Detail02_BaseColor.png", detail_02_base_color},
+            {"textures/Details03_BaseColor.png", details_03_base_color},
+            {"textures/DeatilsBG_BaseColor.png", details_bg_base_color},
+            {"textures/Details01_Normal.png", details_01_normal},
+            {"textures/Detail02_Normal.png", detail_02_normal},
+            {"textures/Details03_Normal.png", details_03_normal},
+            {"textures/DeatilsBG_Normal.png", details_bg_normal},
+            {"textures/Details01_Metallic.png", details_01_metallic},
+            {"textures/Detail02_Metallic.png", detail_02_metallic},
+            {"textures/Details03_Metallic.png", details_03_metallic},
+            {"textures/DeatilsBG_Metallic.png", details_bg_metallic},
             {"textures/T_Light_BC.png", T_Light_BC},
-            {"textures/Detail02_BaseColor.png", Detail02_BaseColor},
-            {"textures/Details01_BaseColor.png", Details01_BaseColor},
             {"textures/Pipes01_BaseColor.png", Pipes01_BaseColor},
+            {"textures/Pipes01_Normal.png", Pipes01_Normal},
+            {"textures/Pipes01_Metallic.png", Pipes01_Metallic},
         };
     }
 
