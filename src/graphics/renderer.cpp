@@ -41,7 +41,7 @@ namespace
         return ufps::Program{sample_vert, sample_frag, program_name};
     }
 
-    auto create_render_taget(
+    auto create_render_target(
         std::uint32_t color_attachment_count,
         std::uint32_t width,
         std::uint32_t height,
@@ -135,8 +135,8 @@ namespace ufps
                   "shaders/light_pass.frag"sv,
                   "light_pass_fragement_shader"sv)},
           _fb_sampler{FilterType::NEAREST, FilterType::LINEAR, "fb_sampler"},
-          _gbuffer_rt{create_render_taget(4u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},
-          _light_pass_rt{create_render_taget(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")}
+          _gbuffer_rt{create_render_target(4u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},
+          _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")}
     {
 
         ::glGenVertexArrays(1u, &_dummy_vao);
