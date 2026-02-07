@@ -24,6 +24,7 @@ struct MaterialData
     uint specular_index;
     uint roughness_index;
     uint ao_index;
+    uint emissive_index;
 };
 
 layout(binding = 0, std430) readonly buffer vertices {
@@ -61,7 +62,7 @@ layout(location = 2) out vec4 out_pos;
 layout(location = 3) out vec4 out_specular;
 layout(location = 4) out vec4 out_roughness;
 layout(location = 5) out vec4 out_ao;
-
+layout(location = 6) out vec4 out_emissive_color;
 
 vec3 get_color(uint index)
 {
@@ -79,6 +80,7 @@ void main()
     uint specular_tex_index = material_data[material_index].specular_index;
     uint roughness_tex_index = material_data[material_index].roughness_index;
     uint ao_tex_index = material_data[material_index].ao_index;
+    uint emissive_tex_index = material_data[material_index].emissive_index;
 
     vec3 n = vec3(1.0);
     if(normal_tex_index < 65535)
@@ -109,6 +111,11 @@ void main()
     if(ao_tex_index < 65535)
     {
         out_ao = texture(textures[ao_tex_index], uv);
+    }
+    out_emissive_color = vec4(0.0, 0.0, 0.0, 1.0);
+    if(emissive_tex_index < 65535)
+    {
+        out_emissive_color = texture(textures[emissive_tex_index], uv);
     }
 }
 

@@ -82,7 +82,7 @@ namespace
         std::replace(str.begin(), str.end(), '\\', '/');
         const auto path = std::filesystem::path{str};
         const auto filename = path.filename();
-        // ufps::log::debug("found texture: {} type: {}", filename.string(), to_string(type));
+        ufps::log::debug("found texture: {} type: {}", filename.string(), to_string(type));
 
         return filename;
     }
@@ -195,6 +195,7 @@ namespace ufps
             const auto specular_filename = get_texture_file_name(material, ::aiTextureType_METALNESS);
             const auto roughness_filename = get_texture_file_name(material, ::aiTextureType_DIFFUSE_ROUGHNESS);
             const auto ao_filename = get_texture_file_name(material, ::aiTextureType_AMBIENT_OCCLUSION);
+            const auto emissive_filename = get_texture_file_name(material, ::aiTextureType_EMISSION_COLOR);
 
             auto opacity = 1.0f;
             if (material->Get(AI_MATKEY_OPACITY, opacity) != AI_SUCCESS)
@@ -239,7 +240,9 @@ namespace ufps
                 .normal = std::nullopt,
                 .specular = std::nullopt,
                 .roughness = std::nullopt,
-                .ambient_occlusion = std::nullopt};
+                .ambient_occlusion = std::nullopt,
+                .emissive_color = std::nullopt,
+            };
 
             if (albedo_filename.has_value())
             {
@@ -260,6 +263,10 @@ namespace ufps
             if (ao_filename.has_value())
             {
                 model.ambient_occlusion = load_texture(resource_loader, std::format("textures/{}", ao_filename->string()));
+            }
+            if (emissive_filename.has_value())
+            {
+                model.emissive_color = load_texture(resource_loader, std::format("textures/{}", emissive_filename->string()));
             }
 
             models.push_back(model);

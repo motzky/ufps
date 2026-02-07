@@ -335,7 +335,22 @@ auto main(int argc, char **argv) -> int
                     ao_index = texture_manager.add(std::move(ao));
                 }
 
-                const auto model_mat = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, albedo_index, normal_index, specular_index, roughness_index, ao_index);
+                auto emissive_index = 65537;
+                if (const auto &e = model.emissive_color; e)
+                {
+                    auto emissive = ufps::Texture{*e, std::format("model_{}_emissive_texture", index), sampler};
+                    emissive_index = texture_manager.add(std::move(emissive));
+                }
+
+                const auto model_mat = material_manager.add(
+                    ufps::Color{0.0f, 0.f, 1.f},
+                    albedo_index,
+                    normal_index,
+                    specular_index,
+                    roughness_index,
+                    ao_index,
+                    emissive_index);
+
                 scene.entities.push_back(
                     ufps::Entity{.name = std::format("SM_Corner01_8_8_X_{}", index),
                                  .mesh_view = mesh_manager.load(model.mesh_data),

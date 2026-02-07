@@ -44,6 +44,7 @@ layout(location = 2) uniform uint position_tex_index;
 layout(location = 3) uniform uint metallic_tex_index;
 layout(location = 4) uniform uint roughness_tex_index;
 layout(location = 5) uniform uint ao_tex_index;
+layout(location = 6) uniform uint emissive_tex_index;
 
 layout(location = 0) in vec2 uv;
 
@@ -92,10 +93,19 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 void main()
 {
     vec3 albedo = pow(texture(textures[albedo_tex_index], uv).rgb, vec3(2.2));
-    // vec3 albedo = texture(textures[albedo_tex_index], uv).rgb;
     vec3 normal = texture(textures[normal_tex_index], uv).xyz;
     vec3 frag_pos = texture(textures[position_tex_index], uv).rgb;
-    vec4 metallic_tex = texture(textures[metallic_tex_index], uv);
+    vec3 metallic_tex = texture(textures[metallic_tex_index], uv).rgb;
+    vec3 emissive = texture(textures[emissive_tex_index], uv).rgb;
+
+    float emissiveness = length(emissive);
+
+    vec3 Lo = vec3(0.0);
+    if(emissiveness > 0.001)
+    {
+        out_color = vec4(emissive, 1.0);
+        return;
+    }
 
     float metallic = metallic_tex.r;
     float roughness = texture(textures[roughness_tex_index], uv).r;
@@ -112,7 +122,6 @@ void main()
     vec3 light_dir = normalize(point_pos - frag_pos);
     vec3 half_way = normalize(light_dir + view_dir);
 
-    vec3 Lo = vec3(0.0);
     float dist = length(point_pos - frag_pos);
     float att = 1.0 / (point_attenuation.x + (point_attenuation.y * dist) + (point_attenuation.z * (dist * dist)));
     vec3 radiance = point_color * att;

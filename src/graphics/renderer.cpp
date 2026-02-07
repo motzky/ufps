@@ -135,7 +135,7 @@ namespace ufps
                   "shaders/light_pass.frag"sv,
                   "light_pass_fragment_shader"sv)},
           _fb_sampler{FilterType::NEAREST, FilterType::LINEAR, "fb_sampler"},
-          _gbuffer_rt{create_render_target(6u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},
+          _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},
           _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")}
     {
 
@@ -201,6 +201,7 @@ namespace ufps
         ::glProgramUniform1ui(_light_pass_program.native_handle(), 3u, _gbuffer_rt.first_color_attachment_index + 3u);
         ::glProgramUniform1ui(_light_pass_program.native_handle(), 4u, _gbuffer_rt.first_color_attachment_index + 4u);
         ::glProgramUniform1ui(_light_pass_program.native_handle(), 5u, _gbuffer_rt.first_color_attachment_index + 5u);
+        ::glProgramUniform1ui(_light_pass_program.native_handle(), 6u, _gbuffer_rt.first_color_attachment_index + 6u);
 
         _light_buffer.write(std::as_bytes(std::span<const LightData>{&scene.lights, 1zu}), 0zu);
 
