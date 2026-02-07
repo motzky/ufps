@@ -180,6 +180,25 @@ namespace ufps
             const auto roughness_filename = get_texture_file_name(material, ::aiTextureType_DIFFUSE_ROUGHNESS);
             const auto ao_filename = get_texture_file_name(material, ::aiTextureType_AMBIENT_OCCLUSION);
 
+            auto opacity = 1.0f;
+            if (material->Get(AI_MATKEY_OPACITY, opacity) != AI_SUCCESS)
+            {
+                opacity = 1.f;
+            }
+
+            if (opacity < 1.f)
+            {
+                log::debug("Opacity: {}", opacity);
+                auto refracti = 1.f;
+                if (material->Get(AI_MATKEY_OPACITY, refracti) == AI_SUCCESS)
+                {
+                    log::debug("Refract idx: {}", refracti);
+                }
+
+                log::warn("Transparency NOT supported");
+                continue;
+            }
+
             const auto positions = std::span<::aiVector3D>{mesh->mVertices, mesh->mVertices + mesh->mNumVertices} | std::views::transform(to_native);
             const auto normals = std::span<::aiVector3D>{mesh->mNormals, mesh->mNormals + mesh->mNumVertices} | std::views::transform(to_native);
             const auto tangents = std::span<::aiVector3D>{mesh->mTangents, mesh->mTangents + mesh->mNumVertices} | std::views::transform(to_native);
