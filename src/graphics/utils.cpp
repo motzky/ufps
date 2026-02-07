@@ -259,7 +259,7 @@ namespace ufps
             }
             if (ao_filename.has_value())
             {
-                model.ambient_occlusion = load_texture(resource_loader, std::format("textures/{}", specular_filename->string()));
+                model.ambient_occlusion = load_texture(resource_loader, std::format("textures/{}", ao_filename->string()));
             }
 
             models.push_back(model);
