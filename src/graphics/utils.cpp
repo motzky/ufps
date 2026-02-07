@@ -37,7 +37,18 @@ namespace
     public:
         auto write(const char *msg) -> void override
         {
-            ufps::log::log("{}", msg);
+            auto s = std::string(msg);
+            if (s.ends_with("\n"))
+            {
+                s = s.substr(0, s.length() - 1);
+            }
+            auto idx = s.find(',');
+            if (idx > 0 && idx < 10)
+            {
+                idx = s.find("T", idx);
+                s = s.substr(idx);
+            }
+            ufps::log::Print<L, std::string &>("{}", s);
         }
     };
 
@@ -82,7 +93,7 @@ namespace
         std::replace(str.begin(), str.end(), '\\', '/');
         const auto path = std::filesystem::path{str};
         const auto filename = path.filename();
-        ufps::log::debug("found texture: {} type: {}", filename.string(), to_string(type));
+        // ufps::log::debug("found texture: {} type: {}", filename.string(), to_string(type));
 
         return filename;
     }
@@ -98,6 +109,7 @@ namespace ufps
         auto it = _texture_cache.find(id);
         if (it == _texture_cache.end())
         {
+            // log::debug("loading texture {}", id);
             auto tex = load_texture(resource_loader.load_data_buffer(id), flip);
             _texture_cache.insert(std::make_pair(id, tex));
             return tex;
