@@ -158,7 +158,8 @@ namespace ufps
             log::info("found mesh: {}, material: {}", mesh->mName.C_Str(), material->GetName().C_Str());
 
             const auto base_color_count = material->GetTextureCount(::aiTextureType_BASE_COLOR);
-            if (base_color_count != 1)
+            const auto diffuse_color_count = material->GetTextureCount(::aiTextureType_DIFFUSE);
+            if (base_color_count != 1 && diffuse_color_count == 0)
             {
                 log::warn("unsupported base color count: {}", base_color_count);
                 continue;
@@ -171,9 +172,13 @@ namespace ufps
             //     log::debug("{}: Texture type: {}, count: {}", i, ::aiTextureTypeToString(type), cnt);
             // }
 
-            const auto albedo_filename = get_texture_file_name(material, ::aiTextureType_BASE_COLOR);
+            const auto albedo_filename =
+                diffuse_color_count > 0 ? get_texture_file_name(material, ::aiTextureType_DIFFUSE) : get_texture_file_name(material, ::aiTextureType_BASE_COLOR);
+
             const auto normal_filename = get_texture_file_name(material, ::aiTextureType_NORMAL_CAMERA);
             const auto specular_filename = get_texture_file_name(material, ::aiTextureType_METALNESS);
+            const auto roughness_filename = get_texture_file_name(material, ::aiTextureType_DIFFUSE_ROUGHNESS);
+            const auto ao_filename = get_texture_file_name(material, ::aiTextureType_AMBIENT_OCCLUSION);
 
             const auto positions = std::span<::aiVector3D>{mesh->mVertices, mesh->mVertices + mesh->mNumVertices} | std::views::transform(to_native);
             const auto normals = std::span<::aiVector3D>{mesh->mNormals, mesh->mNormals + mesh->mNumVertices} | std::views::transform(to_native);
@@ -198,7 +203,9 @@ namespace ufps
                 .albedo = std::nullopt,
                 .normal = std::nullopt,
                 .specular = std::nullopt,
-            };
+                .roughness = std::nullopt,
+                .ambient_occlusion = std::nullopt};
+
             if (albedo_filename.has_value())
             {
                 model.albedo = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", albedo_filename->string())));
@@ -210,6 +217,14 @@ namespace ufps
             if (specular_filename.has_value())
             {
                 model.specular = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", specular_filename->string())));
+            }
+            if (roughness_filename.has_value())
+            {
+                model.roughness = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", normal_filename->string())));
+            }
+            if (ao_filename.has_value())
+            {
+                model.ambient_occlusion = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", specular_filename->string())));
             }
 
             models.push_back(model);

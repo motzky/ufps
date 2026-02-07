@@ -235,12 +235,15 @@ auto main(int argc, char **argv) -> int
 
         try
         {
+            const auto root = !args.empty() ? args.front() : "./assets";
+
             auto window = ufps::Window{1920u, 1080u, 0u, 0u};
             auto running = true;
 
             const auto sampler = ufps::Sampler{ufps::FilterType::LINEAR, ufps::FilterType::LINEAR, "sampler"};
 
-            std::unique_ptr<ufps::ResourceLoader> resource_loader = std::make_unique<ufps::EmbeddedResourceLoader>();
+            // std::unique_ptr<ufps::ResourceLoader> resource_loader = std::make_unique<ufps::EmbeddedResourceLoader>();
+            std::unique_ptr<ufps::ResourceLoader> resource_loader = std::make_unique<ufps::FileResourceLoader>(root);
             auto textures = std::vector<ufps::Texture>{};
 
             const auto diamond_floor_albedo_data = resource_loader->load_data_buffer("textures/diamond_floor_albedo.png");
@@ -300,25 +303,39 @@ auto main(int argc, char **argv) -> int
                 auto albedo_index = tex_index;
                 if (const auto &a = model.albedo; a)
                 {
-                    auto albedo = ufps::Texture{*model.albedo, std::format("model_{}_albedo_texture", index), sampler};
+                    auto albedo = ufps::Texture{*a, std::format("model_{}_albedo_texture", index), sampler};
                     albedo_index = texture_manager.add(std::move(albedo));
                 }
 
-                auto normal_index = tex_index + 1u;
+                auto normal_index = 65537;
                 if (const auto &a = model.normal; a)
                 {
-                    auto normal = ufps::Texture{*model.normal, std::format("model_{}_normal_texture", index), sampler};
+                    auto normal = ufps::Texture{*a, std::format("model_{}_normal_texture", index), sampler};
                     normal_index = texture_manager.add(std::move(normal));
                 }
 
-                auto specular_index = tex_index + 2u;
+                auto specular_index = 65537;
                 if (const auto &a = model.specular; a)
                 {
-                    auto specular = ufps::Texture{*model.specular, std::format("model_{}_specular_texture", index), sampler};
+                    auto specular = ufps::Texture{*a, std::format("model_{}_specular_texture", index), sampler};
                     specular_index = texture_manager.add(std::move(specular));
                 }
 
-                const auto model_mat = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, albedo_index, normal_index, specular_index);
+                auto roughness_index = 65537;
+                if (const auto &r = model.roughness; r)
+                {
+                    auto roughness = ufps::Texture{*r, std::format("model_{}_roughness_texture", index), sampler};
+                    roughness_index = texture_manager.add(std::move(roughness));
+                }
+
+                auto ao_index = 65537;
+                if (const auto &r = model.ambient_occlusion; r)
+                {
+                    auto ao = ufps::Texture{*r, std::format("model_{}_ao_texture", index), sampler};
+                    ao_index = texture_manager.add(std::move(ao));
+                }
+
+                const auto model_mat = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, albedo_index, normal_index, specular_index, roughness_index, ao_index);
                 scene.entities.push_back(
                     ufps::Entity{.name = std::format("SM_Corner01_8_8_X_{}", index),
                                  .mesh_view = mesh_manager.load(model.mesh_data),

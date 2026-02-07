@@ -208,7 +208,7 @@ namespace ufps
         for (auto i = 0u; i < _gbuffer_rt.color_attachment_count; ++i)
         {
             const auto tex = scene.texture_manager.texture(_gbuffer_rt.first_color_attachment_index + i);
-            ::ImGui::Image(tex->native_handle(), ::ImVec2(200.f * aspect_ratio, 200.f), ::ImVec2(0.f, 1.f), ::ImVec2(1.f, 0.f));
+            ::ImGui::Image(tex->native_handle(), ::ImVec2(100.f * aspect_ratio, 100.f), ::ImVec2(0.f, 1.f), ::ImVec2(1.f, 0.f));
             ::ImGui::SameLine();
         }
 

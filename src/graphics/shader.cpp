@@ -49,7 +49,7 @@ namespace ufps
             char log[1024];
             ::glGetShaderInfoLog(_handle, sizeof(log), nullptr, log);
 
-            ufps::ensure(result == GL_TRUE, "failed to compile shader {}\n{}", _type, log);
+            ufps::ensure(result == GL_TRUE, "failed to compile shader {} for program '{}'\n{}", _type, name, log);
         }
 
         ::glObjectLabel(GL_SHADER, _handle, name.length(), name.data());
