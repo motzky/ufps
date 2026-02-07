@@ -48,7 +48,7 @@ namespace
                 idx = s.find("T", idx);
                 s = s.substr(idx);
             }
-            ufps::log::Print<L, std::string &>("{}", s);
+            ufps::log::Print("{}", s);
         }
     };
 
