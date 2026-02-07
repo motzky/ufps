@@ -42,7 +42,8 @@ namespace ufps
         }
     }
 
-    auto load_texture(DataBufferView image_data) -> TextureData;
+    auto load_texture(ResourceLoader &resource_loader, std::string id, bool flip = true) -> TextureData;
+    auto load_texture(DataBufferView image_data, bool flip = true) -> TextureData;
 
     auto load_model(DataBufferView model_data, ResourceLoader &resource_loader, std::string format = "") -> std::vector<ModelData>;
 

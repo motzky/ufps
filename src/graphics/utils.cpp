@@ -27,6 +27,7 @@
 #include "utils/data_buffer.h"
 #include "utils/ensure.h"
 #include "utils/formatter.h"
+#include "utils/string_unordered_map.h"
 
 namespace
 {
@@ -61,7 +62,7 @@ namespace
         }
     }
 
-    auto to_string(::aiTextureType type) -> std::string
+    [[maybe_unused]] auto to_string(::aiTextureType type) -> std::string
     {
         const auto str = std::string{::aiTextureTypeToString(type)};
         return str;
@@ -71,7 +72,7 @@ namespace
     {
         if (material->GetTextureCount(type) == 0)
         {
-            ufps::log::warn("no texture of type {} found", to_string(type));
+            // ufps::log::warn("no texture of type {} found", to_string(type));
             return std::nullopt;
         }
 
@@ -81,7 +82,7 @@ namespace
         std::replace(str.begin(), str.end(), '\\', '/');
         const auto path = std::filesystem::path{str};
         const auto filename = path.filename();
-        ufps::log::info("found texture: {} type: {}", filename.string(), to_string(type));
+        // ufps::log::debug("found texture: {} type: {}", filename.string(), to_string(type));
 
         return filename;
     }
@@ -90,13 +91,28 @@ namespace
 
 namespace ufps
 {
-    auto load_texture(DataBufferView image_data) -> TextureData
+    static StringUnorderedMap<TextureData> _texture_cache;
+
+    auto load_texture(ResourceLoader &resource_loader, std::string id, bool flip) -> TextureData
+    {
+        auto it = _texture_cache.find(id);
+        if (it == _texture_cache.end())
+        {
+            auto tex = load_texture(resource_loader.load_data_buffer(id), flip);
+            _texture_cache.insert(std::make_pair(id, tex));
+            return tex;
+        }
+
+        return it->second;
+    }
+
+    auto load_texture(DataBufferView image_data, bool flip) -> TextureData
     {
         auto width = int{};
         auto height = int{};
         auto num_channels = int{};
 
-        ::stbi_set_flip_vertically_on_load(true);
+        ::stbi_set_flip_vertically_on_load(flip);
 
         auto raw_data = std::unique_ptr<::stbi_uc, void (*)(void *)>{
             ::stbi_load_from_memory(
@@ -227,23 +243,23 @@ namespace ufps
 
             if (albedo_filename.has_value())
             {
-                model.albedo = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", albedo_filename->string())));
+                model.albedo = load_texture(resource_loader, std::format("textures/{}", albedo_filename->string()), diffuse_color_count == 0);
             }
             if (normal_filename.has_value())
             {
-                model.normal = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", normal_filename->string())));
+                model.normal = load_texture(resource_loader, std::format("textures/{}", normal_filename->string()));
             }
             if (specular_filename.has_value())
             {
-                model.specular = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", specular_filename->string())));
+                model.specular = load_texture(resource_loader, std::format("textures/{}", specular_filename->string()));
             }
             if (roughness_filename.has_value())
             {
-                model.roughness = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", normal_filename->string())));
+                model.roughness = load_texture(resource_loader, std::format("textures/{}", normal_filename->string()));
             }
             if (ao_filename.has_value())
             {
-                model.ambient_occlusion = load_texture(resource_loader.load_data_buffer(std::format("textures/{}", specular_filename->string())));
+                model.ambient_occlusion = load_texture(resource_loader, std::format("textures/{}", specular_filename->string()));
             }
 
             models.push_back(model);
