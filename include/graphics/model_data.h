@@ -13,6 +13,8 @@ namespace ufps
         std::optional<TextureData> albedo;
         std::optional<TextureData> normal;
         std::optional<TextureData> specular;
+        std::optional<TextureData> roughness;
+        std::optional<TextureData> ambient_occlusion;
     };
 
 }
