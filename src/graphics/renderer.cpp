@@ -146,7 +146,7 @@ namespace ufps
 
         // ::glFrontFace(GL_CCW);
         // ::glCullFace(GL_BACK);
-        // ::glEnable(GL_CULL_FACE);
+        ::glEnable(GL_CULL_FACE);
     }
 
     auto Renderer::render(Scene &scene) -> void
