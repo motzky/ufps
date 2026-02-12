@@ -82,14 +82,14 @@ void main()
     uint ao_tex_index = material_data[material_index].ao_index;
     uint emissive_tex_index = material_data[material_index].emissive_index;
 
-    vec3 n = vec3(1.0);
+    vec3 nm = vec3(0.0, 0.0, 1.0);
     if(normal_tex_index < 65535)
     {
-        vec3 nm = texture(textures[normal_tex_index], uv).xyz;
+        nm = texture(textures[normal_tex_index], uv).xyz;
         nm = (nm*2.0 - 1.0);
-        
-        n = normalize(tbn * nm);
     }
+
+    vec3 n = normalize(tbn * nm);
 
     out_color = texture(textures[albedo_tex_index], uv);
     out_normal = vec4(n, 1.0);
@@ -100,7 +100,7 @@ void main()
     }
     else
     {
-        out_specular = vec4(1.0);
+        out_specular = vec4(0.0,0.0,0.0,1.0);
     }
     out_roughness = vec4(1.0);
     if(roughness_tex_index < 65535)
