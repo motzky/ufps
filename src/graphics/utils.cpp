@@ -174,7 +174,7 @@ namespace ufps
 
         const auto loaded_meshes = std::span<::aiMesh *>(scene->mMeshes, scene->mMeshes + scene->mNumMeshes);
         const auto materials = std::span<::aiMaterial *>(scene->mMaterials, scene->mMaterials + scene->mNumMaterials);
-        log::info("found {} meshes, {} materials {} lights", scene->mName.C_Str(), loaded_meshes.size(), materials.size(), scene->mNumLights);
+        log::info("found {} meshes, {} materials {} lights", loaded_meshes.size(), materials.size(), scene->mNumLights);
 
         ensure(loaded_meshes.size() == materials.size(), "mismatch mesh/material count in model file");
 
@@ -258,7 +258,13 @@ namespace ufps
 
             if (albedo_filename.has_value())
             {
-                model.albedo = load_texture(resource_loader, std::format("textures/{}", albedo_filename->string()), diffuse_color_count == 0);
+                auto flip = diffuse_color_count == 0;
+                // FIXME: this has to be an INPUT !!!
+                if (albedo_filename->string().find("T_Light_BC") != std::string::npos)
+                {
+                    flip = false;
+                }
+                model.albedo = load_texture(resource_loader, std::format("textures/{}", albedo_filename->string()), flip);
             }
             if (normal_filename.has_value())
             {
@@ -278,7 +284,14 @@ namespace ufps
             }
             if (emissive_filename.has_value())
             {
-                model.emissive_color = load_texture(resource_loader, std::format("textures/{}", emissive_filename->string()));
+                auto flip = true;
+                // FIXME: this has to be an INPUT !!!
+                if (emissive_filename->string().find("T_Light_BC") != std::string::npos ||
+                    emissive_filename->string().find("Detail02_Emissive") != std::string::npos)
+                {
+                    flip = false;
+                }
+                model.emissive_color = load_texture(resource_loader, std::format("textures/{}", emissive_filename->string()), flip);
             }
 
             models.push_back(model);
