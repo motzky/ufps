@@ -203,12 +203,13 @@ namespace ufps
         ::ImGui::End();
 
         ::ImGui::Begin("render_targets");
+        static constexpr auto width = 175.f;
 
         const auto aspect_ratio = static_cast<float>(_window.width()) / static_cast<float>(_window.height());
         for (auto i = 0u; i < _gbuffer_rt.color_attachment_count; ++i)
         {
             const auto tex = scene.texture_manager.texture(_gbuffer_rt.first_color_attachment_index + i);
-            ::ImGui::Image(tex->native_handle(), ::ImVec2(200.f * aspect_ratio, 200.f), ::ImVec2(0.f, 1.f), ::ImVec2(1.f, 0.f));
+            ::ImGui::Image(tex->native_handle(), ::ImVec2(width * aspect_ratio, width), ::ImVec2(0.f, 1.f), ::ImVec2(1.f, 0.f));
             if ((i + 1) % 4 == 0)
             {
                 continue;
