@@ -112,31 +112,13 @@ namespace ufps
           _post_processing_command_buffer{"post_processing_command_buffer"},
           _post_process_sprite{
               .name = "post_process_sprite",
-              .mesh_view = mesh_manager.load(sprite()),
-              .transform = {},
-              .material_index = 0u},
-          _camera_buffer{sizeof(CameraData), "camera_buffer"},
-          _light_buffer{sizeof(LightData), "light_buffer"},
-          _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},
-          _gbuffer_program{
-              create_program(
-                  resource_loader,
-                  "gbuffer_program"sv,
-                  "shaders/gbuffer.vert"sv,
-                  "gbuffer_vertex_shader"sv,
-                  "shaders/gbuffer.frag"sv,
-                  "gbuffer_fragement_shader"sv)},
-          _light_pass_program{
-              create_program(
-                  resource_loader,
-                  "light_pass_program"sv,
-                  "shaders/light_pass.vert"sv,
-                  "light_pass_vertex_shader"sv,
-                  "shaders/light_pass.frag"sv,
-                  "light_pass_fragment_shader"sv)},
-          _fb_sampler{FilterType::NEAREST, FilterType::LINEAR, "fb_sampler"},
-          _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},
-          _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")}
+              .sub_meshes = {
+                  {
+                      .mesh_view = mesh_manager.load(sprite()),
+                      .material_index = 0u,
+                  }},
+              .transform = {}},
+          _camera_buffer{sizeof(CameraData), "camera_buffer"}, _light_buffer{sizeof(LightData), "light_buffer"}, _object_data_buffer{sizeof(ObjectData), "object_data_buffer"}, _gbuffer_program{create_program(resource_loader, "gbuffer_program"sv, "shaders/gbuffer.vert"sv, "gbuffer_vertex_shader"sv, "shaders/gbuffer.frag"sv, "gbuffer_fragement_shader"sv)}, _light_pass_program{create_program(resource_loader, "light_pass_program"sv, "shaders/light_pass.vert"sv, "light_pass_vertex_shader"sv, "shaders/light_pass.frag"sv, "light_pass_fragment_shader"sv)}, _fb_sampler{FilterType::NEAREST, FilterType::LINEAR, "fb_sampler"}, _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")}, _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")}
     {
 
         ::glGenVertexArrays(1u, &_dummy_vao);
@@ -167,13 +149,19 @@ namespace ufps
 
         ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _command_buffer.native_handle());
 
-        const auto object_data = scene.entities |
-                                 std::views::transform([](const auto &e)
-                                                       { return ObjectData{
-                                                             .model = e.transform,
-                                                             .material_id_index = e.material_index,
-                                                             .padding = {}}; }) |
-                                 std::ranges::to<std::vector>();
+        auto object_data = std::vector<ObjectData>{};
+
+        for (const auto &entity : scene.entities)
+        {
+            object_data.append_range(
+                entity.sub_meshes |
+                std::views::transform(
+                    [&entity](const auto &e)
+                    { return ObjectData{
+                          .model = entity.transform,
+                          .material_id_index = e.material_index,
+                          .padding = {}}; }));
+        }
 
         resize_gpu_buffer(object_data, _object_data_buffer);
 

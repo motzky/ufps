@@ -5,6 +5,7 @@
 #include <memory>
 #include <optional>
 #include <ranges>
+#include <tuple>
 #include <vector>
 
 #include <assimp/DefaultLogger.hpp>
@@ -148,7 +149,7 @@ namespace ufps
         };
     }
 
-    auto load_model(DataBufferView model_data, ResourceLoader &resource_loader, std::string format) -> std::vector<ModelData>
+    auto load_model(DataBufferView model_data, ResourceLoader &resource_loader, std::string format) -> std::tuple<std::string, std::vector<ModelData>>
     {
         [[maybe_unused]] static auto *logger = []()
         {
@@ -297,6 +298,6 @@ namespace ufps
             models.push_back(model);
         }
 
-        return models;
+        return {loaded_meshes.front()->mName.C_Str(), models};
     }
 }

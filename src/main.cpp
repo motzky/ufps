@@ -281,8 +281,6 @@ auto main(int argc, char **argv) -> int
             [[maybe_unused]] const auto material_index_g = material_manager.add(ufps::Color{0.0f, 1.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u);
             [[maybe_unused]] const auto material_index_b = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, tex_index, tex_index + 1u, tex_index + 2u);
 
-            const auto models = ufps::load_model(resource_loader->load_data_buffer("models/SM_Corner01_8_8_X.fbx"), *resource_loader, "fbx");
-
             auto scene = ufps::Scene{
                 .entities = {},
                 .mesh_manager = mesh_manager,
@@ -309,47 +307,51 @@ auto main(int argc, char **argv) -> int
                     },
                 }};
 
+            const auto &[name, models] = ufps::load_model(resource_loader->load_data_buffer("models/SM_Corner01_8_8_X.fbx"), *resource_loader, "fbx");
+            auto entity = ufps::Entity{};
+            entity.name = name;
+
             for (const auto &[index, model] : models | std::views::enumerate)
             {
                 auto albedo_index = tex_index;
                 if (const auto &a = model.albedo; a)
                 {
-                    auto albedo = ufps::Texture{*a, std::format("model_{}_albedo_texture", index), sampler};
+                    auto albedo = ufps::Texture{*a, std::format("{}_{}_albedo_texture", name, index), sampler};
                     albedo_index = texture_manager.add(std::move(albedo));
                 }
 
                 auto normal_index = 65537;
                 if (const auto &a = model.normal; a)
                 {
-                    auto normal = ufps::Texture{*a, std::format("model_{}_normal_texture", index), sampler};
+                    auto normal = ufps::Texture{*a, std::format("{}_{}_normal_texture", name, index), sampler};
                     normal_index = texture_manager.add(std::move(normal));
                 }
 
                 auto specular_index = 65537;
                 if (const auto &a = model.specular; a)
                 {
-                    auto specular = ufps::Texture{*a, std::format("model_{}_specular_texture", index), sampler};
+                    auto specular = ufps::Texture{*a, std::format("{}_{}_specular_texture", name, index), sampler};
                     specular_index = texture_manager.add(std::move(specular));
                 }
 
                 auto roughness_index = 65537;
                 if (const auto &r = model.roughness; r)
                 {
-                    auto roughness = ufps::Texture{*r, std::format("model_{}_roughness_texture", index), sampler};
+                    auto roughness = ufps::Texture{*r, std::format("{}_{}_roughness_texture", name, index), sampler};
                     roughness_index = texture_manager.add(std::move(roughness));
                 }
 
                 auto ao_index = 65537;
                 if (const auto &r = model.ambient_occlusion; r)
                 {
-                    auto ao = ufps::Texture{*r, std::format("model_{}_ao_texture", index), sampler};
+                    auto ao = ufps::Texture{*r, std::format("{}_{}_ao_texture", name, index), sampler};
                     ao_index = texture_manager.add(std::move(ao));
                 }
 
                 auto emissive_index = 65537;
                 if (const auto &e = model.emissive_color; e)
                 {
-                    auto emissive = ufps::Texture{*e, std::format("model_{}_emissive_texture", index), sampler};
+                    auto emissive = ufps::Texture{*e, std::format("{}_{}_emissive_texture", name, index), sampler};
                     emissive_index = texture_manager.add(std::move(emissive));
                 }
 
@@ -362,12 +364,12 @@ auto main(int argc, char **argv) -> int
                     ao_index,
                     emissive_index);
 
-                scene.entities.push_back(
-                    ufps::Entity{.name = std::format("SM_Corner01_8_8_X_{}", index),
-                                 .mesh_view = mesh_manager.load(model.mesh_data),
-                                 .transform = {{}, {1.f}, {}},
-                                 .material_index = model_mat});
+                entity.sub_meshes.push_back(
+                    {.mesh_view = mesh_manager.load(model.mesh_data),
+                     .material_index = model_mat});
             }
+
+            scene.entities.push_back(std::move(entity));
 
             auto key_state = std::unordered_map<ufps::Key, bool>{
                 {ufps::Key::A, false},
