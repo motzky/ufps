@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <vector>
+#include <deque>
 
 #include "graphics/buffer.h"
 #include "graphics/opengl.h"
@@ -25,6 +25,6 @@ namespace ufps
     private:
         Buffer _gpu_buffer;
         std::vector<::GLuint64> _cpu_buffer;
-        std::vector<Texture> _textures;
+        std::deque<Texture> _textures;
     };
 }
