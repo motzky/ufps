@@ -31,6 +31,7 @@
 #include "log.h"
 #include "resources/embedded_resource_loader.h"
 #include "resources/file_resource_loader.h"
+#include "resources/resource_loader.h"
 #include "utils/data_buffer.h"
 #include "utils/ensure.h"
 #include "utils/exception.h"
@@ -242,8 +243,17 @@ auto main(int argc, char **argv) -> int
 
             const auto sampler = ufps::Sampler{ufps::FilterType::LINEAR, ufps::FilterType::LINEAR, "sampler"};
 
-            // std::unique_ptr<ufps::ResourceLoader> resource_loader = std::make_unique<ufps::EmbeddedResourceLoader>();
-            std::unique_ptr<ufps::ResourceLoader> resource_loader = std::make_unique<ufps::FileResourceLoader>(root);
+            auto resource_loader = std::unique_ptr<ufps::ResourceLoader>();
+            if constexpr (ufps::config::use_embedded_resource_loader)
+            {
+                ufps::log::info("using embedded resource loader");
+                resource_loader = std::make_unique<ufps::EmbeddedResourceLoader>();
+            }
+            else
+            {
+                ufps::log::info("using file resource loader");
+                resource_loader = std::make_unique<ufps::FileResourceLoader>(root);
+            }
             auto textures = std::vector<ufps::Texture>{};
 
             const auto diamond_floor_albedo_data = resource_loader->load_data_buffer("textures/diamond_floor_albedo.png");

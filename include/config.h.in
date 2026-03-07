@@ -1,5 +1,7 @@
 #pragma once
 
+#cmakedefine01 UFPS_USE_EMBEDDED_RESOURCE_LOADER
+
 namespace ufps::version
 {
     // clang-format off
@@ -15,5 +17,7 @@ namespace ufps::config
     // clang-format off
     static constexpr auto log_to_file = ${LOG_TO_FILE};
     static constexpr auto log_enable_debug = ${LOG_ENABLE_DEBUG};
+    static constexpr auto opengl_debug_enabled = true;
+    static constexpr bool use_embedded_resource_loader = UFPS_USE_EMBEDDED_RESOURCE_LOADER;
     // clang-format on
 }

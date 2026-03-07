@@ -3,6 +3,9 @@
 config:
 	cmake -S . -B ./build -DCMAKE_SYSTEM_NAME=Linux -G "Ninja Multi-Config"
 
+config-cli:
+	cmake -S . -B ./build -DCMAKE_SYSTEM_NAME=Linux -G "Ninja Multi-Config" -DUFPS_USE_EMBEDDED_RESOURCE_LOADER=ON
+
 # res:
 # ifneq (,$(wildcard ./build/resources))
 # 	rm ./build/resources
