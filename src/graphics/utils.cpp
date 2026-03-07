@@ -193,7 +193,7 @@ namespace ufps
                 continue;
             }
 
-            // for (auto i = 0; i < 27; ++i)
+            // for (int i = ::aiTextureType_NONE; i < ::aiTextureType_GLTF_METALLIC_ROUGHNESS; ++i)
             // {
             //     auto type = static_cast<::aiTextureType>(i);
             //     const auto cnt = material->GetTextureCount(type);
