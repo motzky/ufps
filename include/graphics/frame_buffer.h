@@ -26,12 +26,10 @@ namespace ufps
         auto width() const -> std::uint32_t;
         auto height() const -> std::uint32_t;
 
-        auto color_textures() const -> std::span<const Texture *const>;
-
     private:
         AutoRelease<::GLuint> _handle;
-        std::vector<const Texture *> _color_textures;
-        const Texture *_depth_texture;
+        std::uint32_t _width;
+        std::uint32_t _height;
         const std::string &_name;
     };
 }
