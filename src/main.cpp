@@ -421,7 +421,7 @@ auto main(int argc, char **argv) -> int
                             }
                             else if constexpr (std::same_as<T, ufps::MouseEvent>)
                             {
-                                if (!show_debug_ui || key_state[ufps::Key::LCTRL])
+                                if (!show_debug_ui || key_state[ufps::Key::LSHIFT])
                                 {
                                     static constexpr auto sensitivity = float{0.002f};
                                     const auto delta_x = arg.delta_x() * sensitivity;
