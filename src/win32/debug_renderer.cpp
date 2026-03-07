@@ -10,28 +10,9 @@
 
 namespace ufps
 {
-    DebugRenderer::DebugRenderer(
-        const Window &window,
-        ResourceLoader &resource_loader,
-        TextureManager &texture_manager,
-        MeshManager &mesh_manager)
-        : Renderer{window, resource_loader, texture_manager, mesh_manager},
-          _enabled{false},
-          _click{},
-          _selected_entity{}
+    auto DebugRenderer::init_platform(const Window &window) const -> void
     {
-        IMGUI_CHECKVERSION();
-        ::ImGui::CreateContext();
-        auto &io = ::ImGui::GetIO();
-
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         ::ShowCursor();
-        io.MouseDrawCursor = io.WantCaptureMouse;
-
-        ::ImGui::StyleColorsDark();
-
         ::ImGui_ImplWin32_InitForOpenGL(window.native_handle());
         ::ImGui_ImplOpenGL3_Init();
     }

@@ -38,13 +38,85 @@ namespace
 
 namespace ufps
 {
+    DebugRenderer::DebugRenderer(
+        const Window &window,
+        ResourceLoader &resource_loader,
+        TextureManager &texture_manager,
+        MeshManager &mesh_manager)
+        : Renderer{window, resource_loader, texture_manager, mesh_manager},
+          _enabled{false},
+          _click{},
+          _selected_entity{},
+          _debug_lines{},
+          _debug_line_buffer{sizeof(LineData) * 2u, "line_data_buffer"},
+          _debug_line_program{create_program(resource_loader,
+                                             "debug_lines_program",
+                                             "shaders/line.vert",
+                                             "line_vertex_shader",
+                                             "shaders/line.frag",
+                                             "line_fragment_shader")}
+    {
+        IMGUI_CHECKVERSION();
+        ::ImGui::CreateContext();
+        auto &io = ::ImGui::GetIO();
+
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        io.MouseDrawCursor = io.WantCaptureMouse;
+
+        ::ImGui::StyleColorsDark();
+
+        init_platform(window);
+    }
+
     auto DebugRenderer::post_render(Scene &scene) -> void
     {
+        if (_selected_entity)
+        {
+            _debug_lines.push_back({.position = {}, .color = {1.f, 0.f, 0.f}});
+            _debug_lines.push_back({.position = {0.f, 1000.f, 0.f}, .color = {0.f, 1.f, 0.f}});
+        }
+
         Renderer::post_render(scene);
 
         if (!_enabled)
         {
             return;
+        }
+
+        auto debug_line_count = 0zu;
+
+        if (!_debug_lines.empty())
+        {
+            debug_line_count = _debug_lines.size();
+
+            _light_pass_rt.fb.unbind();
+
+            ::glBlitNamedFramebuffer(
+                _gbuffer_rt.fb.native_handle(),
+                0u,
+                0u,
+                0u,
+                _gbuffer_rt.fb.width(),
+                _gbuffer_rt.fb.height(),
+                0u,
+                0u,
+                _gbuffer_rt.fb.width(),
+                _gbuffer_rt.fb.height(),
+                GL_DEPTH_BUFFER_BIT,
+                GL_NEAREST);
+            _debug_line_program.use();
+
+            resize_gpu_buffer(_debug_lines, _debug_line_buffer);
+            _debug_line_buffer.write(std::as_bytes(std::span{_debug_lines.data(), _debug_lines.size()}), 0zu);
+            ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _debug_line_buffer.native_handle());
+            ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
+
+            ::glDrawArrays(GL_LINES, 0, _debug_lines.size());
+
+            _debug_lines.clear();
+            _debug_line_buffer.advance();
         }
 
         auto &io = ::ImGui::GetIO();
@@ -63,6 +135,7 @@ namespace ufps
         ::ImGui::Begin("scene");
 
         ::ImGui::LabelText("FPS", "%0.1f", io.Framerate);
+        ::ImGui::LabelText("Debug Line Count", "%0.1f", static_cast<float>(debug_line_count));
 
         for (auto &entity : scene.entities)
         {

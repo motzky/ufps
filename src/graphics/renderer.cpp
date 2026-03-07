@@ -27,20 +27,6 @@ using namespace std::literals;
 
 namespace
 {
-    auto create_program(
-        ufps::ResourceLoader &resource_loader,
-        std::string_view program_name,
-        std::string_view vertex_path,
-        std::string_view vertex_name,
-        std::string_view fragment_path,
-        std::string_view fragment_name) -> ufps::Program
-    {
-        const auto sample_vert = ufps::Shader{resource_loader.load_string(vertex_path), ufps::ShaderType::VERTEX, vertex_name};
-        const auto sample_frag = ufps::Shader{resource_loader.load_string(fragment_path), ufps::ShaderType::FRAGMENT, fragment_name};
-
-        return ufps::Program{sample_vert, sample_frag, program_name};
-    }
-
     auto create_render_target(
         std::uint32_t color_attachment_count,
         std::uint32_t width,
@@ -118,7 +104,14 @@ namespace ufps
                       .material_index = 0u,
                   }},
               .transform = {}},
-          _camera_buffer{sizeof(CameraData), "camera_buffer"}, _light_buffer{sizeof(LightData), "light_buffer"}, _object_data_buffer{sizeof(ObjectData), "object_data_buffer"}, _gbuffer_program{create_program(resource_loader, "gbuffer_program"sv, "shaders/gbuffer.vert"sv, "gbuffer_vertex_shader"sv, "shaders/gbuffer.frag"sv, "gbuffer_fragement_shader"sv)}, _light_pass_program{create_program(resource_loader, "light_pass_program"sv, "shaders/light_pass.vert"sv, "light_pass_vertex_shader"sv, "shaders/light_pass.frag"sv, "light_pass_fragment_shader"sv)}, _fb_sampler{FilterType::NEAREST, FilterType::LINEAR, "fb_sampler"}, _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")}, _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")}
+          _camera_buffer{sizeof(CameraData), "camera_buffer"},                                                                                                                                                  //
+          _light_buffer{sizeof(LightData), "light_buffer"},                                                                                                                                                     //
+          _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                        //
+          _gbuffer_program{create_program(resource_loader, "gbuffer_program"sv, "shaders/gbuffer.vert"sv, "gbuffer_vertex_shader"sv, "shaders/gbuffer.frag"sv, "gbuffer_fragement_shader"sv)},                  //
+          _light_pass_program{create_program(resource_loader, "light_pass_program"sv, "shaders/light_pass.vert"sv, "light_pass_vertex_shader"sv, "shaders/light_pass.frag"sv, "light_pass_fragment_shader"sv)}, //
+          _fb_sampler{FilterType::NEAREST, FilterType::LINEAR, "fb_sampler"},                                                                                                                                   //
+          _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},                                                                                      //
+          _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")}
     {
 
         ::glGenVertexArrays(1u, &_dummy_vao);
@@ -129,6 +122,20 @@ namespace ufps
         // ::glFrontFace(GL_CCW);
         // ::glCullFace(GL_BACK);
         ::glEnable(GL_CULL_FACE);
+    }
+
+    auto Renderer::create_program(
+        ufps::ResourceLoader &resource_loader,
+        std::string_view program_name,
+        std::string_view vertex_path,
+        std::string_view vertex_name,
+        std::string_view fragment_path,
+        std::string_view fragment_name) -> ufps::Program
+    {
+        const auto sample_vert = ufps::Shader{resource_loader.load_string(vertex_path), ufps::ShaderType::VERTEX, vertex_name};
+        const auto sample_frag = ufps::Shader{resource_loader.load_string(fragment_path), ufps::ShaderType::FRAGMENT, fragment_name};
+
+        return ufps::Program{sample_vert, sample_frag, program_name};
     }
 
     auto Renderer::render(Scene &scene) -> void
