@@ -217,6 +217,12 @@ namespace ufps
             ::ImGui::SameLine();
         }
 
+        ::ImGui::Image(
+            scene.texture_manager.texture(_gbuffer_rt.depth_attachment_index)->native_handle(),
+            ::ImVec2(width * aspect_ratio, width),
+            ::ImVec2(0.f, 1.f),
+            ::ImVec2(1.f, 0.f));
+
         ::ImGui::End();
 
         ::ImGui::Render();
