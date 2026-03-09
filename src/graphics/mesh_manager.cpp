@@ -50,12 +50,12 @@ namespace ufps
         return {_vertex_data_gpu.native_handle(), _index_data_gpu.native_handle()};
     }
 
-    auto MeshManager::index_data(MeshView view) -> std::span<std::uint32_t>
+    auto MeshManager::index_data(MeshView view) const -> std::span<const std::uint32_t>
     {
         return {_index_data_cpu.data() + view.index_offset, view.index_count};
     }
 
-    auto MeshManager::vertex_data(MeshView view) -> std::span<VertexData>
+    auto MeshManager::vertex_data(MeshView view) const -> std::span<const VertexData>
     {
         return {_vertex_data_cpu.data() + view.vertex_offset, view.vertex_count};
     }

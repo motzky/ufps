@@ -20,8 +20,8 @@ namespace ufps
 
         auto native_handle() const -> std::tuple<::GLuint, ::GLuint>;
 
-        auto index_data(MeshView view) -> std::span<std::uint32_t>;
-        auto vertex_data(MeshView view) -> std::span<VertexData>;
+        auto index_data(MeshView view) const -> std::span<const std::uint32_t>;
+        auto vertex_data(MeshView view) const -> std::span<const VertexData>;
 
         auto
         to_string() const -> std::string;
