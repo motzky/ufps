@@ -1,6 +1,7 @@
 #include "graphics/debug_renderer.h"
 
 #include <cstring>
+#include <ranges>
 #include <string>
 
 #include <imgui.h>
@@ -12,6 +13,7 @@
 #include "core/scene.h"
 #include "events/mouse_button_event.h"
 #include "log.h"
+#include "math/aabb.h"
 #include "math/matrix4.h"
 #include "math/ray.h"
 #include "window.h"
@@ -33,6 +35,35 @@ namespace
         const auto origin_world_space = ufps::Vector3{inv_view[12], inv_view[13], inv_view[14]};
 
         return {origin_world_space, dir_world_space};
+    }
+
+    auto draw_line(const ufps::Vector3 &start, const ufps::Vector3 &end, const ufps::Color &color, std::vector<ufps::LineData> &lines) -> void
+    {
+        lines.push_back({start, color});
+        lines.push_back({end, color});
+    }
+
+    auto create_aabb_lines(const ufps::AABB &aabb, const ufps::Matrix4 &transform, const ufps::Color &color) -> std::vector<ufps::LineData>
+    {
+        auto lines = std::vector<ufps::LineData>{};
+        lines.reserve(24);
+
+        draw_line(transform * ufps::Vector4{aabb.max.x, aabb.max.y, aabb.max.z, 1.f}, transform * ufps::Vector4{aabb.min.x, aabb.max.y, aabb.max.z, 1.f}, color, lines);
+        draw_line(transform * ufps::Vector4{aabb.min.x, aabb.max.y, aabb.max.z, 1.f}, transform * ufps::Vector4{aabb.min.x, aabb.max.y, aabb.min.z, 1.f}, color, lines);
+        draw_line(transform * ufps::Vector4{aabb.min.x, aabb.max.y, aabb.min.z, 1.f}, transform * ufps::Vector4{aabb.max.x, aabb.max.y, aabb.min.z, 1.f}, color, lines);
+        draw_line(transform * ufps::Vector4{aabb.max.x, aabb.max.y, aabb.min.z, 1.f}, transform * ufps::Vector4{aabb.max.x, aabb.max.y, aabb.max.z, 1.f}, color, lines); //
+
+        draw_line(transform * ufps::Vector4{aabb.max.x, aabb.max.y, aabb.max.z, 1.f}, transform * ufps::Vector4{aabb.max.x, aabb.min.y, aabb.max.z, 1.f}, color, lines);
+        draw_line(transform * ufps::Vector4{aabb.min.x, aabb.max.y, aabb.max.z, 1.f}, transform * ufps::Vector4{aabb.min.x, aabb.min.y, aabb.max.z, 1.f}, color, lines);
+        draw_line(transform * ufps::Vector4{aabb.min.x, aabb.max.y, aabb.min.z, 1.f}, transform * ufps::Vector4{aabb.min.x, aabb.min.y, aabb.min.z, 1.f}, color, lines);
+        draw_line(transform * ufps::Vector4{aabb.max.x, aabb.max.y, aabb.min.z, 1.f}, transform * ufps::Vector4{aabb.max.x, aabb.min.y, aabb.min.z, 1.f}, color, lines); //
+
+        draw_line(transform * ufps::Vector4{aabb.max.x, aabb.min.y, aabb.max.z, 1.f}, transform * ufps::Vector4{aabb.min.x, aabb.min.y, aabb.max.z, 1.f}, color, lines);
+        draw_line(transform * ufps::Vector4{aabb.min.x, aabb.min.y, aabb.max.z, 1.f}, transform * ufps::Vector4{aabb.min.x, aabb.min.y, aabb.min.z, 1.f}, color, lines);
+        draw_line(transform * ufps::Vector4{aabb.min.x, aabb.min.y, aabb.min.z, 1.f}, transform * ufps::Vector4{aabb.max.x, aabb.min.y, aabb.min.z, 1.f}, color, lines);
+        draw_line(transform * ufps::Vector4{aabb.max.x, aabb.min.y, aabb.min.z, 1.f}, transform * ufps::Vector4{aabb.max.x, aabb.min.y, aabb.max.z, 1.f}, color, lines);
+
+        return lines;
     }
 }
 
@@ -74,8 +105,13 @@ namespace ufps
     {
         if (_selected_entity)
         {
-            _debug_lines.push_back({.position = {}, .color = {1.f, 0.f, 0.f}});
-            _debug_lines.push_back({.position = {0.f, 1000.f, 0.f}, .color = {0.f, 1.f, 0.f}});
+            auto aabb_lines =
+                _selected_entity->sub_meshes |
+                std::views::transform([&](const auto &e)
+                                      { return create_aabb_lines(e.aabb(), _selected_entity->transform, {0.f, 1.f, 0.f}); }) |
+                std::views::join;
+
+            _debug_lines.append_range(aabb_lines);
         }
 
         Renderer::post_render(scene);
