@@ -1,5 +1,7 @@
 #pragma once
 
+#include <span>
+#include <string>
 #include <vector>
 
 #include "core/sub_mesh.h"
@@ -8,11 +10,21 @@
 
 namespace ufps
 {
-    struct Entity
+    class Entity
     {
-        std::string name;
-        std::vector<SubMesh> sub_meshes;
-        Transform transform;
-        AABB aabb;
+    public:
+        Entity(std::string name, std::vector<SubMesh> sub_meshes, Transform transform);
+
+        auto name() const -> std::string;
+        auto sub_meshes() const -> std::span<const SubMesh>;
+        auto transform() const -> const Transform &;
+        auto set_transform(const Transform &transform) -> void;
+        auto aabb() const -> const AABB &;
+
+    private:
+        std::string _name;
+        std::vector<SubMesh> _sub_meshes;
+        Transform _transform;
+        AABB _aabb;
     };
 }
