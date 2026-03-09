@@ -96,11 +96,7 @@ namespace ufps
                      { ::glDeleteVertexArrays(1, &e); }},
           _command_buffer{"gbuffer_command_buffer"},
           _post_processing_command_buffer{"post_processing_command_buffer"},
-          _post_process_sprite{
-              .name = "post_process_sprite",
-              .sub_meshes = {{mesh_manager.load(sprite()), 0u, mesh_manager}},
-              .transform = {},
-              .aabb = {}},
+          _post_process_sprite{"post_process_sprite", {{mesh_manager.load(sprite()), 0u, mesh_manager}}, {}},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},                                                                                                                                                  //
           _light_buffer{sizeof(LightData), "light_buffer"},                                                                                                                                                     //
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                        //
@@ -158,11 +154,11 @@ namespace ufps
         for (const auto &entity : scene.entities)
         {
             object_data.append_range(
-                entity.sub_meshes |
+                entity.sub_meshes() |
                 std::views::transform(
                     [&entity](const auto &e)
                     { return ObjectData{
-                          .model = entity.transform,
+                          .model = entity.transform(),
                           .material_id_index = e.material_index(),
                           .padding = {}}; }));
         }

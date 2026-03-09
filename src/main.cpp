@@ -308,8 +308,7 @@ auto main(int argc, char **argv) -> int
                 }};
 
             const auto &[name, models] = ufps::load_model(resource_loader->load_data_buffer("models/SM_Corner01_8_8_X.fbx"), *resource_loader, "fbx");
-            auto entity = ufps::Entity{};
-            entity.name = name;
+            auto sub_meshes = std::vector<ufps::SubMesh>{};
 
             for (const auto &[index, model] : models | std::views::enumerate)
             {
@@ -364,13 +363,13 @@ auto main(int argc, char **argv) -> int
                     ao_index,
                     emissive_index);
 
-                entity.sub_meshes.push_back(
+                sub_meshes.push_back(
                     {mesh_manager.load(model.mesh_data),
                      model_mat,
                      mesh_manager});
             }
 
-            scene.entities.push_back(std::move(entity));
+            scene.entities.push_back({name, sub_meshes, {}});
 
             auto key_state = std::unordered_map<ufps::Key, bool>{
                 {ufps::Key::A, false},

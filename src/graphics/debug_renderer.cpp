@@ -106,12 +106,13 @@ namespace ufps
         if (_selected_entity)
         {
             auto aabb_lines =
-                _selected_entity->sub_meshes |
+                _selected_entity->sub_meshes() |
                 std::views::transform([&](const auto &e)
-                                      { return create_aabb_lines(e.aabb(), _selected_entity->transform, {0.f, 1.f, 0.f}); }) |
+                                      { return create_aabb_lines(e.aabb(), _selected_entity->transform(), {0.4f, 0.4f, .4f}); }) |
                 std::views::join;
 
             _debug_lines.append_range(aabb_lines);
+            _debug_lines.append_range(create_aabb_lines(_selected_entity->aabb(), _selected_entity->transform(), {0.f, 1.f, 0.f}));
         }
 
         Renderer::post_render(scene);
@@ -175,11 +176,11 @@ namespace ufps
 
         for (auto &entity : scene.entities)
         {
-            ::ImGui::CollapsingHeader(entity.name.c_str());
+            ::ImGui::CollapsingHeader(entity.name().c_str());
 
             if (&entity == _selected_entity)
             {
-                auto transform = Matrix4{entity.transform};
+                auto transform = Matrix4{entity.transform()};
 
                 const auto &camera_data = scene.camera.data();
 
@@ -194,7 +195,7 @@ namespace ufps
                     nullptr,
                     nullptr);
 
-                entity.transform = Transform{transform};
+                entity.set_transform(transform);
             }
         }
 
