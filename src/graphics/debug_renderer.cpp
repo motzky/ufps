@@ -172,7 +172,33 @@ namespace ufps
         ::ImGui::Begin("scene");
 
         ::ImGui::LabelText("FPS", "%0.1f", io.Framerate);
-        ::ImGui::LabelText("Debug Line Count", "%0.1f", static_cast<float>(debug_line_count));
+        ::ImGui::LabelText("Debug Line Count", "%zu", debug_line_count);
+
+        auto names = scene.mesh_manager.mesh_names();
+        const auto mesh_names_cstr = names |
+                                     std::views::transform([](const auto &e)
+                                                           { return e.c_str(); }) |
+                                     std::ranges::to<std::vector>();
+
+        auto mesh_selected_index = std::optional<std::uint32_t>{};
+
+        if (::ImGui::BeginCombo("Mesh names", mesh_names_cstr.front()))
+        {
+            for (const auto &[index, name] : std::views::enumerate(mesh_names_cstr))
+            {
+                if (::ImGui::Selectable(name))
+                {
+                    mesh_selected_index = index;
+                }
+            }
+            ::ImGui::EndCombo();
+        }
+
+        if (mesh_selected_index)
+        {
+            auto &entity = scene.entities.back();
+            scene.entities.push_back(Entity{"new entity", entity.sub_meshes() | std::ranges::to<std::vector>(), {}});
+        }
 
         for (auto &entity : scene.entities)
         {

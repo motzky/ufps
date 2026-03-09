@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <ranges>
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include "graphics/buffer.h"
@@ -9,7 +11,9 @@
 #include "graphics/utils.h"
 #include "graphics/vertex_data.h"
 #include "log.h"
+#include "utils/ensure.h"
 #include "utils/formatter.h"
+#include "utils/string_unordered_map.h"
 
 namespace ufps
 {
@@ -17,12 +21,15 @@ namespace ufps
         : _vertex_data_cpu{},
           _index_data_cpu{},
           _vertex_data_gpu{sizeof(VertexData), "vertex_mesh_data"},
-          _index_data_gpu{sizeof(std::uint32_t), "index_mesh_data"}
+          _index_data_gpu{sizeof(std::uint32_t), "index_mesh_data"},
+          _mesh_lookup{}
     {
     }
 
-    auto MeshManager::load(const MeshData &mesh_data) -> MeshView
+    auto MeshManager::load(std::string_view name, const MeshData &mesh_data) -> MeshView
     {
+        expect(!_mesh_lookup.contains(name), "{} mesh exists", name);
+
         const auto offset = _index_data_cpu.size();
         const auto base_vertex = _vertex_data_cpu.size();
 
@@ -38,11 +45,28 @@ namespace ufps
         auto index_data_view = DataBufferView{reinterpret_cast<const std::byte *>(_index_data_cpu.data()), _index_data_cpu.size() * sizeof(std::uint32_t)};
         _index_data_gpu.write(index_data_view, 0zu);
 
-        return {
+        auto mesh_view = MeshView{
             .vertex_offset = static_cast<std::uint32_t>(base_vertex),
             .vertex_count = static_cast<std::uint32_t>(mesh_data.vertices.size()),
             .index_offset = static_cast<std::uint32_t>(offset),
             .index_count = static_cast<std::uint32_t>(mesh_data.indices.size())};
+
+        _mesh_lookup.emplace(name, mesh_view);
+
+        return mesh_view;
+    }
+
+    auto MeshManager::mesh(std::string_view name) -> MeshView
+    {
+        auto mesh_view = _mesh_lookup.find(name);
+        expect(mesh_view != std::ranges::cend(_mesh_lookup), "{} mesh does not exist", name);
+
+        return mesh_view->second;
+    }
+
+    auto MeshManager::mesh_names() const -> std::vector<std::string>
+    {
+        return _mesh_lookup | std::views::keys | std::ranges::to<std::vector>();
     }
 
     auto MeshManager::native_handle() const -> std::tuple<::GLuint, ::GLuint>

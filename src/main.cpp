@@ -363,10 +363,7 @@ auto main(int argc, char **argv) -> int
                     ao_index,
                     emissive_index);
 
-                sub_meshes.push_back(
-                    {mesh_manager.load(model.mesh_data),
-                     model_mat,
-                     mesh_manager});
+                sub_meshes.push_back({mesh_manager.load(std::format("{}_{}", name, index), model.mesh_data), model_mat, mesh_manager});
             }
 
             scene.entities.push_back({name, sub_meshes, {}});

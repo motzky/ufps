@@ -96,7 +96,7 @@ namespace ufps
                      { ::glDeleteVertexArrays(1, &e); }},
           _command_buffer{"gbuffer_command_buffer"},
           _post_processing_command_buffer{"post_processing_command_buffer"},
-          _post_process_sprite{"post_process_sprite", {{mesh_manager.load(sprite()), 0u, mesh_manager}}, {}},
+          _post_process_sprite{"post_process_sprite", {{mesh_manager.load("sprite", sprite()), 0u, mesh_manager}}, {}},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},                                                                                                                                                  //
           _light_buffer{sizeof(LightData), "light_buffer"},                                                                                                                                                     //
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                        //
