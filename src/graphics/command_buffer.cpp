@@ -44,10 +44,10 @@ namespace ufps
                                  [](const auto &e)
                                  {
                                      return IndirectCommand{
-                                         .count = e.mesh_view.index_count,
+                                         .count = e.mesh_view().index_count,
                                          .instanceCount = 1u,
-                                         .first_index = e.mesh_view.index_offset,
-                                         .base_vertex = static_cast<std::int32_t>(e.mesh_view.vertex_offset),
+                                         .first_index = e.mesh_view().index_offset,
+                                         .base_vertex = static_cast<std::int32_t>(e.mesh_view().vertex_offset),
                                          .baseInstance = 0u};
                                  }) |
                              std::ranges::to<std::vector>();
@@ -68,10 +68,10 @@ namespace ufps
                                  [](const auto &e)
                                  {
                                      return IndirectCommand{
-                                         .count = e.mesh_view.index_count,
+                                         .count = e.mesh_view().index_count,
                                          .instanceCount = 1u,
-                                         .first_index = e.mesh_view.index_offset,
-                                         .base_vertex = static_cast<std::int32_t>(e.mesh_view.vertex_offset),
+                                         .first_index = e.mesh_view().index_offset,
+                                         .base_vertex = static_cast<std::int32_t>(e.mesh_view().vertex_offset),
                                          .baseInstance = 0u};
                                  }) |
                              std::ranges::to<std::vector>();

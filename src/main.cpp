@@ -365,8 +365,9 @@ auto main(int argc, char **argv) -> int
                     emissive_index);
 
                 entity.sub_meshes.push_back(
-                    {.mesh_view = mesh_manager.load(model.mesh_data),
-                     .material_index = model_mat});
+                    {mesh_manager.load(model.mesh_data),
+                     model_mat,
+                     mesh_manager});
             }
 
             scene.entities.push_back(std::move(entity));

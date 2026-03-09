@@ -98,12 +98,9 @@ namespace ufps
           _post_processing_command_buffer{"post_processing_command_buffer"},
           _post_process_sprite{
               .name = "post_process_sprite",
-              .sub_meshes = {
-                  {
-                      .mesh_view = mesh_manager.load(sprite()),
-                      .material_index = 0u,
-                  }},
-              .transform = {}},
+              .sub_meshes = {{mesh_manager.load(sprite()), 0u, mesh_manager}},
+              .transform = {},
+              .aabb = {}},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},                                                                                                                                                  //
           _light_buffer{sizeof(LightData), "light_buffer"},                                                                                                                                                     //
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                        //
@@ -166,7 +163,7 @@ namespace ufps
                     [&entity](const auto &e)
                     { return ObjectData{
                           .model = entity.transform,
-                          .material_id_index = e.material_index,
+                          .material_id_index = e.material_index(),
                           .padding = {}}; }));
         }
 
