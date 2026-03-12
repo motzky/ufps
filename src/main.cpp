@@ -308,7 +308,8 @@ auto main(int argc, char **argv) -> int
                 }};
 
             const auto &[name, models] = ufps::load_model(resource_loader->load_data_buffer("models/SM_Corner01_8_8_X.fbx"), *resource_loader, "fbx");
-            auto sub_meshes = std::vector<ufps::SubMesh>{};
+            auto mesh_data = std::vector<ufps::MeshData>{};
+            auto materials = std::vector<std::uint32_t>{};
 
             for (const auto &[index, model] : models | std::views::enumerate)
             {
@@ -354,17 +355,25 @@ auto main(int argc, char **argv) -> int
                     emissive_index = texture_manager.add(std::move(emissive));
                 }
 
-                const auto model_mat = material_manager.add(
+                materials.push_back(material_manager.add(
                     ufps::Color{0.0f, 0.f, 1.f},
                     albedo_index,
                     normal_index,
                     specular_index,
                     roughness_index,
                     ao_index,
-                    emissive_index);
+                    emissive_index));
 
-                sub_meshes.push_back({mesh_manager.load(std::format("{}_{}", name, index), model.mesh_data), model_mat, mesh_manager});
+                mesh_data.push_back(model.mesh_data);
             }
+
+            const auto mesh_views = mesh_manager.load(name, mesh_data);
+            const auto sub_meshes = std::views::zip(mesh_views, materials) |
+                                    std::views::transform([&mesh_manager](const auto &e)
+                                                          {
+                                                            const auto &[mesh_view, material] = e;
+                                                            return ufps::SubMesh(mesh_view, material, mesh_manager); }) |
+                                    std::ranges::to<std::vector>();
 
             scene.entities.push_back({name, sub_meshes, {}});
 

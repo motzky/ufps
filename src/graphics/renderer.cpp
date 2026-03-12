@@ -86,6 +86,14 @@ namespace
         return {.vertices = vertices(positions, positions, positions, positions, uvs),
                 .indices = std::move(indices)};
     }
+
+    auto create_sprite(ufps::MeshManager &mesh_manager) -> ufps::Entity
+    {
+        const auto mesh_data = std::vector{sprite()};
+        const auto mesh_views = mesh_manager.load("sprite", mesh_data);
+
+        return {"post_process_sprite", {{mesh_views.front(), 0u, mesh_manager}}, {}};
+    }
 }
 
 namespace ufps
@@ -96,7 +104,7 @@ namespace ufps
                      { ::glDeleteVertexArrays(1, &e); }},
           _command_buffer{"gbuffer_command_buffer"},
           _post_processing_command_buffer{"post_processing_command_buffer"},
-          _post_process_sprite{"post_process_sprite", {{mesh_manager.load("sprite", sprite()), 0u, mesh_manager}}, {}},
+          _post_process_sprite{create_sprite(mesh_manager)},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},                                                                                                                                                  //
           _light_buffer{sizeof(LightData), "light_buffer"},                                                                                                                                                     //
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                        //
