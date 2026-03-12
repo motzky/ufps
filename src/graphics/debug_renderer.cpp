@@ -196,8 +196,7 @@ namespace ufps
 
         if (mesh_selected_index)
         {
-            auto &entity = scene.entities.back();
-            scene.entities.push_back(Entity{"new entity", entity.render_entities() | std::ranges::to<std::vector>(), {}});
+            scene.create_entity(names[*mesh_selected_index]);
         }
 
         for (auto &entity : scene.entities)

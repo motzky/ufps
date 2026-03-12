@@ -284,6 +284,7 @@ auto main(int argc, char **argv) -> int
 
             auto scene = ufps::Scene{
                 .entities = {},
+                .entity_cache{},
                 .mesh_manager = mesh_manager,
                 .material_manager = material_manager,
                 .texture_manager = texture_manager,
@@ -308,75 +309,88 @@ auto main(int argc, char **argv) -> int
                     },
                 }};
 
-            const auto &[name, models] = ufps::load_model(resource_loader->load_data_buffer("models/SM_Corner01_8_8_X.fbx"), *resource_loader, "fbx");
-            auto mesh_data = std::vector<ufps::MeshData>{};
-            auto materials = std::vector<std::uint32_t>{};
+            const auto models_to_load = std::vector{
+                "models/SM_Corner02_8_8_A_T.fbx"sv,
+                "models/SM_Corner03_12_12_B_X.fbx"sv,
+                "models/SM_Corner01_8_8_X.fbx"sv,
+            };
 
-            for (const auto &[index, model] : models | std::views::enumerate)
+            for (const auto &model_to_load : models_to_load)
             {
-                auto albedo_index = tex_index;
-                if (const auto &a = model.albedo; a)
+                auto mesh_data = std::vector<ufps::MeshData>{};
+                auto materials = std::vector<std::uint32_t>{};
+                auto mesh_views = std::span<const ufps::MeshView>{};
+
+                const auto &[name, models] = ufps::load_model(resource_loader->load_data_buffer(model_to_load), *resource_loader, "fbx");
+
+                for (const auto &[index, model] : models | std::views::enumerate)
                 {
-                    auto albedo = ufps::Texture{*a, std::format("{}_{}_albedo_texture", name, index), sampler};
-                    albedo_index = texture_manager.add(std::move(albedo));
+                    auto albedo_index = tex_index;
+                    if (const auto &a = model.albedo; a)
+                    {
+                        auto albedo = ufps::Texture{*a, std::format("{}_{}_albedo_texture", name, index), sampler};
+                        albedo_index = texture_manager.add(std::move(albedo));
+                    }
+
+                    auto normal_index = 65537;
+                    if (const auto &a = model.normal; a)
+                    {
+                        auto normal = ufps::Texture{*a, std::format("{}_{}_normal_texture", name, index), sampler};
+                        normal_index = texture_manager.add(std::move(normal));
+                    }
+
+                    auto specular_index = 65537;
+                    if (const auto &a = model.specular; a)
+                    {
+                        auto specular = ufps::Texture{*a, std::format("{}_{}_specular_texture", name, index), sampler};
+                        specular_index = texture_manager.add(std::move(specular));
+                    }
+
+                    auto roughness_index = 65537;
+                    if (const auto &r = model.roughness; r)
+                    {
+                        auto roughness = ufps::Texture{*r, std::format("{}_{}_roughness_texture", name, index), sampler};
+                        roughness_index = texture_manager.add(std::move(roughness));
+                    }
+
+                    auto ao_index = 65537;
+                    if (const auto &r = model.ambient_occlusion; r)
+                    {
+                        auto ao = ufps::Texture{*r, std::format("{}_{}_ao_texture", name, index), sampler};
+                        ao_index = texture_manager.add(std::move(ao));
+                    }
+
+                    auto emissive_index = 65537;
+                    if (const auto &e = model.emissive_color; e)
+                    {
+                        auto emissive = ufps::Texture{*e, std::format("{}_{}_emissive_texture", name, index), sampler};
+                        emissive_index = texture_manager.add(std::move(emissive));
+                    }
+
+                    materials.push_back(material_manager.add(
+                        ufps::Color{0.0f, 0.f, 1.f},
+                        albedo_index,
+                        normal_index,
+                        specular_index,
+                        roughness_index,
+                        ao_index,
+                        emissive_index));
+
+                    mesh_data.push_back(model.mesh_data);
                 }
+                mesh_views = mesh_manager.load(name, mesh_data);
 
-                auto normal_index = 65537;
-                if (const auto &a = model.normal; a)
-                {
-                    auto normal = ufps::Texture{*a, std::format("{}_{}_normal_texture", name, index), sampler};
-                    normal_index = texture_manager.add(std::move(normal));
-                }
-
-                auto specular_index = 65537;
-                if (const auto &a = model.specular; a)
-                {
-                    auto specular = ufps::Texture{*a, std::format("{}_{}_specular_texture", name, index), sampler};
-                    specular_index = texture_manager.add(std::move(specular));
-                }
-
-                auto roughness_index = 65537;
-                if (const auto &r = model.roughness; r)
-                {
-                    auto roughness = ufps::Texture{*r, std::format("{}_{}_roughness_texture", name, index), sampler};
-                    roughness_index = texture_manager.add(std::move(roughness));
-                }
-
-                auto ao_index = 65537;
-                if (const auto &r = model.ambient_occlusion; r)
-                {
-                    auto ao = ufps::Texture{*r, std::format("{}_{}_ao_texture", name, index), sampler};
-                    ao_index = texture_manager.add(std::move(ao));
-                }
-
-                auto emissive_index = 65537;
-                if (const auto &e = model.emissive_color; e)
-                {
-                    auto emissive = ufps::Texture{*e, std::format("{}_{}_emissive_texture", name, index), sampler};
-                    emissive_index = texture_manager.add(std::move(emissive));
-                }
-
-                materials.push_back(material_manager.add(
-                    ufps::Color{0.0f, 0.f, 1.f},
-                    albedo_index,
-                    normal_index,
-                    specular_index,
-                    roughness_index,
-                    ao_index,
-                    emissive_index));
-
-                mesh_data.push_back(model.mesh_data);
-            }
-
-            const auto mesh_views = mesh_manager.load(name, mesh_data);
-            const auto render_entities = std::views::zip(mesh_views, materials) |
-                                         std::views::transform([&mesh_manager](const auto &e)
-                                                               {
+                const auto render_entities = std::views::zip(mesh_views, materials) |
+                                             std::views::transform([&mesh_manager](const auto &e)
+                                                                   {
                                                             const auto &[mesh_view, material] = e;
                                                             return ufps::RenderEntity(mesh_view, material, mesh_manager); }) |
-                                         std::ranges::to<std::vector>();
+                                             std::ranges::to<std::vector>();
 
-            scene.entities.push_back({name, render_entities, {}});
+                scene.entity_cache.push_back({name, std::move(render_entities), {}});
+            }
+
+            scene.create_entity("SM_Corner01_8_8_X");
 
             auto key_state = std::unordered_map<ufps::Key, bool>{
                 {ufps::Key::A, false},
