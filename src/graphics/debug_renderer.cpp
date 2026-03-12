@@ -106,7 +106,7 @@ namespace ufps
         if (_selected_entity)
         {
             auto aabb_lines =
-                _selected_entity->sub_meshes() |
+                _selected_entity->render_entities() |
                 std::views::transform([&](const auto &e)
                                       { return create_aabb_lines(e.aabb(), _selected_entity->transform(), {0.4f, 0.4f, .4f}); }) |
                 std::views::join;
@@ -197,7 +197,7 @@ namespace ufps
         if (mesh_selected_index)
         {
             auto &entity = scene.entities.back();
-            scene.entities.push_back(Entity{"new entity", entity.sub_meshes() | std::ranges::to<std::vector>(), {}});
+            scene.entities.push_back(Entity{"new entity", entity.render_entities() | std::ranges::to<std::vector>(), {}});
         }
 
         for (auto &entity : scene.entities)

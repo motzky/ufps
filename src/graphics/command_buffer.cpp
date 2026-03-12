@@ -38,7 +38,7 @@ namespace ufps
         const auto command = scene.entities |
                              std::views::transform(
                                  [](const auto &e)
-                                 { return e.sub_meshes(); }) |
+                                 { return e.render_entities(); }) |
                              std::views::join |
                              std::views::transform(
                                  [](const auto &e)
@@ -63,7 +63,7 @@ namespace ufps
 
     auto CommandBuffer::build(const Entity &entity) -> std::uint32_t
     {
-        const auto command = entity.sub_meshes() |
+        const auto command = entity.render_entities() |
                              std::views::transform(
                                  [](const auto &e)
                                  {

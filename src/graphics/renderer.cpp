@@ -162,7 +162,7 @@ namespace ufps
         for (const auto &entity : scene.entities)
         {
             object_data.append_range(
-                entity.sub_meshes() |
+                entity.render_entities() |
                 std::views::transform(
                     [&entity](const auto &e)
                     { return ObjectData{

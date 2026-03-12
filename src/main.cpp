@@ -14,6 +14,7 @@
 #endif
 
 #include "config.h"
+#include "core/render_entity.h"
 #include "core/scene.h"
 #include "graphics/command_buffer.h"
 #include "graphics/debug_renderer.h"
@@ -368,14 +369,14 @@ auto main(int argc, char **argv) -> int
             }
 
             const auto mesh_views = mesh_manager.load(name, mesh_data);
-            const auto sub_meshes = std::views::zip(mesh_views, materials) |
-                                    std::views::transform([&mesh_manager](const auto &e)
-                                                          {
+            const auto render_entities = std::views::zip(mesh_views, materials) |
+                                         std::views::transform([&mesh_manager](const auto &e)
+                                                               {
                                                             const auto &[mesh_view, material] = e;
-                                                            return ufps::SubMesh(mesh_view, material, mesh_manager); }) |
-                                    std::ranges::to<std::vector>();
+                                                            return ufps::RenderEntity(mesh_view, material, mesh_manager); }) |
+                                         std::ranges::to<std::vector>();
 
-            scene.entities.push_back({name, sub_meshes, {}});
+            scene.entities.push_back({name, render_entities, {}});
 
             auto key_state = std::unordered_map<ufps::Key, bool>{
                 {ufps::Key::A, false},

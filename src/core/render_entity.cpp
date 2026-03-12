@@ -1,4 +1,4 @@
-#include "core/sub_mesh.h"
+#include "core/render_entity.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -41,24 +41,24 @@ namespace
 
 namespace ufps
 {
-    SubMesh::SubMesh(MeshView mesh_view, std::uint32_t material_index, const MeshManager &mesh_manager)
+    RenderEntity::RenderEntity(MeshView mesh_view, std::uint32_t material_index, const MeshManager &mesh_manager)
         : _mesh_view{mesh_view},
           _material_index{material_index},
           _aabb{calculate_aabb(mesh_view, mesh_manager)}
     {
     }
 
-    auto SubMesh::mesh_view() const -> MeshView
+    auto RenderEntity::mesh_view() const -> MeshView
     {
         return _mesh_view;
     }
 
-    auto SubMesh::material_index() const -> std::uint32_t
+    auto RenderEntity::material_index() const -> std::uint32_t
     {
         return _material_index;
     }
 
-    auto SubMesh::aabb() const -> const AABB &
+    auto RenderEntity::aabb() const -> const AABB &
     {
         return _aabb;
     }
