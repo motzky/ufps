@@ -3,6 +3,7 @@
 #include <cstring>
 #include <ranges>
 #include <string>
+#include <type_traits>
 
 #include <imgui.h>
 
@@ -174,7 +175,7 @@ namespace ufps
         ::ImGui::LabelText("FPS", "%0.1f", io.Framerate);
         ::ImGui::LabelText("Debug Line Count", "%zu", debug_line_count);
 
-        auto names = scene.mesh_manager.mesh_names();
+        auto names = scene.mesh_manager().mesh_names();
         const auto mesh_names_cstr = names |
                                      std::views::transform([](const auto &e)
                                                            { return e.c_str(); }) |
@@ -199,7 +200,7 @@ namespace ufps
             scene.create_entity(names[*mesh_selected_index]);
         }
 
-        for (auto &entity : scene.entities)
+        for (auto &entity : scene.entities())
         {
             ::ImGui::CollapsingHeader(entity.name().c_str());
 
@@ -207,7 +208,7 @@ namespace ufps
             {
                 auto transform = Matrix4{entity.transform()};
 
-                const auto &camera_data = scene.camera.data();
+                const auto &camera_data = scene.camera().data();
 
                 ::ImGuizmo::Manipulate(
                     camera_data.view.data().data(),
@@ -227,44 +228,44 @@ namespace ufps
         if (::ImGui::CollapsingHeader("lights"))
         {
             float amb_color[3]{};
-            std::memcpy(amb_color, &scene.lights.ambient, sizeof(amb_color));
+            std::memcpy(amb_color, &scene.lights().ambient, sizeof(amb_color));
 
             if (::ImGui::ColorPicker3("ambient light color", amb_color))
             {
-                std::memcpy(&scene.lights.ambient, amb_color, sizeof(amb_color));
+                std::memcpy(&scene.lights().ambient, amb_color, sizeof(amb_color));
             }
 
-            float pos[3] = {scene.lights.light.position.x, scene.lights.light.position.y, scene.lights.light.position.z};
+            float pos[3] = {scene.lights().light.position.x, scene.lights().light.position.y, scene.lights().light.position.z};
 
             if (::ImGui::SliderFloat3("position", pos, -100.f, 100.f))
             {
-                scene.lights.light.position = {pos[0], pos[1], pos[2]};
+                scene.lights().light.position = {pos[0], pos[1], pos[2]};
             }
 
             float color[3]{};
-            std::memcpy(color, &scene.lights.light.color, sizeof(color));
+            std::memcpy(color, &scene.lights().light.color, sizeof(color));
 
             if (::ImGui::ColorPicker3("light color", color))
             {
-                std::memcpy(&scene.lights.light.color, color, sizeof(color));
+                std::memcpy(&scene.lights().light.color, color, sizeof(color));
             }
 
-            ::ImGui::SliderFloat("power", &scene.lights.light.specular_poewr, 0.f, 128.f);
+            ::ImGui::SliderFloat("power", &scene.lights().light.specular_poewr, 0.f, 128.f);
 
-            float att[3] = {scene.lights.light.constant_attenuation, scene.lights.light.linear_attenuation, scene.lights.light.quadratic_attenuation};
+            float att[3] = {scene.lights().light.constant_attenuation, scene.lights().light.linear_attenuation, scene.lights().light.quadratic_attenuation};
 
             if (::ImGui::SliderFloat3("attenuation", att, 0.f, 2.f))
             {
-                scene.lights.light.constant_attenuation = att[0];
-                scene.lights.light.linear_attenuation = att[1];
-                scene.lights.light.quadratic_attenuation = att[2];
+                scene.lights().light.constant_attenuation = att[0];
+                scene.lights().light.linear_attenuation = att[1];
+                scene.lights().light.quadratic_attenuation = att[2];
             }
 
             if (!_selected_entity)
             {
-                auto transform = Matrix4{scene.lights.light.position};
+                auto transform = Matrix4{scene.lights().light.position};
 
-                const auto &camera_data = scene.camera.data();
+                const auto &camera_data = scene.camera().data();
 
                 ::ImGuizmo::Manipulate(
                     camera_data.view.data().data(),
@@ -278,7 +279,7 @@ namespace ufps
                     nullptr);
 
                 const auto new_transform = Transform{transform};
-                scene.lights.light.position = new_transform.position;
+                scene.lights().light.position = new_transform.position;
             }
         }
 
@@ -343,7 +344,7 @@ namespace ufps
         const auto aspect_ratio = static_cast<float>(_window.width()) / static_cast<float>(_window.height());
         for (auto i = 0u; i < _gbuffer_rt.color_attachment_count; ++i)
         {
-            const auto tex = scene.texture_manager.texture(_gbuffer_rt.first_color_attachment_index + i);
+            const auto tex = scene.texture_manager().texture(_gbuffer_rt.first_color_attachment_index + i);
             ::ImGui::Image(tex->native_handle(), ::ImVec2(width * aspect_ratio, width), ::ImVec2(0.f, 1.f), ::ImVec2(1.f, 0.f));
             if ((i + 1) % 4 == 0)
             {
@@ -353,7 +354,7 @@ namespace ufps
         }
 
         ::ImGui::Image(
-            scene.texture_manager.texture(_gbuffer_rt.depth_attachment_index)->native_handle(),
+            scene.texture_manager().texture(_gbuffer_rt.depth_attachment_index)->native_handle(),
             ::ImVec2(width * aspect_ratio, width),
             ::ImVec2(0.f, 1.f),
             ::ImVec2(1.f, 0.f));
@@ -365,7 +366,7 @@ namespace ufps
 
         if (_click)
         {
-            const auto pick_ray = screen_ray(_click.value(), _window, scene.camera);
+            const auto pick_ray = screen_ray(_click.value(), _window, scene.camera());
             const auto intersection = scene.intersect_ray(pick_ray);
             _selected_entity = intersection.transform([](const auto &e)
                                                       { return e.entity; })

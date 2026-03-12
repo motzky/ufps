@@ -283,21 +283,18 @@ auto main(int argc, char **argv) -> int
             [[maybe_unused]] const auto material_index_b = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, tex_index, tex_index + 1u, tex_index + 2u);
 
             auto scene = ufps::Scene{
-                .entities = {},
-                .entity_cache{},
-                .mesh_manager = mesh_manager,
-                .material_manager = material_manager,
-                .texture_manager = texture_manager,
-                .camera = {
-                    {},
-                    {0.f, 0.f, -1.f},
-                    {0.f, 1.f, 0.f},
-                    std::numbers::pi_v<float> / 4.f,
-                    static_cast<float>(window.width()),
-                    static_cast<float>(window.height()),
-                    0.01f,
-                    1000.f},
-                .lights = {
+                mesh_manager,
+                material_manager,
+                texture_manager,
+                {{},
+                 {0.f, 0.f, -1.f},
+                 {0.f, 1.f, 0.f},
+                 std::numbers::pi_v<float> / 4.f,
+                 static_cast<float>(window.width()),
+                 static_cast<float>(window.height()),
+                 0.01f,
+                 1000.f},
+                {
                     .ambient = {.r = .05f, .g = .05f, .b = .05f},
                     .light = {
                         .position = {0.f, 2.5f, 0.f},
@@ -387,7 +384,7 @@ auto main(int argc, char **argv) -> int
                                                             return ufps::RenderEntity(mesh_view, material, mesh_manager); }) |
                                              std::ranges::to<std::vector>();
 
-                scene.entity_cache.push_back({name, std::move(render_entities), {}});
+                scene.cache_entity(name, {name, std::move(render_entities), {}});
             }
 
             scene.create_entity("SM_Corner01_8_8_X");
@@ -446,8 +443,8 @@ auto main(int argc, char **argv) -> int
                                     static constexpr auto sensitivity = float{0.002f};
                                     const auto delta_x = arg.delta_x() * sensitivity;
                                     const auto delta_y = arg.delta_y() * sensitivity;
-                                    scene.camera.adjust_yaw(-delta_x);
-                                    scene.camera.adjust_pitch(delta_y);
+                                    scene.camera().adjust_yaw(-delta_x);
+                                    scene.camera().adjust_pitch(delta_y);
                                 }
                             }
                             else if constexpr (std::same_as<T, ufps::MouseButtonEvent>)
@@ -463,8 +460,8 @@ auto main(int argc, char **argv) -> int
                     event = window.pump_event();
                 }
 
-                scene.camera.translate(walk_direction(key_state, scene.camera));
-                scene.camera.update();
+                scene.camera().translate(walk_direction(key_state, scene.camera()));
+                scene.camera().update();
 
                 renderer.render(scene);
 

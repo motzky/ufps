@@ -35,7 +35,7 @@ namespace ufps
 
     auto CommandBuffer::build(const Scene &scene) -> std::uint32_t
     {
-        const auto command = scene.entities |
+        const auto command = scene.entities() |
                              std::views::transform(
                                  [](const auto &e)
                                  { return e.render_entities(); }) |
