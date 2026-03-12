@@ -18,9 +18,9 @@ namespace ufps
     {
     public:
         MeshManager();
-        auto load(std::string_view name, const MeshData &mesh_data) -> MeshView;
+        auto load(std::string_view name, std::span<const MeshData> meshes) -> std::span<const MeshView>;
 
-        auto mesh(std::string_view name) -> MeshView;
+        auto mesh(std::string_view name) -> std::span<const MeshView>;
 
         auto mesh_names() const -> std::vector<std::string>;
 
@@ -36,6 +36,6 @@ namespace ufps
         std::vector<std::uint32_t> _index_data_cpu;
         Buffer _vertex_data_gpu;
         Buffer _index_data_gpu;
-        StringUnorderedMap<MeshView> _mesh_lookup;
+        StringUnorderedMap<std::vector<MeshView>> _mesh_lookup;
     };
 }
