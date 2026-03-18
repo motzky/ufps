@@ -20,8 +20,12 @@ namespace
             return include_size ? GL_R8 : GL_RED;
         case RGB:
             return include_size ? GL_RGB8 : GL_RGB;
+        case SRGB:
+            return include_size ? GL_SRGB8 : GL_RGB;
         case RGBA:
             return include_size ? GL_RGBA8 : GL_RGBA;
+        case SRGBA:
+            return include_size ? GL_SRGB8_ALPHA8 : GL_RGBA;
         case RGB16F:
             return GL_RGB16F;
         case DEPTH24:

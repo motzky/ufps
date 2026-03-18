@@ -58,7 +58,7 @@ namespace
         return {v.x, v.y, v.z};
     }
 
-    auto channels_to_format(int num_channels) -> ufps::TextureFormat
+    auto channels_to_format(int num_channels, bool is_srgb) -> ufps::TextureFormat
     {
         switch (num_channels)
         {
@@ -66,9 +66,9 @@ namespace
         case 1:
             return R;
         case 3:
-            return RGB;
+            return is_srgb ? SRGB : RGB;
         case 4:
-            return RGBA;
+            return is_srgb ? SRGBA : RGBA;
         default:
             throw ufps::Exception("unsupported channel count: {}", num_channels);
         }
@@ -119,7 +119,7 @@ namespace ufps
         return it->second;
     }
 
-    auto load_texture(DataBufferView image_data, bool flip) -> TextureData
+    auto load_texture(DataBufferView image_data, bool flip, bool is_srgb) -> TextureData
     {
         auto width = int{};
         auto height = int{};
@@ -144,7 +144,7 @@ namespace ufps
         return {
             .width = static_cast<std::uint32_t>(width),
             .height = static_cast<std::uint32_t>(height),
-            .format = channels_to_format(num_channels),
+            .format = channels_to_format(num_channels, is_srgb),
             .data = {{ptr, ptr + width * height * num_channels}},
         };
     }
@@ -265,7 +265,7 @@ namespace ufps
                 {
                     flip = false;
                 }
-                model.albedo = load_texture(resource_loader, std::format("textures/{}", albedo_filename->string()), flip);
+                model.albedo = load_texture(resource_loader, std::format("textures/{}", albedo_filename->string(), true), flip);
             }
             if (normal_filename.has_value())
             {

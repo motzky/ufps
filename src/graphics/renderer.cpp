@@ -111,9 +111,12 @@ namespace ufps
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                        //
           _gbuffer_program{create_program(resource_loader, "gbuffer_program"sv, "shaders/gbuffer.vert"sv, "gbuffer_vertex_shader"sv, "shaders/gbuffer.frag"sv, "gbuffer_fragement_shader"sv)},                  //
           _light_pass_program{create_program(resource_loader, "light_pass_program"sv, "shaders/light_pass.vert"sv, "light_pass_vertex_shader"sv, "shaders/light_pass.frag"sv, "light_pass_fragment_shader"sv)}, //
+          _tone_map_program{create_program(resource_loader, "tone_map_program"sv, "shaders/tone_map.vert"sv, "tone_map_vertex_shader"sv, "shaders/tone_map.frag"sv, "tone_map_fragment_shader"sv)},             //
           _fb_sampler{FilterType::NEAREST, FilterType::LINEAR, "fb_sampler"},                                                                                                                                   //
           _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},                                                                                      //
-          _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")}
+          _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")},                                                                                //
+          _tone_map_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "tone_map")},
+          _final_fb{}
     {
 
         ::glGenVertexArrays(1u, &_dummy_vao);
@@ -227,6 +230,23 @@ namespace ufps
             1u,
             0);
 
+        _tone_map_rt.fb.bind();
+        ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        _tone_map_program.use();
+
+        ::glProgramUniform1ui(_tone_map_program.native_handle(), 0u, _light_pass_rt.first_color_attachment_index + 0u);
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
+
+        ::glMultiDrawElementsIndirect(
+            GL_TRIANGLES,
+            GL_UNSIGNED_INT,
+            reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
+            1u,
+            0);
+
+        _final_fb = &_tone_map_rt.fb;
+
         post_render(scene);
 
         _command_buffer.advance();
@@ -237,19 +257,19 @@ namespace ufps
 
     auto Renderer::post_render(Scene &) -> void
     {
-        _light_pass_rt.fb.unbind();
+        _final_fb->unbind();
 
         ::glBlitNamedFramebuffer(
-            _light_pass_rt.fb.native_handle(),
+            _final_fb->native_handle(),
             0u,
             0u,
             0u,
-            _light_pass_rt.fb.width(),
-            _light_pass_rt.fb.height(),
+            _final_fb->width(),
+            _final_fb->height(),
             0u,
             0u,
-            _light_pass_rt.fb.width(),
-            _light_pass_rt.fb.height(),
+            _final_fb->width(),
+            _final_fb->height(),
             GL_COLOR_BUFFER_BIT,
             GL_NEAREST);
     }

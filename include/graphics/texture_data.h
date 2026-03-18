@@ -12,7 +12,9 @@ namespace ufps
     {
         R,
         RGB,
+        SRGB,
         RGBA,
+        SRGBA,
         RGB16F,
         DEPTH24
     };
@@ -34,8 +36,12 @@ namespace ufps
             return "R";
         case RGB:
             return "RGB";
+        case SRGB:
+            return "RGB";
         case RGBA:
-            return "RGBA";
+            return "RGB";
+        case SRGBA:
+            return "SRGBA";
         case RGB16F:
             return "RGB16F";
         case DEPTH24:
