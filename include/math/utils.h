@@ -2,6 +2,7 @@
 
 #include <optional>
 
+#include "math/aabb.h"
 #include "math/ray.h"
 #include "math/vector3.h"
 
@@ -43,4 +44,21 @@ namespace ufps
         return t > 1e-8f ? std::make_optional(t) : std::nullopt;
     }
 
+    constexpr auto intersect(const Ray &ray, const AABB &aabb) -> std::optional<float>
+    {
+        const auto min = (aabb.min - ray.origin);
+        const auto max = (aabb.max - ray.origin);
+        const auto t1 = Vector3{min.x / ray.direction.x, min.y / ray.direction.y, min.z / ray.direction.z};
+        const auto t2 = Vector3{max.x / ray.direction.x, max.y / ray.direction.y, max.z / ray.direction.z};
+
+        const auto tmin = std::max(std::max(std::min(t1.x, t2.x), std::min(t1.y, t2.y)), std::min(t1.z, t2.z));
+        const auto tmax = std::min(std::min(std::max(t1.x, t2.x), std::max(t1.y, t2.y)), std::max(t1.z, t2.z));
+
+        if (tmax < 0.f || tmin > tmax)
+        {
+            return {};
+        }
+
+        return std::make_optional(tmin);
+    }
 }
