@@ -51,6 +51,7 @@
     DO(::PFNGLUNIFORM3FVPROC, glUniform3fv)                                                   \
     DO(::PFNGLCREATEBUFFERSPROC, glCreateBuffers)                                             \
     DO(::PFNGLNAMEDBUFFERSTORAGEPROC, glNamedBufferStorage)                                   \
+    DO(::PFNGLCLEARNAMEDBUFFERDATAPROC, glClearNamedBufferData)                               \
     DO(::PFNGLCREATEVERTEXARRAYSPROC, glCreateVertexArrays)                                   \
     DO(::PFNGLVERTEXARRAYVERTEXBUFFERPROC, glVertexArrayVertexBuffer)                         \
     DO(::PFNGLENABLEVERTEXARRAYATTRIBPROC, glEnableVertexArrayAttrib)                         \
@@ -91,6 +92,9 @@
     DO(::PFNGLMULTIDRAWARRAYSINDIRECTPROC, glMultiDrawArraysIndirect)                         \
     DO(::PFNGLMULTIDRAWELEMENTSINDIRECTPROC, glMultiDrawElementsIndirect)                     \
     DO(::PFNGLMAPNAMEDBUFFERRANGEPROC, glMapNamedBufferRange)                                 \
+    DO(::PFNGLDISPATCHCOMPUTEPROC, glDispatchCompute)                                         \
+    DO(::PFNGLMEMORYBARRIERPROC, glMemoryBarrier)                                             \
+    DO(::PFNGLGETNAMEDBUFFERSUBDATAPROC, glGetNamedBufferSubData)                             \
     DO(::PFNGLUNMAPNAMEDBUFFERPROC, glUnmapNamedBuffer)
 
 #define DO_INLINE(TYPE, NAME) inline TYPE NAME;
