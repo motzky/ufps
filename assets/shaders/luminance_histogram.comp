@@ -1,0 +1,57 @@
+#version 460 core
+#extension GL_ARB_bindless_texture : require
+
+#define NUM_BINS 256
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(binding = 0, std430) readonly buffer texture_buffer
+{
+    sampler2D textures[];
+};
+
+layout(binding = 1, std430) buffer histogram_data
+{
+    uint histograms[NUM_BINS];
+};
+
+layout(location = 0) uniform uint in_tex_index;
+layout(location = 1) uniform float in_min_log_luminance;
+layout(location = 2) uniform float in_inverse_log_luminance_range;
+
+shared uint shared_histogram[NUM_BINS];
+
+uint color_to_bin(vec3 color, float min_log_lum, float invert_log_lum_range)
+{
+    // use approximation of eye sensitivity
+    float lum = dot(color, vec3(0.2125, 0.7154, 0.0721));
+
+    if(lum < 0.005)
+    {
+        return 0;
+    }
+
+    float log_lum = clamp((log2(lum) - min_log_lum) * invert_log_lum_range, 0.0, 1.0);
+    return uint(log_lum * 254.0 + 1.0);
+}
+
+void main()
+{
+    shared_histogram[gl_LocalInvocationIndex] = 0;
+
+    barrier();
+
+    ivec2 tex_size = textureSize(textures[in_tex_index], 0);
+
+    if(gl_GlobalInvocationID.x < tex_size.x && gl_GlobalInvocationID.y < tex_size.y)
+    {
+        vec3 color = texelFetch(textures[in_tex_index], ivec2(gl_GlobalInvocationID.xy), 0).rgb;
+        uint bin_index = color_to_bin(color, in_min_log_luminance, in_inverse_log_luminance_range);
+
+        atomicAdd(shared_histogram[bin_index], 1);
+    }
+
+    barrier();
+
+    atomicAdd(histograms[gl_LocalInvocationIndex], shared_histogram[gl_LocalInvocationIndex]);
+}
