@@ -21,6 +21,7 @@ namespace ufps
     {
         const Entity *entity;
         Vector3 position;
+        float distance;
     };
 
     struct LightData
@@ -93,33 +94,39 @@ namespace ufps
             const auto transformed_ray =
                 Ray{inv_transform * Vector4{ray.origin, 1.0f}, inv_transform * Vector4{ray.direction, 0.0f}};
 
-            for (const auto &render_entity : entity.render_entities())
+            if (!!intersect(transformed_ray, entity.aabb()))
             {
-                const auto mesh_view = render_entity.mesh_view();
-                const auto index_data = _mesh_manager.index_data(mesh_view);
-                const auto vertex_data = _mesh_manager.vertex_data(mesh_view);
-
-                for (const auto &indices : std::views::chunk(index_data, 3))
+                for (const auto &render_entity : entity.render_entities())
                 {
-                    const auto v0 = vertex_data[indices[0]].position;
-                    const auto v1 = vertex_data[indices[1]].position;
-                    const auto v2 = vertex_data[indices[2]].position;
-
-                    if (const auto distance = intersect(transformed_ray, v0, v1, v2); distance)
+                    if (!intersect(transformed_ray, render_entity.aabb()))
                     {
-                        const auto intersection_point = transformed_ray.origin + transformed_ray.direction * (*distance);
+                        continue;
+                    }
 
-                        if (*distance < min_distance)
+                    const auto mesh_view = render_entity.mesh_view();
+                    const auto index_data = _mesh_manager.index_data(mesh_view);
+                    const auto vertex_data = _mesh_manager.vertex_data(mesh_view);
+
+                    for (const auto &indices : std::views::chunk(index_data, 3))
+                    {
+                        const auto v0 = vertex_data[indices[0]].position;
+                        const auto v1 = vertex_data[indices[1]].position;
+                        const auto v2 = vertex_data[indices[2]].position;
+
+                        if (const auto distance = intersect(transformed_ray, v0, v1, v2); distance)
                         {
-                            result = IntersectionResult{.entity = &entity, .position = intersection_point};
-                            min_distance = *distance;
+                            const auto intersection_point = transformed_ray.origin + transformed_ray.direction * (*distance);
+
+                            if (*distance < min_distance)
+                            {
+                                result = IntersectionResult{.entity = &entity, .position = intersection_point, .distance = *distance};
+                                min_distance = *distance;
+                            }
                         }
                     }
                 }
             }
         }
-
         return result;
     }
-
 }
