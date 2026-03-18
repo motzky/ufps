@@ -23,6 +23,8 @@
     DO(::PFNGLDELETEPROGRAMPROC, glDeleteProgram)                                             \
     DO(::PFNGLPROGRAMUNIFORMHANDLEUI64ARBPROC, glProgramUniformHandleui64ARB)                 \
     DO(::PFNGLPROGRAMUNIFORM1UIPROC, glProgramUniform1ui)                                     \
+    DO(::PFNGLPROGRAMUNIFORM3FPROC, glProgramUniform3f)                                       \
+    DO(::PFNGLPROGRAMUNIFORMMATRIX4FVPROC, glProgramUniformMatrix4fv)                         \
     DO(::PFNGLATTACHSHADERPROC, glAttachShader)                                               \
     DO(::PFNGLLINKPROGRAMPROC, glLinkProgram)                                                 \
     DO(::PFNGLDELETEVERTEXARRAYSPROC, glDeleteVertexArrays)                                   \
