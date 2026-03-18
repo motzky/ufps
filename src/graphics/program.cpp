@@ -50,6 +50,23 @@ namespace ufps
         check_state(_handle, GL_VALIDATE_STATUS, name, "failed to validate program");
     }
 
+    Program::Program(const Shader &compute_shader, std::string_view name)
+    {
+        expect(compute_shader.type() == ShaderType::COMPUTE, "shader must be a compute shader");
+        _handle = {::glCreateProgram(), ::glDeleteProgram};
+        ensure(_handle, "failed to create OpenGL program");
+
+        ::glObjectLabel(GL_PROGRAM, _handle, name.length(), name.data());
+
+        ::glAttachShader(_handle, compute_shader.native_handle());
+        ::glLinkProgram(_handle);
+
+        check_state(_handle, GL_LINK_STATUS, name, "failed to link program");
+
+        ::glValidateProgram(_handle);
+        check_state(_handle, GL_VALIDATE_STATUS, name, "failed to validate program");
+    }
+
     auto Program::native_handle() const -> ::GLuint
     {
         return _handle;
