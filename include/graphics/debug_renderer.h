@@ -36,6 +36,7 @@ namespace ufps
         std::vector<LineData> _debug_lines;
         MultiBuffer<PersistentBuffer> _debug_line_buffer;
         Program _debug_line_program;
+        Program _debug_light_program;
 
         auto init_platform(const Window &window) const -> void;
         auto new_frame() const -> void;

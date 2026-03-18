@@ -17,6 +17,7 @@
 #include "math/aabb.h"
 #include "math/matrix4.h"
 #include "math/ray.h"
+#include "math/transform.h"
 #include "window.h"
 
 namespace
@@ -86,7 +87,13 @@ namespace ufps
                                              "shaders/line.vert",
                                              "line_vertex_shader",
                                              "shaders/line.frag",
-                                             "line_fragment_shader")}
+                                             "line_fragment_shader")},
+          _debug_light_program{create_program(resource_loader,
+                                              "debug_light_program",
+                                              "shaders/debug_light.vert",
+                                              "debug_light_vertex_shader",
+                                              "shaders/debug_light.frag",
+                                              "debug_light_fragment_shader")}
     {
         IMGUI_CHECKVERSION();
         ::ImGui::CreateContext();
@@ -123,28 +130,58 @@ namespace ufps
             return;
         }
 
+        const auto unit_aabb = ufps::AABB{
+            .min = {-.5f, -.5f, -.5f},
+            .max = {.5f, .5f, .5f}};
+
+        const auto light_aabb_transform = Transform{scene.lights().light.position, {.5f}, {}};
+        _debug_lines.append_range(create_aabb_lines(unit_aabb, light_aabb_transform, {1.f, 0.f, 0.f}));
+
+        _light_pass_rt.fb.unbind();
+        ::glBlitNamedFramebuffer(
+            _gbuffer_rt.fb.native_handle(),
+            0,
+            0u,
+            0u,
+            _gbuffer_rt.fb.width(),
+            _gbuffer_rt.fb.height(),
+            0u,
+            0u,
+            _gbuffer_rt.fb.width(),
+            _gbuffer_rt.fb.height(),
+            GL_DEPTH_BUFFER_BIT,
+            GL_NEAREST);
+
+        _debug_light_program.use();
+
+        const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
+        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
+        ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_handle);
+
+        const auto cube_parts = scene.mesh_manager().mesh("cube");
+        ensure(cube_parts.size() == 1u, "cube mesh should have exactly 1 part");
+        const auto cube_indices_offset_bytes = cube_parts.front().index_offset * sizeof(std::uint32_t);
+
+        const auto light_transform = Transform{scene.lights().light.position, {.2f}, {}};
+        const auto light_model = Matrix4{light_transform};
+
+        ::glProgramUniformMatrix4fv(_debug_light_program.native_handle(), 0u, 1u, GL_FALSE, light_model.data().data());
+        ::glProgramUniform3f(
+            _debug_light_program.native_handle(),
+            1u,
+            scene.lights().light.color.r,
+            scene.lights().light.color.g,
+            scene.lights().light.color.b);
+
+        ::glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, reinterpret_cast<const void *>(cube_indices_offset_bytes));
+
         auto debug_line_count = 0zu;
 
         if (!_debug_lines.empty())
         {
-            debug_line_count = _debug_lines.size();
-
-            _light_pass_rt.fb.unbind();
-
-            ::glBlitNamedFramebuffer(
-                _gbuffer_rt.fb.native_handle(),
-                0u,
-                0u,
-                0u,
-                _gbuffer_rt.fb.width(),
-                _gbuffer_rt.fb.height(),
-                0u,
-                0u,
-                _gbuffer_rt.fb.width(),
-                _gbuffer_rt.fb.height(),
-                GL_DEPTH_BUFFER_BIT,
-                GL_NEAREST);
             _debug_line_program.use();
+            debug_line_count = _debug_lines.size();
 
             resize_gpu_buffer(_debug_lines, _debug_line_buffer);
             _debug_line_buffer.write(std::as_bytes(std::span{_debug_lines.data(), _debug_lines.size()}), 0zu);
@@ -394,5 +431,4 @@ namespace ufps
     {
         _enabled = enabled;
     }
-
 }
