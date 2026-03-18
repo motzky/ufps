@@ -30,10 +30,26 @@ namespace ufps
         std::vector<PointLight> lights;
     };
 
+    struct ToneMapOptions
+    {
+        float max_brightness;
+        float contrast;
+        float linear_section_start;
+        float linear_section_length;
+        float black_tightness;
+        float pedestal;
+        float gamma;
+    };
+
     class Scene
     {
     public:
-        Scene(MeshManager &mesh_manager, MaterialManager &material_manager, TextureManager &texture_manager, Camera camera, LightData lights);
+        Scene(MeshManager &mesh_manager,
+              MaterialManager &material_manager,
+              TextureManager &texture_manager,
+              Camera camera,
+              LightData lights,
+              ToneMapOptions tone_map_options);
 
         constexpr auto intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>;
 
@@ -78,6 +94,11 @@ namespace ufps
             _lights.lights.push_back(std::move(light));
         }
 
+        constexpr auto tone_map_options() -> ToneMapOptions &
+        {
+            return _tone_map_options;
+        }
+
     private:
         std::vector<Entity> _entities;
         std::vector<Entity> _entity_cache;
@@ -86,6 +107,7 @@ namespace ufps
         TextureManager &_texture_manager;
         Camera _camera;
         LightData _lights;
+        ToneMapOptions _tone_map_options;
     };
 
     constexpr auto Scene::intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>

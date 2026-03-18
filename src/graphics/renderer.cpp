@@ -235,6 +235,14 @@ namespace ufps
         _tone_map_program.use();
 
         ::glProgramUniform1ui(_tone_map_program.native_handle(), 0u, _light_pass_rt.first_color_attachment_index + 0u);
+        ::glProgramUniform1f(_tone_map_program.native_handle(), 1u, scene.tone_map_options().max_brightness);
+        ::glProgramUniform1f(_tone_map_program.native_handle(), 2u, scene.tone_map_options().contrast);
+        ::glProgramUniform1f(_tone_map_program.native_handle(), 3u, scene.tone_map_options().linear_section_start);
+        ::glProgramUniform1f(_tone_map_program.native_handle(), 4u, scene.tone_map_options().linear_section_length);
+        ::glProgramUniform1f(_tone_map_program.native_handle(), 5u, scene.tone_map_options().black_tightness);
+        ::glProgramUniform1f(_tone_map_program.native_handle(), 6u, scene.tone_map_options().pedestal);
+        ::glProgramUniform1f(_tone_map_program.native_handle(), 7u, scene.tone_map_options().gamma);
+
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
 
