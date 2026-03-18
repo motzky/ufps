@@ -213,12 +213,12 @@ namespace ufps
             1u,
             0);
 
+        post_render(scene);
+
         _command_buffer.advance();
         _camera_buffer.advance();
         _light_buffer.advance();
         _object_data_buffer.advance();
-
-        post_render(scene);
     }
 
     auto Renderer::post_render(Scene &) -> void
