@@ -39,30 +39,4 @@ namespace ufps
 
         _entity_cache.push_back(std::move(entity));
     }
-
-    auto Scene::mesh_manager() const -> MeshManager &
-    {
-        return _mesh_manager;
-    }
-
-    auto Scene::material_manager() const -> MaterialManager &
-    {
-        return _material_manager;
-    }
-
-    auto Scene::texture_manager() const -> TextureManager &
-    {
-        return _texture_manager;
-    }
-
-    auto Scene::camera() -> Camera &
-    {
-        return _camera;
-    }
-
-    auto Scene::lights() -> LightData &
-    {
-        return _lights;
-    }
-
 }
