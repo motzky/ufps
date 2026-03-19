@@ -1,5 +1,9 @@
 #pragma once
 
+#include <optional>
+#include <variant>
+#include <vector>
+
 #include "core/entity.h"
 #include "core/scene.h"
 #include "events/mouse_button_event.h"
@@ -32,7 +36,7 @@ namespace ufps
     private:
         bool _enabled;
         std::optional<MouseButtonEvent> _click;
-        const Entity *_selected_entity;
+        std::variant<std::monostate, const Entity *, const LightData *> _selected;
         std::vector<LineData> _debug_lines;
         MultiBuffer<PersistentBuffer> _debug_line_buffer;
         Program _debug_line_program;

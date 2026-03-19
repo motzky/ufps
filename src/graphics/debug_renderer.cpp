@@ -1,6 +1,7 @@
 #include "graphics/debug_renderer.h"
 
 #include <cstring>
+#include <locale>
 #include <ranges>
 #include <string>
 #include <type_traits>
@@ -22,6 +23,8 @@
 
 namespace
 {
+    static constexpr auto debugl_light_scale = 0.25f;
+
     auto screen_ray(const ufps::MouseButtonEvent &evt, const ufps::Window &window, const ufps::Camera &camera) -> ufps::Ray
     {
         const auto x = 2.0f * evt.x() / window.width() - 1.f;
@@ -79,7 +82,7 @@ namespace ufps
         : Renderer{window, resource_loader, texture_manager, mesh_manager},
           _enabled{false},
           _click{},
-          _selected_entity{},
+          _selected{std::monostate{}},
           _debug_lines{},
           _debug_line_buffer{sizeof(LineData) * 2u, "line_data_buffer"},
           _debug_line_program{create_program(resource_loader,
@@ -111,16 +114,17 @@ namespace ufps
 
     auto DebugRenderer::post_render(Scene &scene) -> void
     {
-        if (_selected_entity)
+        if (std::holds_alternative<const Entity *>(_selected))
         {
+            const auto *selected_entity = std::get<const Entity *>(_selected);
             auto aabb_lines =
-                _selected_entity->render_entities() |
+                selected_entity->render_entities() |
                 std::views::transform([&](const auto &e)
-                                      { return create_aabb_lines(e.aabb(), _selected_entity->transform(), {0.4f, 0.4f, .4f}); }) |
+                                      { return create_aabb_lines(e.aabb(), selected_entity->transform(), {0.4f, 0.4f, .4f}); }) |
                 std::views::join;
 
             _debug_lines.append_range(aabb_lines);
-            _debug_lines.append_range(create_aabb_lines(_selected_entity->aabb(), _selected_entity->transform(), {0.f, 1.f, 0.f}));
+            _debug_lines.append_range(create_aabb_lines(selected_entity->aabb(), selected_entity->transform(), {0.f, 1.f, 0.f}));
         }
 
         Renderer::post_render(scene);
@@ -130,12 +134,14 @@ namespace ufps
             return;
         }
 
-        const auto unit_aabb = ufps::AABB{
-            .min = {-.5f, -.5f, -.5f},
-            .max = {.5f, .5f, .5f}};
+        const auto light_transform = Transform{scene.lights().light.position, {debugl_light_scale}, {}};
+        const auto light_model = Matrix4{light_transform};
 
-        const auto light_aabb_transform = Transform{scene.lights().light.position, {.5f}, {}};
-        _debug_lines.append_range(create_aabb_lines(unit_aabb, light_aabb_transform, {1.f, 0.f, 0.f}));
+        const auto debug_light_aabb = ufps::AABB{
+            .min = light_model * Vector4{-1.f, -1.f, -1.f, 1.f},
+            .max = light_model * Vector4{1.f}};
+
+        _debug_lines.append_range(create_aabb_lines(debug_light_aabb, {}, {1.f, 0.f, 0.f}));
 
         _light_pass_rt.fb.unbind();
         ::glBlitNamedFramebuffer(
@@ -162,9 +168,6 @@ namespace ufps
         const auto cube_parts = scene.mesh_manager().mesh("cube");
         ensure(cube_parts.size() == 1u, "cube mesh should have exactly 1 part");
         const auto cube_indices_offset_bytes = cube_parts.front().index_offset * sizeof(std::uint32_t);
-
-        const auto light_transform = Transform{scene.lights().light.position, {.2f}, {}};
-        const auto light_model = Matrix4{light_transform};
 
         ::glProgramUniformMatrix4fv(_debug_light_program.native_handle(), 0u, 1u, GL_FALSE, light_model.data().data());
         ::glProgramUniform3f(
@@ -241,11 +244,11 @@ namespace ufps
         {
             ::ImGui::CollapsingHeader(entity.name().c_str());
 
-            if (&entity == _selected_entity)
+            if (const auto selected_entity = std::get_if<const Entity *>(&_selected); selected_entity && *selected_entity == &entity)
             {
                 auto transform = Matrix4{entity.transform()};
-
                 const auto &camera_data = scene.camera().data();
+                static float snap_translation[3] = {1.f, 1.f, 1.f};
 
                 ::ImGuizmo::Manipulate(
                     camera_data.view.data().data(),
@@ -254,7 +257,7 @@ namespace ufps
                     ::ImGuizmo::WORLD,
                     const_cast<float *>(transform.data().data()),
                     nullptr,
-                    nullptr,
+                    snap_translation,
                     nullptr,
                     nullptr);
 
@@ -297,29 +300,25 @@ namespace ufps
                 scene.lights().light.linear_attenuation = att[1];
                 scene.lights().light.quadratic_attenuation = att[2];
             }
+        }
+        if (const auto selected_light = std::get_if<const LightData *>(&_selected); selected_light)
+        {
+            auto transform = Matrix4{scene.lights().light.position};
+            const auto &camera_data = scene.camera().data();
 
-            if (!_selected_entity)
-            {
-                auto transform = Matrix4{scene.lights().light.position};
+            ::ImGuizmo::Manipulate(
+                camera_data.view.data().data(),
+                camera_data.projection.data().data(),
+                ::ImGuizmo::TRANSLATE | ::ImGuizmo::BOUNDS | ::ImGuizmo::ROTATE,
+                ::ImGuizmo::WORLD,
+                const_cast<float *>(transform.data().data()),
+                nullptr,
+                nullptr,
+                nullptr,
+                nullptr);
 
-                const auto &camera_data = scene.camera().data();
-
-                static float snap_translation[3] = {1.f, 1.f, 1.f};
-
-                ::ImGuizmo::Manipulate(
-                    camera_data.view.data().data(),
-                    camera_data.projection.data().data(),
-                    ::ImGuizmo::TRANSLATE | ::ImGuizmo::SCALE | ::ImGuizmo::ROTATE,
-                    ::ImGuizmo::WORLD,
-                    const_cast<float *>(transform.data().data()),
-                    nullptr,
-                    snap_translation,
-                    nullptr,
-                    nullptr);
-
-                const auto new_transform = Transform{transform};
-                scene.lights().light.position = new_transform.position;
-            }
+            const auto new_transform = Transform{transform};
+            scene.lights().light.position = new_transform.position;
         }
 
         ::ImGui::End();
@@ -407,9 +406,21 @@ namespace ufps
         {
             const auto pick_ray = screen_ray(_click.value(), _window, scene.camera());
             const auto intersection = scene.intersect_ray(pick_ray);
-            _selected_entity = intersection.transform([](const auto &e)
-                                                      { return e.entity; })
-                                   .value_or(nullptr);
+            if (intersection)
+            {
+                _selected = intersection->entity;
+            }
+            else
+            {
+                _selected = std::monostate{};
+            }
+            if (const auto light_intersection = intersect(pick_ray, debug_light_aabb); light_intersection)
+            {
+                if (!intersection || light_intersection < intersection->distance)
+                {
+                    _selected = std::addressof(scene.lights());
+                }
+            }
 
             _click.reset();
         }
