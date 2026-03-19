@@ -323,17 +323,30 @@ namespace ufps
 
         ::ImGui::End();
 
-        static auto follow = true;
         ::ImGui::Begin("Log");
+        static auto auto_scroll = true;
+        static auto force_scroll_to_bottom = false;
 
-        auto following_again = false;
-        if (::ImGui::Checkbox("follow log", &follow))
+        if (::ImGui::Checkbox("auto scroll", &auto_scroll))
         {
-            log::debug("checkbox pressed");
-            following_again = true;
+            if (auto_scroll)
+            {
+                force_scroll_to_bottom = auto_scroll;
+            }
         }
 
         ::ImGui::BeginChild("log output");
+
+        if (auto_scroll && !force_scroll_to_bottom)
+        {
+            const auto scroll_max = ::ImGui::GetScrollMaxY();
+            const auto scroll_current = ::ImGui::GetScrollY();
+
+            if (scroll_max > 0.f && scroll_current < scroll_max)
+            {
+                auto_scroll = false;
+            }
+        }
 
         for (const auto &pair : log::history)
         {
@@ -362,17 +375,14 @@ namespace ufps
             }
         }
 
-        if (!following_again && ::ImGui::GetScrollY() != ::ImGui::GetScrollMaxY())
-        {
-            follow = false;
-        }
-
-        if (follow)
+        if (auto_scroll)
         {
             ::ImGui::SetScrollHereY(1.f);
         }
 
         ::ImGui::EndChild();
+
+        force_scroll_to_bottom = false;
 
         ::ImGui::End();
 
