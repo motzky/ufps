@@ -86,7 +86,7 @@ void main()
     if(normal_tex_index < 65535)
     {
         nm = texture(textures[normal_tex_index], uv).xyz;
-        // nm = normalize(nm*2.0 - 1.0);
+        nm = (nm*2.0) - 1.0;
     }
 
     vec3 n = normalize(tbn * nm);
