@@ -162,7 +162,7 @@ void main()
         Lo += calculate_point_light(point_lights[i], view_pos, view_dir, normal, frag_pos, albedo, metallic, roughness, ao);
     }
 
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    vec3 ambient = vec3(0.03) * ambient_color * albedo * ao;
     vec3 color = ambient + Lo;
 
     out_color = vec4(color, 1.0);
