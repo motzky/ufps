@@ -37,7 +37,7 @@ namespace ufps
     private:
         bool _enabled;
         std::optional<MouseButtonEvent> _click;
-        std::variant<std::monostate, const Entity *, PointLight *> _selected;
+        std::variant<std::monostate, Entity *, PointLight *> _selected;
         std::vector<LineData> _debug_lines;
         MultiBuffer<PersistentBuffer> _debug_line_buffer;
         Program _debug_line_program;

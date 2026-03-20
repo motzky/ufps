@@ -19,7 +19,7 @@ namespace ufps
 {
     struct IntersectionResult
     {
-        const Entity *entity;
+        Entity *entity;
         Vector3 position;
         float distance;
     };
@@ -35,7 +35,7 @@ namespace ufps
     public:
         Scene(MeshManager &mesh_manager, MaterialManager &material_manager, TextureManager &texture_manager, Camera camera, LightData lights);
 
-        constexpr auto intersect_ray(const Ray &ray) const -> std::optional<IntersectionResult>;
+        constexpr auto intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>;
 
         auto create_entity(std::string_view name) -> void;
 
@@ -88,12 +88,12 @@ namespace ufps
         LightData _lights;
     };
 
-    constexpr auto Scene::intersect_ray(const Ray &ray) const -> std::optional<IntersectionResult>
+    constexpr auto Scene::intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>
     {
         auto result = std::optional<IntersectionResult>{};
         auto min_distance = std::numeric_limits<float>::max();
 
-        for (const auto &entity : _entities)
+        for (auto &entity : _entities)
         {
             const auto inv_transform = Matrix4::invert(entity.transform());
             const auto transformed_ray =
@@ -101,7 +101,7 @@ namespace ufps
 
             if (!!intersect(transformed_ray, entity.aabb()))
             {
-                for (const auto &render_entity : entity.render_entities())
+                for (auto &render_entity : entity.render_entities())
                 {
                     if (!intersect(transformed_ray, render_entity.aabb()))
                     {
