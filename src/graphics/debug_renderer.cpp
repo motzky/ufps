@@ -218,6 +218,19 @@ namespace ufps
         ::ImGui::LabelText("FPS", "%0.1f", io.Framerate);
         ::ImGui::LabelText("Debug Line Count", "%zu", debug_line_count);
 
+        if (::ImGui::Button("add light"))
+        {
+            scene.add(
+                PointLight{
+                    .position = {},
+                    .color = {.r = 1.f, .g = 1.f, .b = 1.f},
+                    .constant_attenuation = 1.f,
+                    .linear_attenuation = 0.007f,
+                    .quadratic_attenuation = 0.0002f,
+                    .specular_poewr = 32.f});
+            _selected = &scene.lights().lights.back();
+        }
+
         auto names = scene.mesh_manager().mesh_names();
         const auto mesh_names_cstr = names |
                                      std::views::transform([](const auto &e)
