@@ -93,8 +93,6 @@ layout (location = 3) out mat3 tbn;
 
 void main()
 {
-    mat3 normal_mat = transpose(inverse(mat3(object_data[gl_DrawID].model)));
-
     frag_position = object_data[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
     gl_Position = projection * view * frag_position;
     material_index = object_data[gl_DrawID].material_index;

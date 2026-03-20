@@ -105,13 +105,13 @@ namespace ufps
 {
     static StringUnorderedMap<TextureData> _texture_cache;
 
-    auto load_texture(ResourceLoader &resource_loader, std::string id, bool flip) -> TextureData
+    auto load_texture(ResourceLoader &resource_loader, std::string id, bool is_srgb) -> TextureData
     {
         auto it = _texture_cache.find(id);
         if (it == _texture_cache.end())
         {
             // log::debug("loading texture {}", id);
-            auto tex = load_texture(resource_loader.load_data_buffer(id), flip);
+            auto tex = load_texture(resource_loader.load_data_buffer(id), is_srgb);
             _texture_cache.insert(std::make_pair(id, tex));
             return tex;
         }
@@ -119,13 +119,11 @@ namespace ufps
         return it->second;
     }
 
-    auto load_texture(DataBufferView image_data, bool flip, bool is_srgb) -> TextureData
+    auto load_texture(DataBufferView image_data, bool is_srgb) -> TextureData
     {
         auto width = int{};
         auto height = int{};
         auto num_channels = int{};
-
-        ::stbi_set_flip_vertically_on_load(flip);
 
         auto raw_data = std::unique_ptr<::stbi_uc, void (*)(void *)>{
             ::stbi_load_from_memory(
@@ -140,6 +138,8 @@ namespace ufps
         ensure(raw_data, "failed to parse texture data");
 
         const auto *ptr = reinterpret_cast<const std::byte *>(raw_data.get());
+
+        // log::debug("  num_channels: {}", num_channels);
 
         return {
             .width = static_cast<std::uint32_t>(width),
@@ -259,40 +259,27 @@ namespace ufps
 
             if (albedo_filename.has_value())
             {
-                auto flip = diffuse_color_count == 0;
-                // FIXME: this has to be an INPUT !!!
-                if (albedo_filename->string().find("T_Light_BC") != std::string::npos)
-                {
-                    flip = false;
-                }
-                model.albedo = load_texture(resource_loader, std::format("textures/{}", albedo_filename->string(), true), flip);
+                model.albedo = load_texture(resource_loader, std::format("textures/{}", albedo_filename->string()), true);
             }
             if (normal_filename.has_value())
             {
-                model.normal = load_texture(resource_loader, std::format("textures/{}", normal_filename->string()));
+                model.normal = load_texture(resource_loader, std::format("textures/{}", normal_filename->string()), false);
             }
             if (specular_filename.has_value())
             {
-                model.specular = load_texture(resource_loader, std::format("textures/{}", specular_filename->string()));
+                model.specular = load_texture(resource_loader, std::format("textures/{}", specular_filename->string()), false);
             }
             if (roughness_filename.has_value())
             {
-                model.roughness = load_texture(resource_loader, std::format("textures/{}", normal_filename->string()));
+                model.roughness = load_texture(resource_loader, std::format("textures/{}", roughness_filename->string()), false);
             }
             if (ao_filename.has_value())
             {
-                model.ambient_occlusion = load_texture(resource_loader, std::format("textures/{}", ao_filename->string()));
+                model.ambient_occlusion = load_texture(resource_loader, std::format("textures/{}", ao_filename->string()), false);
             }
             if (emissive_filename.has_value())
             {
-                auto flip = true;
-                // FIXME: this has to be an INPUT !!!
-                if (emissive_filename->string().find("T_Light_BC") != std::string::npos ||
-                    emissive_filename->string().find("Detail02_Emissive") != std::string::npos)
-                {
-                    flip = false;
-                }
-                model.emissive_color = load_texture(resource_loader, std::format("textures/{}", emissive_filename->string()), flip);
+                model.emissive_color = load_texture(resource_loader, std::format("textures/{}", emissive_filename->string()), true);
             }
 
             models.push_back(model);

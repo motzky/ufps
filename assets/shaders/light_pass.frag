@@ -96,7 +96,7 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
-vec3 calculate_point_light(PointLight light, vec3 view_pos, vec3 view_dir, vec3 normal, vec3 frag_pos, vec3 albedo, float metallic, float roughness, float ao)
+vec3 calculate_point_light(PointLight light, vec3 view_pos, vec3 view_dir, vec3 normal, vec3 frag_pos, vec3 albedo, vec3 F0, float metallic, float roughness, float ao)
 {
     vec3 point_pos = vec3(light.pos[0], light.pos[1], light.pos[2]);
     vec3 point_color = vec3(light.color[0], light.color[1], light.color[2]);
@@ -108,9 +108,6 @@ vec3 calculate_point_light(PointLight light, vec3 view_pos, vec3 view_dir, vec3 
     float dist = length(point_pos - frag_pos);
     float att = 1.0 / (point_attenuation.x + (point_attenuation.y * dist) + (point_attenuation.z * (dist * dist)));
     vec3 radiance = point_color * att;
-
-    vec3 F0 = vec3(0.04);
-    F0 = mix(F0, albedo, metallic);
 
     float NDF = DistributionGGX(normal, half_way, roughness);
     float G = GeometrySmith(normal, view_dir, light_dir, roughness);
@@ -127,13 +124,12 @@ vec3 calculate_point_light(PointLight light, vec3 view_pos, vec3 view_dir, vec3 
     kD *= 1.0 - metallic;
 
     float NdotL = max(dot(normal, light_dir), 0.0);
-    // Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     return (kD * albedo / PI + specular) * radiance * NdotL;
 }
 
 void main()
 {
-    vec3 albedo = pow(texture(textures[albedo_tex_index], uv).rgb, vec3(2.2));
+    vec3 albedo = texture(textures[albedo_tex_index], uv).rgb;
     vec3 normal = texture(textures[normal_tex_index], uv).xyz;
     vec3 frag_pos = texture(textures[position_tex_index], uv).rgb;
     vec3 metallic_tex = texture(textures[metallic_tex_index], uv).rgb;
@@ -156,13 +152,16 @@ void main()
     vec3 view_pos = vec3(camera_position[0],camera_position[1],camera_position[2]);
     vec3 view_dir = normalize(view_pos - frag_pos);
 
+    vec3 F0 = vec3(0.04);
+    F0 = mix(F0, albedo, metallic);
+
     vec3 Lo = vec3(0.0);
     for(uint i = 0; i < num_point_lights; i++)
     {
-        Lo += calculate_point_light(point_lights[i], view_pos, view_dir, normal, frag_pos, albedo, metallic, roughness, ao);
+        Lo += calculate_point_light(point_lights[i], view_pos, view_dir, normal, frag_pos, albedo, F0, metallic, roughness, ao);
     }
 
-    vec3 ambient = vec3(0.03) * ambient_color * albedo * ao;
+    vec3 ambient = ambient_color * albedo * ao;
     vec3 color = ambient + Lo;
 
     out_color = vec4(color, 1.0);

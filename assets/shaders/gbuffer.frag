@@ -46,7 +46,7 @@ layout(binding = 3, std430) readonly buffer materials
     MaterialData material_data[];
 };
 
-layout(binding = 4, std430) readonly buffer texutres
+layout(binding = 4, std430) readonly buffer textures_buffer
 {
     sampler2D textures[];
 };
@@ -86,7 +86,7 @@ void main()
     if(normal_tex_index < 65535)
     {
         nm = texture(textures[normal_tex_index], uv).xyz;
-        nm = (nm*2.0 - 1.0);
+        // nm = normalize(nm*2.0 - 1.0);
     }
 
     vec3 n = normalize(tbn * nm);
