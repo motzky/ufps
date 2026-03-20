@@ -305,7 +305,7 @@ auto main(int argc, char **argv) -> int
                             .constant_attenuation = 1.f,
                             .linear_attenuation = .045f,
                             .quadratic_attenuation = .0075f,
-                            .specular_poewr = 32.f,
+                            .specular_power = 32.f,
                         }},
                 },
                 {.max_brightness = 1.f, .contrast = 1.f, .linear_section_start = .22f, .linear_section_length = .4f, .black_tightness = 1.33f, .pedestal = 0.f, .gamma = 2.2f}};

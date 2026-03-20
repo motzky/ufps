@@ -12,7 +12,7 @@ namespace ufps
         float constant_attenuation;
         float linear_attenuation;
         float quadratic_attenuation;
-        float specular_poewr;
+        float specular_power;
     };
 
     static_assert(sizeof(PointLight) == sizeof(float) * 10);

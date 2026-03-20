@@ -228,7 +228,7 @@ namespace ufps
                     .constant_attenuation = 1.f,
                     .linear_attenuation = 0.007f,
                     .quadratic_attenuation = 0.0002f,
-                    .specular_poewr = 32.f});
+                    .specular_power = 32.f});
             _selected = &scene.lights().lights.back();
         }
 
@@ -503,7 +503,7 @@ namespace ufps
                     std::memcpy(&light->color, color, sizeof(color));
                 }
 
-                ::ImGui::SliderFloat("power", &light->specular_poewr, 0.f, 128.f);
+                ::ImGui::SliderFloat("power", &light->specular_power, 0.f, 128.f);
 
                 float att[3] = {light->constant_attenuation, light->linear_attenuation, light->quadratic_attenuation};
 
