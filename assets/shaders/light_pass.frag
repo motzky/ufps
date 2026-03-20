@@ -12,6 +12,14 @@ struct VertexData
     float uv[2];
 };
 
+struct PointLight
+{
+    float pos[3];
+    float color[3];
+    float attenuation[3];
+    float specular_power;
+};
+
 layout(binding = 0, std430) readonly buffer vertices {
     VertexData data[];
 };
@@ -24,10 +32,8 @@ layout(binding = 1, std430) readonly buffer texture_buffer
 layout(binding = 2, std430) readonly buffer lights
 {
     float ambient_color[3];
-    float point_light_pos[3];
-    float point_light_color[3];
-    float point_light_attenuation[3];
-    float point_light_specular_power;
+    uint num_point_lights;
+    PointLight point_lights[];
 };
 
 layout(binding = 3, std430) readonly buffer camera
@@ -90,35 +96,12 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
     return ggx1 * ggx2;
 }
 
-void main()
+vec3 calculate_point_light(PointLight light, vec3 view_pos, vec3 view_dir, vec3 normal, vec3 frag_pos, vec3 albedo, float metallic, float roughness, float ao)
 {
-    vec3 albedo = pow(texture(textures[albedo_tex_index], uv).rgb, vec3(2.2));
-    vec3 normal = texture(textures[normal_tex_index], uv).xyz;
-    vec3 frag_pos = texture(textures[position_tex_index], uv).rgb;
-    vec3 metallic_tex = texture(textures[metallic_tex_index], uv).rgb;
-    vec3 emissive = texture(textures[emissive_tex_index], uv).rgb;
+    vec3 point_pos = vec3(light.pos[0], light.pos[1], light.pos[2]);
+    vec3 point_color = vec3(light.color[0], light.color[1], light.color[2]);
+    vec3 point_attenuation = vec3(light.attenuation[0], light.attenuation[1], light.attenuation[2]);
 
-    float emissiveness = length(emissive);
-
-    vec3 Lo = vec3(0.0);
-    if(emissiveness > 0.001)
-    {
-        out_color = vec4(emissive, 1.0);
-        return;
-    }
-
-    float metallic = metallic_tex.r;
-    float roughness = texture(textures[roughness_tex_index], uv).r;
-    float ao = texture(textures[ao_tex_index], uv).r;
-
-    vec3 view_pos = vec3(camera_position[0],camera_position[1],camera_position[2]);
-
-    vec3 point_pos = vec3(point_light_pos[0], point_light_pos[1], point_light_pos[2]);
-    vec3 point_color = vec3(point_light_color[0], point_light_color[1], point_light_color[2]);
-    vec3 point_attenuation = vec3(point_light_attenuation[0], point_light_attenuation[1], point_light_attenuation[2]);
-
-    vec3 ambient_color = vec3(ambient_color[0], ambient_color[1], ambient_color[2]);
-    vec3 view_dir = normalize(view_pos - frag_pos);
     vec3 light_dir = normalize(point_pos - frag_pos);
     vec3 half_way = normalize(light_dir + view_dir);
 
@@ -144,7 +127,40 @@ void main()
     kD *= 1.0 - metallic;
 
     float NdotL = max(dot(normal, light_dir), 0.0);
-    Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+    // Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+    return (kD * albedo / PI + specular) * radiance * NdotL;
+}
+
+void main()
+{
+    vec3 albedo = pow(texture(textures[albedo_tex_index], uv).rgb, vec3(2.2));
+    vec3 normal = texture(textures[normal_tex_index], uv).xyz;
+    vec3 frag_pos = texture(textures[position_tex_index], uv).rgb;
+    vec3 metallic_tex = texture(textures[metallic_tex_index], uv).rgb;
+    vec3 emissive = texture(textures[emissive_tex_index], uv).rgb;
+
+    float emissiveness = length(emissive);
+
+    if(emissiveness > 0.001)
+    {
+        out_color = vec4(emissive, 1.0);
+        return;
+    }
+
+    vec3 ambient_color = vec3(ambient_color[0], ambient_color[1], ambient_color[2]);
+
+    float metallic = metallic_tex.r;
+    float roughness = texture(textures[roughness_tex_index], uv).r;
+    float ao = texture(textures[ao_tex_index], uv).r;
+
+    vec3 view_pos = vec3(camera_position[0],camera_position[1],camera_position[2]);
+    vec3 view_dir = normalize(view_pos - frag_pos);
+
+    vec3 Lo = vec3(0.0);
+    for(uint i = 0; i < num_point_lights; i++)
+    {
+        Lo += calculate_point_light(point_lights[i], view_pos, view_dir, normal, frag_pos, albedo, metallic, roughness, ao);
+    }
 
     vec3 ambient = vec3(0.03) * albedo * ao;
     vec3 color = ambient + Lo;

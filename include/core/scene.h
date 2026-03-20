@@ -27,7 +27,7 @@ namespace ufps
     struct LightData
     {
         Color ambient;
-        PointLight light;
+        std::vector<PointLight> lights;
     };
 
     class Scene
@@ -71,6 +71,11 @@ namespace ufps
         constexpr auto &texture_manager(this auto &&self)
         {
             return self._texture_manager;
+        }
+
+        constexpr auto add(PointLight light) -> void
+        {
+            _lights.lights.push_back(std::move(light));
         }
 
     private:

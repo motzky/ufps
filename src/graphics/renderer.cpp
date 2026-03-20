@@ -8,6 +8,7 @@
 
 #include "core/camera.h"
 #include "core/scene.h"
+#include "graphics/buffer_writer.h"
 #include "graphics/command_buffer.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/object_data.h"
@@ -191,6 +192,21 @@ namespace ufps
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         _light_pass_program.use();
 
+        {
+            const auto &lights = scene.lights();
+            const auto buffer_size_bytes = sizeof(lights.ambient) + sizeof(std::uint32_t) + sizeof(PointLight) * lights.lights.size();
+            if (_light_buffer.size() < buffer_size_bytes)
+            {
+                _light_buffer = {buffer_size_bytes, _light_buffer.name()};
+                ::glFinish();
+            }
+
+            auto writer = BufferWriter{_light_buffer};
+            writer.write(lights.ambient);
+            writer.write(static_cast<std::uint32_t>(lights.lights.size()));
+            writer.write<PointLight>(lights.lights);
+        }
+
         ::glProgramUniform1ui(_light_pass_program.native_handle(), 0u, _gbuffer_rt.first_color_attachment_index + 0u);
         ::glProgramUniform1ui(_light_pass_program.native_handle(), 1u, _gbuffer_rt.first_color_attachment_index + 1u);
         ::glProgramUniform1ui(_light_pass_program.native_handle(), 2u, _gbuffer_rt.first_color_attachment_index + 2u);
@@ -198,8 +214,6 @@ namespace ufps
         ::glProgramUniform1ui(_light_pass_program.native_handle(), 4u, _gbuffer_rt.first_color_attachment_index + 4u);
         ::glProgramUniform1ui(_light_pass_program.native_handle(), 5u, _gbuffer_rt.first_color_attachment_index + 5u);
         ::glProgramUniform1ui(_light_pass_program.native_handle(), 6u, _gbuffer_rt.first_color_attachment_index + 6u);
-
-        _light_buffer.write(std::as_bytes(std::span<const LightData>{&scene.lights(), 1zu}), 0zu);
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());

@@ -298,14 +298,15 @@ auto main(int argc, char **argv) -> int
                  1000.f},
                 {
                     .ambient = {.r = .05f, .g = .05f, .b = .05f},
-                    .light = {
-                        .position = {0.f, 2.5f, 0.f},
-                        .color = {.r = .5f, .g = .5f, .b = .5f},
-                        .constant_attenuation = 1.f,
-                        .linear_attenuation = .045f,
-                        .quadratic_attenuation = .0075f,
-                        .specular_poewr = 32.f,
-                    },
+                    .lights = {
+                        {
+                            .position = {0.f, 2.5f, 0.f},
+                            .color = {.r = .5f, .g = .5f, .b = .5f},
+                            .constant_attenuation = 1.f,
+                            .linear_attenuation = .045f,
+                            .quadratic_attenuation = .0075f,
+                            .specular_poewr = 32.f,
+                        }},
                 }};
 
             const auto models_to_load = std::vector{
