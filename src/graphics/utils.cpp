@@ -220,7 +220,7 @@ namespace ufps
             {
                 log::debug("Opacity: {}", opacity);
                 auto refracti = 1.f;
-                if (material->Get(AI_MATKEY_OPACITY, refracti) == AI_SUCCESS)
+                if (material->Get(AI_MATKEY_REFRACTI, refracti) == AI_SUCCESS)
                 {
                     log::debug("Refract idx: {}", refracti);
                 }
