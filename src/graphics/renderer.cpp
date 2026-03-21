@@ -248,8 +248,8 @@ namespace ufps
         ::glClearNamedBufferData(_luminance_histogram_buffer.native_handle(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
 
         ::glProgramUniform1ui(_luminance_program.native_handle(), 0u, _light_pass_rt.first_color_attachment_index);
-        ::glProgramUniform1f(_luminance_program.native_handle(), 1u, -10.f);
-        ::glProgramUniform1f(_luminance_program.native_handle(), 2u, 2.f);
+        ::glProgramUniform1f(_luminance_program.native_handle(), 1u, -8.f);
+        ::glProgramUniform1f(_luminance_program.native_handle(), 2u, 1.f / (3.5f + 8.f));
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, scene.texture_manager().native_handle());
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _luminance_histogram_buffer.native_handle());
