@@ -92,8 +92,17 @@ include_directories(third_party)
 endif()
 
 
-set(LOG_TO_FILE true)
-set(LOG_ENABLE_DEBUG true)
+# set(LOG_ENABLE_DEBUG false)
+# set(LOG_ASSIMP false)
+# set(OPENGL_ENABLE_DEBUG false)
+# set(LOG_TO_FILE false)
+
+# if(${CONFIG_TYPE_UPPER} STREQUAL "DEBUG")
+    set(LOG_ENABLE_DEBUG true)
+    set(LOG_ASSIMP true)
+    set(OPENGL_ENABLE_DEBUG true)
+    set(LOG_TO_FILE true)
+# endif()
 
 ## TODO ##
 # foreach(CONFIG_TYPE ${CMAKE_CONFIGURATION_TYPES})

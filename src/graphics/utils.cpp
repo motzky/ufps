@@ -99,6 +99,46 @@ namespace
         return filename;
     }
 
+    auto is_texture_type_implmented(::aiTextureType type) -> bool
+    {
+        switch (type)
+        {
+        case ::aiTextureType_BASE_COLOR:
+        case ::aiTextureType_DIFFUSE:
+        case ::aiTextureType_NORMAL_CAMERA:
+        case ::aiTextureType_METALNESS:
+        case ::aiTextureType_DIFFUSE_ROUGHNESS:
+        case ::aiTextureType_AMBIENT_OCCLUSION:
+        case ::aiTextureType_EMISSION_COLOR:
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    auto dump_texture_types_of_material(const ::aiMaterial *const material, bool ignore_handled = true) -> void
+    {
+        for (int i = ::aiTextureType_NONE; i < ::aiTextureType_GLTF_METALLIC_ROUGHNESS; ++i)
+        {
+            auto type = static_cast<::aiTextureType>(i);
+            if (ignore_handled && is_texture_type_implmented(type))
+            {
+                continue;
+            }
+            const auto cnt = material->GetTextureCount(type);
+            if (cnt == 0)
+            {
+                continue;
+            }
+            if (ignore_handled)
+            {
+                ufps::log::warn("   UNHANDLED Texture type: {}, count: {}", ::aiTextureTypeToString(type), cnt);
+                continue;
+            }
+            ufps::log::debug("   Texture type: {}, count: {}", ::aiTextureTypeToString(type), cnt);
+        }
+    }
+
 }
 
 namespace ufps
@@ -151,18 +191,21 @@ namespace ufps
 
     auto load_model(DataBufferView model_data, ResourceLoader &resource_loader, std::string format) -> std::tuple<std::string, std::vector<ModelData>>
     {
-        [[maybe_unused]] static auto *logger = []()
+        if (config::log_assimp)
         {
-            ::Assimp::DefaultLogger::create("", ::Assimp::Logger::VERBOSE);
-            auto *logger = ::Assimp::DefaultLogger::get();
+            [[maybe_unused]] static auto *logger = []()
+            {
+                ::Assimp::DefaultLogger::create("", ::Assimp::Logger::VERBOSE);
+                auto *logger = ::Assimp::DefaultLogger::get();
 
-            logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::ERROR>{}, ::Assimp::Logger::Err);
-            logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::WARN>{}, ::Assimp::Logger::Warn);
-            logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::INFO>{}, ::Assimp::Logger::Info);
-            logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::DEBUG>{}, ::Assimp::Logger::Debugging);
+                logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::ERROR>{}, ::Assimp::Logger::Err);
+                logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::WARN>{}, ::Assimp::Logger::Warn);
+                logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::INFO>{}, ::Assimp::Logger::Info);
+                logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::DEBUG>{}, ::Assimp::Logger::Debugging);
 
-            return logger;
-        }();
+                return logger;
+            }();
+        }
 
         auto importer = ::Assimp::Importer{};
         auto *scene = importer.ReadFileFromMemory(
@@ -175,7 +218,11 @@ namespace ufps
 
         const auto loaded_meshes = std::span<::aiMesh *>(scene->mMeshes, scene->mMeshes + scene->mNumMeshes);
         const auto materials = std::span<::aiMaterial *>(scene->mMaterials, scene->mMaterials + scene->mNumMaterials);
-        log::info("found {} meshes, {} materials {} lights", loaded_meshes.size(), materials.size(), scene->mNumLights);
+
+        if (config::log_assimp)
+        {
+            log::info("found {} meshes, {} materials {} lights", loaded_meshes.size(), materials.size(), scene->mNumLights);
+        }
 
         ensure(loaded_meshes.size() == materials.size(), "mismatch mesh/material count in model file");
 
@@ -194,12 +241,10 @@ namespace ufps
                 continue;
             }
 
-            // for (int i = ::aiTextureType_NONE; i < ::aiTextureType_GLTF_METALLIC_ROUGHNESS; ++i)
-            // {
-            //     auto type = static_cast<::aiTextureType>(i);
-            //     const auto cnt = material->GetTextureCount(type);
-            //     log::debug("{}: Texture type: {}, count: {}", i, ::aiTextureTypeToString(type), cnt);
-            // }
+            if (config::log_assimp)
+            {
+                dump_texture_types_of_material(material);
+            }
 
             const auto albedo_filename =
                 diffuse_color_count > 0 ? get_texture_file_name(material, ::aiTextureType_DIFFUSE) : get_texture_file_name(material, ::aiTextureType_BASE_COLOR);
