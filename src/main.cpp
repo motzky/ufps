@@ -317,8 +317,10 @@ auto main(int argc, char **argv) -> int
                 {.max_brightness = 1.f, .contrast = 1.f, .linear_section_start = .22f, .linear_section_length = .4f, .black_tightness = 1.33f, .pedestal = 0.f, .gamma = 2.2f}};
 
             const auto models_to_load = std::vector{
+                "models/SM_Corridor015_06_08_B.fbx"sv,
                 "models/SM_Corner02_8_8_A_T.fbx"sv,
                 "models/SM_Corner03_12_12_B_X.fbx"sv,
+                "models/SM_Corner05_8_8_A_L.fbx"sv,
                 "models/SM_Corner01_8_8_X.fbx"sv,
             };
 
