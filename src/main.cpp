@@ -286,9 +286,9 @@ auto main(int argc, char **argv) -> int
             auto renderer = ufps::DebugRenderer{window, *resource_loader, texture_manager, mesh_manager};
             auto show_debug_ui = false;
 
-            [[maybe_unused]] const auto material_index_r = material_manager.add(ufps::Color{1.0f, 0.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u);
-            [[maybe_unused]] const auto material_index_g = material_manager.add(ufps::Color{0.0f, 1.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u);
-            [[maybe_unused]] const auto material_index_b = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, tex_index, tex_index + 1u, tex_index + 2u);
+            [[maybe_unused]] const auto material_index_r = material_manager.add(ufps::Color{1.0f, 0.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u, 1.f);
+            [[maybe_unused]] const auto material_index_g = material_manager.add(ufps::Color{0.0f, 1.f, 0.f}, tex_index, tex_index + 1u, tex_index + 2u, 1.f);
+            [[maybe_unused]] const auto material_index_b = material_manager.add(ufps::Color{0.0f, 0.f, 1.f}, tex_index, tex_index + 1u, tex_index + 2u, 1.f);
 
             auto scene = ufps::Scene{
                 mesh_manager,
@@ -383,7 +383,8 @@ auto main(int argc, char **argv) -> int
                         specular_index,
                         roughness_index,
                         ao_index,
-                        emissive_index));
+                        emissive_index,
+                        model.opacity));
 
                     mesh_data.push_back(model.mesh_data);
                 }

@@ -25,6 +25,7 @@ struct MaterialData
     uint roughness_index;
     uint ao_index;
     uint emissive_index;
+    float opacity;
 };
 
 layout(binding = 0, std430) readonly buffer vertices {
@@ -81,6 +82,7 @@ void main()
     uint roughness_tex_index = material_data[material_index].roughness_index;
     uint ao_tex_index = material_data[material_index].ao_index;
     uint emissive_tex_index = material_data[material_index].emissive_index;
+    float op = material_data[material_index].opacity;
 
     vec3 nm = vec3(0.0, 0.0, 1.0);
     if(normal_tex_index < 65535)
@@ -91,7 +93,8 @@ void main()
 
     vec3 n = normalize(tbn * nm);
 
-    out_color = texture(textures[albedo_tex_index], uv);
+    out_color = vec4(texture(textures[albedo_tex_index], uv).rgb, op);
+
     out_normal = vec4(n, 1.0);
     out_pos = frag_position;
     if(specular_tex_index < 65535)

@@ -24,6 +24,7 @@ struct MaterialData
     uint roughness_index;
     uint ao_index;
     uint emissive_index;
+    float opacity;
 };
 
 layout(binding = 0, std430) readonly buffer vertices

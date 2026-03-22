@@ -20,6 +20,7 @@ namespace ufps
         std::uint32_t roughness_texture_index;
         std::uint32_t ao_texture_index;
         std::uint32_t emissive_texture_index;
+        float opacity;
     };
 
     class MaterialManager

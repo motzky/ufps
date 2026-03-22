@@ -150,7 +150,7 @@ namespace ufps
         auto it = _texture_cache.find(id);
         if (it == _texture_cache.end())
         {
-            // log::debug("loading texture {}", id);
+            log::debug("loading texture {}", id);
             auto tex = load_texture(resource_loader.load_data_buffer(id), is_srgb);
             _texture_cache.insert(std::make_pair(id, tex));
             return tex;
@@ -179,7 +179,7 @@ namespace ufps
 
         const auto *ptr = reinterpret_cast<const std::byte *>(raw_data.get());
 
-        // log::debug("  num_channels: {}", num_channels);
+        log::debug("  num_channels: {}", num_channels);
 
         return {
             .width = static_cast<std::uint32_t>(width),
@@ -243,7 +243,7 @@ namespace ufps
 
             if (config::log_assimp)
             {
-                dump_texture_types_of_material(material);
+                dump_texture_types_of_material(material, false);
             }
 
             const auto albedo_filename =
@@ -269,9 +269,6 @@ namespace ufps
                 {
                     log::debug("Refract idx: {}", refracti);
                 }
-
-                log::warn("Transparency NOT supported");
-                continue;
             }
 
             const auto positions = std::span<::aiVector3D>{mesh->mVertices, mesh->mVertices + mesh->mNumVertices} | std::views::transform(to_native);
@@ -300,7 +297,7 @@ namespace ufps
                 .roughness = std::nullopt,
                 .ambient_occlusion = std::nullopt,
                 .emissive_color = std::nullopt,
-            };
+                .opacity = opacity};
 
             if (albedo_filename.has_value())
             {

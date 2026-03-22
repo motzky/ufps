@@ -204,6 +204,9 @@ namespace ufps
             command_count,
             0);
 
+        ::glEnable(GL_BLEND);
+        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         _light_pass_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         _light_pass_program.use();
@@ -242,6 +245,8 @@ namespace ufps
             reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
             1u,
             0);
+
+        ::glDisable(GL_BLEND);
 
         _luminance_program.use();
         const auto zero = ::GLuint{0};

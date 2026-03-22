@@ -129,7 +129,9 @@ vec3 calculate_point_light(PointLight light, vec3 view_pos, vec3 view_dir, vec3 
 
 void main()
 {
-    vec3 albedo = texture(textures[albedo_tex_index], uv).rgb;
+    vec4 albedo_texel = texture(textures[albedo_tex_index], uv);
+    vec3 albedo = albedo_texel.rgb;
+    float alpha = albedo_texel.a;    
     vec3 normal = texture(textures[normal_tex_index], uv).xyz;
     vec3 frag_pos = texture(textures[position_tex_index], uv).rgb;
     vec3 metallic_tex = texture(textures[metallic_tex_index], uv).rgb;
@@ -164,5 +166,5 @@ void main()
     vec3 ambient = ambient_color * albedo * ao;
     vec3 color = ambient + Lo;
 
-    out_color = vec4(color, 1.0);
+    out_color = vec4(color, alpha);
 }

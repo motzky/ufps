@@ -16,6 +16,7 @@ namespace ufps
         std::optional<TextureData> roughness;
         std::optional<TextureData> ambient_occlusion;
         std::optional<TextureData> emissive_color;
+        float opacity;
     };
 
 }
