@@ -211,7 +211,13 @@ namespace
             direction -= camera.up();
         }
 
-        return direction / 96.0f;
+        auto factor = 96.f;
+        if (is_key_pressed(ufps::Key::LSHIFT))
+        {
+            factor /= 4.f;
+        }
+
+        return direction / factor;
     }
 }
 
