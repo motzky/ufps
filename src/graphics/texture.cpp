@@ -35,6 +35,30 @@ namespace
             throw ufps::Exception("unknown texture format: {}", format);
         }
     }
+    auto to_opengl_compressed(ufps::TextureFormat format) -> ::GLenum
+    {
+        switch (format)
+        {
+            using enum ufps::TextureFormat;
+        case R:
+            return GL_COMPRESSED_RED;
+        case RGB:
+            return GL_COMPRESSED_RGB;
+        case SRGB:
+            return GL_COMPRESSED_SRGB;
+        case RGBA:
+            return GL_COMPRESSED_RGBA;
+        case SRGBA:
+            return GL_COMPRESSED_SRGB_ALPHA;
+        case RGB16F:
+            return GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT;
+        case DEPTH24:
+            return GL_DEPTH_COMPONENT24;
+
+        default:
+            throw ufps::Exception("unknown texture format: {}", format);
+        }
+    }
 }
 
 namespace ufps
@@ -53,7 +77,14 @@ namespace ufps
         ::glTextureStorage2D(_handle, 1, to_opengl(texture.format, true), texture.width, texture.height);
         if (const auto &data = texture.data; data)
         {
-            ::glTextureSubImage2D(_handle, 0, 0, 0, texture.width, texture.height, to_opengl(texture.format, false), GL_UNSIGNED_BYTE, data->data());
+            if (texture.is_compressed)
+            {
+                ::glCompressedTextureSubImage2D(_handle, 0, 0, 0, texture.width, texture.height, to_opengl_compressed(texture.format), data->size(), data->data());
+            }
+            else
+            {
+                ::glTextureSubImage2D(_handle, 0, 0, 0, texture.width, texture.height, to_opengl(texture.format, false), GL_UNSIGNED_BYTE, data->data());
+            }
         }
 
         _bindless_handle = ::glGetTextureSamplerHandleARB(_handle, sampler.native_handle());

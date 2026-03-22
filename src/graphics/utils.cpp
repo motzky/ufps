@@ -80,7 +80,7 @@ namespace
         return str;
     }
 
-    auto get_texture_file_name(const ::aiMaterial *material, ::aiTextureType type) -> std::optional<std::filesystem::path>
+    auto get_texture_file_name(const ::aiMaterial *material, ::aiTextureType type) -> std::optional<std::string>
     {
         if (material->GetTextureCount(type) == 0)
         {
@@ -96,7 +96,11 @@ namespace
         const auto filename = path.filename();
         // ufps::log::debug("found texture: {} type: {}", filename.string(), to_string(type));
 
-        return filename;
+        if (filename.empty())
+        {
+            return std::nullopt;
+        }
+        return std::format("textures/{}", filename.string());
     }
 
     auto is_texture_type_implmented(::aiTextureType type) -> bool
@@ -150,7 +154,7 @@ namespace ufps
         auto it = _texture_cache.find(id);
         if (it == _texture_cache.end())
         {
-            log::debug("loading texture {}", id);
+            // log::debug("loading texture {}", id);
             auto tex = load_texture(resource_loader.load_data_buffer(id), is_srgb);
             _texture_cache.insert(std::make_pair(id, tex));
             return tex;
@@ -165,28 +169,57 @@ namespace ufps
         auto height = int{};
         auto num_channels = int{};
 
-        auto raw_data = std::unique_ptr<::stbi_uc, void (*)(void *)>{
-            ::stbi_load_from_memory(
-                reinterpret_cast<const ::stbi_uc *>(image_data.data()),
-                image_data.size(),
-                &width,
-                &height,
-                &num_channels,
-                0),
-            ::stbi_image_free};
-
-        ensure(raw_data, "failed to parse texture data");
-
-        const auto *ptr = reinterpret_cast<const std::byte *>(raw_data.get());
-
-        log::debug("  num_channels: {}", num_channels);
-
-        return {
-            .width = static_cast<std::uint32_t>(width),
-            .height = static_cast<std::uint32_t>(height),
-            .format = channels_to_format(num_channels, is_srgb),
-            .data = {{ptr, ptr + width * height * num_channels}},
+        static constexpr std::byte dds_magic[] = {
+            static_cast<std::byte>(0x44),
+            static_cast<std::byte>(0x44),
+            static_cast<std::byte>(0x53),
+            static_cast<std::byte>(0x20),
         };
+
+        if (std::ranges::equal(dds_magic, image_data | std::views::take(sizeof(dds_magic))))
+        {
+            log::debug("found DDS");
+
+            std::memcpy(&height, image_data.data() + sizeof(dds_magic) + 8zu, 4zu);
+            std::memcpy(&width, image_data.data() + sizeof(dds_magic) + 12zu, 4zu);
+            std::memcpy(&num_channels, image_data.data() + sizeof(dds_magic) + 21zu, 4zu);
+
+            return {
+                .width = static_cast<std::uint32_t>(width),
+                .height = static_cast<std::uint32_t>(height),
+                .format = channels_to_format(num_channels, is_srgb),
+                .data = {image_data |
+                         std::views::drop(sizeof(dds_magic) + 4 * (23 + 8)) |
+                         std::ranges::to<std::vector>()},
+                .is_compressed = true,
+            };
+        }
+        else
+        {
+            auto raw_data = std::unique_ptr<::stbi_uc, void (*)(void *)>{
+                ::stbi_load_from_memory(
+                    reinterpret_cast<const ::stbi_uc *>(image_data.data()),
+                    image_data.size(),
+                    &width,
+                    &height,
+                    &num_channels,
+                    0),
+                ::stbi_image_free};
+
+            ensure(raw_data, "failed to parse texture data");
+
+            const auto *ptr = reinterpret_cast<const std::byte *>(raw_data.get());
+
+            // log::debug("  num_channels: {}", num_channels);
+
+            return {
+                .width = static_cast<std::uint32_t>(width),
+                .height = static_cast<std::uint32_t>(height),
+                .format = channels_to_format(num_channels, is_srgb),
+                .data = {{ptr, ptr + width * height * num_channels}},
+                .is_compressed = false,
+            };
+        }
     }
 
     auto load_model(DataBufferView model_data, ResourceLoader &resource_loader, std::string format) -> std::tuple<std::string, std::vector<ModelData>>
@@ -301,27 +334,27 @@ namespace ufps
 
             if (albedo_filename.has_value())
             {
-                model.albedo = load_texture(resource_loader, std::format("textures/{}", albedo_filename->string()), true);
+                model.albedo = load_texture(resource_loader, *albedo_filename, true);
             }
             if (normal_filename.has_value())
             {
-                model.normal = load_texture(resource_loader, std::format("textures/{}", normal_filename->string()), false);
+                model.normal = load_texture(resource_loader, *normal_filename, false);
             }
             if (specular_filename.has_value())
             {
-                model.specular = load_texture(resource_loader, std::format("textures/{}", specular_filename->string()), false);
+                model.specular = load_texture(resource_loader, *specular_filename, false);
             }
             if (roughness_filename.has_value())
             {
-                model.roughness = load_texture(resource_loader, std::format("textures/{}", roughness_filename->string()), false);
+                model.roughness = load_texture(resource_loader, *roughness_filename, false);
             }
             if (ao_filename.has_value())
             {
-                model.ambient_occlusion = load_texture(resource_loader, std::format("textures/{}", ao_filename->string()), false);
+                model.ambient_occlusion = load_texture(resource_loader, *ao_filename, false);
             }
             if (emissive_filename.has_value())
             {
-                model.emissive_color = load_texture(resource_loader, std::format("textures/{}", emissive_filename->string()), true);
+                model.emissive_color = load_texture(resource_loader, *emissive_filename, true);
             }
 
             models.push_back(model);

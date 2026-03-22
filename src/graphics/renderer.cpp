@@ -41,6 +41,7 @@ namespace
             .height = height,
             .format = ufps::TextureFormat::RGB16F,
             .data = std::nullopt,
+            .is_compressed = false,
         };
 
         auto color_attachments =
@@ -59,6 +60,7 @@ namespace
             .height = height,
             .format = ufps::TextureFormat::DEPTH24,
             .data = std::nullopt,
+            .is_compressed = false,
         };
 
         auto depth_texture = ufps::Texture{depth_texture_data, std::format("{}_depth_texture", name), sampler};
