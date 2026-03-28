@@ -1,6 +1,7 @@
 #include "graphics/utils.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
 #include <memory>
 #include <optional>
@@ -32,6 +33,38 @@
 
 namespace
 {
+#define DWORD std::uint32_t
+
+    struct DDS_PIXELFORMAT
+    {
+        DWORD dwSize;
+        DWORD dwFlags;
+        DWORD dwFourCC;
+        DWORD dwRGBBitCount;
+        DWORD dwRBitMask;
+        DWORD dwGBitMask;
+        DWORD dwBBitMask;
+        DWORD dwABitMask;
+    };
+
+    struct DDS_HEADER
+    {
+        DWORD dwSize;
+        DWORD dwFlags;
+        DWORD dwHeight;
+        DWORD dwWidth;
+        DWORD dwPitchOrLinearSize;
+        DWORD dwDepth;
+        DWORD dwMipMapCount;
+        DWORD dwReserved1[11];
+        DDS_PIXELFORMAT ddspf;
+        DWORD dwCaps;
+        DWORD dwCaps2;
+        DWORD dwCaps3;
+        DWORD dwCaps4;
+        DWORD dwReserved2;
+    };
+
     template <ufps::log::Level L>
     class AssimpLogStreamAdapter : public ::Assimp::LogStream
     {
@@ -180,22 +213,25 @@ namespace ufps
         {
             log::debug("found DDS");
 
-            std::memcpy(&height, image_data.data() + sizeof(dds_magic) + 8zu, 4zu);
-            std::memcpy(&width, image_data.data() + sizeof(dds_magic) + 12zu, 4zu);
-            std::memcpy(&num_channels, image_data.data() + sizeof(dds_magic) + 21zu, 4zu);
+            auto dds_header = DDS_HEADER{};
+            std::memcpy(&dds_header, image_data.data() + sizeof(dds_magic), sizeof(dds_header));
+
+            ensure(dds_header.dwSize == sizeof(dds_header), "invalid dds_header size: {}", dds_header.dwSize);
 
             return {
-                .width = static_cast<std::uint32_t>(width),
-                .height = static_cast<std::uint32_t>(height),
-                .format = channels_to_format(num_channels, is_srgb),
-                .data = {image_data |
-                         std::views::drop(sizeof(dds_magic) + 4 * (23 + 8)) |
-                         std::ranges::to<std::vector>()},
+                .width = static_cast<std::uint32_t>(dds_header.dwWidth),
+                .height = static_cast<std::uint32_t>(dds_header.dwHeight),
+                .format = channels_to_format(dds_header.ddspf.dwRGBBitCount / 8u, is_srgb),
+                .data = image_data |
+                        std::views::drop(sizeof(dds_magic) + sizeof(dds_header)) |
+                        std::ranges::to<std::vector>(),
                 .is_compressed = true,
             };
         }
         else
         {
+            log::debug("found non-DDS image");
+
             auto raw_data = std::unique_ptr<::stbi_uc, void (*)(void *)>{
                 ::stbi_load_from_memory(
                     reinterpret_cast<const ::stbi_uc *>(image_data.data()),
