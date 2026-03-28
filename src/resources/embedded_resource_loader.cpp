@@ -10,291 +10,147 @@
 namespace
 {
     constexpr const std::uint8_t simple_vertex_shader[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/shaders/simple.vert"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t simple_fragment_shader[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/shaders/simple.frag"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t gbuffer_vertex_shader[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/shaders/gbuffer.vert"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t gbuffer_fragment_shader[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/shaders/gbuffer.frag"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t light_pass_vertex_shader[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/shaders/light_pass.vert"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t light_pass_fragment_shader[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/shaders/light_pass.frag"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t diamond_floor_albedo[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/diamond_floor_albedo.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t diamond_floor_normal[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/diamond_floor_normal.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t diamond_floor_specular[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/diamond_floor_specular.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t sm_corner_01_8_8_X_fbx[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/models/SM_Corner01_8_8_X.fbx"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t metal_plate_01_base_color[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/MetalPlate01_BaseColor.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t metal_plate_01_normal[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/MetalPlate01_Normal.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t metal_plate_01_metallic[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/MetalPlate01_Metallic.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t metal_plate_02_base_color[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/MetalPlate02_BaseColor.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t metal_plate_02_normal[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/MetalPlate02_Normal.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t metal_plate_02_metallic[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/MetalPlate02_Metallic.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t metal_plate_03_base_color[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/MetalPlate03_BaseColor.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t metal_plate_03_normal[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/MetalPlate03_Normal.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t metal_plate_03_metallic[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/MetalPlate03_Metallic.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t details_01_base_color[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/Details01_BaseColor.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t details_01_normal[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/Details01_Normal.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t details_01_metallic[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/Details01_Metallic.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t detail_02_base_color[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/Detail02_BaseColor.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t detail_02_normal[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/Detail02_Normal.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t detail_02_metallic[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/Detail02_Metallic.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t details_03_base_color[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/Details03_BaseColor.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t details_03_normal[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/Details03_Normal.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t details_03_metallic[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/Details03_Metallic.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t details_bg_base_color[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/DeatilsBG_BaseColor.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t details_bg_normal[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/DeatilsBG_Normal.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t details_bg_metallic[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/DeatilsBG_Metallic.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t T_Light_BC[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/T_Light_BC.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t T_Light_N[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/T_Light_N.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t Pipes01_BaseColor[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/Pipes01_BaseColor.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t Pipes01_Normal[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/Pipes01_Normal.png"
-#else
-        0
-#endif
     };
 
     constexpr const std::uint8_t Pipes01_Metallic[] = {
-#ifndef __INTELLISENSE__
 #embed "../../assets/textures/Pipes01_Metallic.png"
-#else
-        0
-#endif
     };
 
     template <class T>
