@@ -142,7 +142,7 @@ namespace
                 ufps::log::warn("   UNHANDLED Texture type: {}, count: {}", ::aiTextureTypeToString(type), cnt);
                 continue;
             }
-            ufps::log::debug("   Texture type: {}, count: {}", ::aiTextureTypeToString(type), cnt);
+            // ufps::log::debug("   Texture type: {}, count: {}", ::aiTextureTypeToString(type), cnt);
         }
     }
 
@@ -181,8 +181,6 @@ namespace ufps
 
         if (std::ranges::equal(dds_magic, image_data | std::views::take(sizeof(dds_magic))))
         {
-            log::debug("found DDS");
-
             auto dds_header = DDS_HEADER{};
             std::memcpy(&dds_header, image_data.data() + sizeof(dds_magic), sizeof(dds_header));
 
@@ -204,7 +202,7 @@ namespace ufps
         }
         else
         {
-            log::debug("found non-DDS image");
+            log::warn("found non-DDS image");
 
             auto raw_data = std::unique_ptr<::stbi_uc, void (*)(void *)>{
                 ::stbi_load_from_memory(
