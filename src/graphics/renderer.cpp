@@ -162,7 +162,7 @@ namespace ufps
 
     auto Renderer::render(Scene &scene) -> void
     {
-        static auto delta_time = 1000.f / 240.f;
+        static auto delta_time = 1.f / 240.f;
 
         _gbuffer_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -255,7 +255,7 @@ namespace ufps
         ::glDisable(GL_BLEND);
 
         static constexpr auto min_log_luminance = -8.f;
-        static constexpr auto max_log_luminance = 3.f;
+        static constexpr auto max_log_luminance = 3.5f;
 
         _luminance_program.use();
         const auto zero = ::GLuint{0};
@@ -302,6 +302,7 @@ namespace ufps
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _average_luminance_buffer.native_handle());
 
         ::glMultiDrawElementsIndirect(
             GL_TRIANGLES,
