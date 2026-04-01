@@ -60,10 +60,12 @@ namespace ufps
         MultiBuffer<PersistentBuffer> _light_buffer;
         MultiBuffer<PersistentBuffer> _object_data_buffer;
         Buffer _luminance_histogram_buffer;
+        Buffer _average_luminance_buffer;
         Program _gbuffer_program;
         Program _light_pass_program;
         Program _tone_map_program;
         Program _luminance_program;
+        Program _average_luminance_program;
         Sampler _fb_sampler;
         RenderTarget _gbuffer_rt;
         RenderTarget _light_pass_rt;

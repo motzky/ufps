@@ -112,10 +112,12 @@ namespace ufps
           _light_buffer{sizeof(LightData), "light_buffer"},                                                                                                                                                     //
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                        //
           _luminance_histogram_buffer{sizeof(std::uint32_t) * 256, "luminance_histogram_buffer"},                                                                                                               //
+          _average_luminance_buffer{sizeof(float) * 1, "average_luminance_buffer"},                                                                                                                             //
           _gbuffer_program{create_program(resource_loader, "gbuffer_program"sv, "shaders/gbuffer.vert"sv, "gbuffer_vertex_shader"sv, "shaders/gbuffer.frag"sv, "gbuffer_fragement_shader"sv)},                  //
           _light_pass_program{create_program(resource_loader, "light_pass_program"sv, "shaders/light_pass.vert"sv, "light_pass_vertex_shader"sv, "shaders/light_pass.frag"sv, "light_pass_fragment_shader"sv)}, //
           _tone_map_program{create_program(resource_loader, "tone_map_program"sv, "shaders/tone_map.vert"sv, "tone_map_vertex_shader"sv, "shaders/tone_map.frag"sv, "tone_map_fragment_shader"sv)},             //
           _luminance_program{create_program(resource_loader, "luminance_histogram_program"sv, "shaders/luminance_histogram.comp"sv, "luminance_history_compute")},
+          _average_luminance_program{create_program(resource_loader, "average_luminance_program"sv, "shaders/average_luminance.comp"sv, "average_luminance_compute")},
           _fb_sampler{FilterType::NEAREST, FilterType::LINEAR, "fb_sampler"},                                                    //
           _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},       //
           _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")}, //
@@ -160,6 +162,8 @@ namespace ufps
 
     auto Renderer::render(Scene &scene) -> void
     {
+        static auto delta_time = 1000.f / 240.f;
+
         _gbuffer_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -250,13 +254,16 @@ namespace ufps
 
         ::glDisable(GL_BLEND);
 
+        static constexpr auto min_log_luminance = -8.f;
+        static constexpr auto max_log_luminance = 3.f;
+
         _luminance_program.use();
         const auto zero = ::GLuint{0};
         ::glClearNamedBufferData(_luminance_histogram_buffer.native_handle(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
 
         ::glProgramUniform1ui(_luminance_program.native_handle(), 0u, _light_pass_rt.first_color_attachment_index);
-        ::glProgramUniform1f(_luminance_program.native_handle(), 1u, -8.f);
-        ::glProgramUniform1f(_luminance_program.native_handle(), 2u, 1.f / (3.5f + 8.f));
+        ::glProgramUniform1f(_luminance_program.native_handle(), 1u, min_log_luminance);
+        ::glProgramUniform1f(_luminance_program.native_handle(), 2u, 1.f / (max_log_luminance - min_log_luminance));
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, scene.texture_manager().native_handle());
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _luminance_histogram_buffer.native_handle());
@@ -266,6 +273,18 @@ namespace ufps
             static_cast<std::uint32_t>(_light_pass_rt.fb.height() + 15 / 16),
             1);
 
+        ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
+
+        _average_luminance_program.use();
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _luminance_histogram_buffer.native_handle());
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _average_luminance_buffer.native_handle());
+
+        ::glProgramUniform1f(_average_luminance_program.native_handle(), 0u, min_log_luminance);
+        ::glProgramUniform1f(_average_luminance_program.native_handle(), 1u, max_log_luminance - min_log_luminance);
+        ::glProgramUniform1f(_average_luminance_program.native_handle(), 2u, std::clamp(1.f - std::exp(-delta_time * 1.1f), 0.f, 1.f));
+        ::glProgramUniform1f(_average_luminance_program.native_handle(), 3u, static_cast<float>(_light_pass_rt.fb.width() * _light_pass_rt.fb.height()));
+
+        ::glDispatchCompute(256, 1, 1);
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
 
         _tone_map_rt.fb.bind();
