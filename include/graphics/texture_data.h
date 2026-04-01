@@ -16,7 +16,8 @@ namespace ufps
         RGBA,
         SRGBA,
         RGB16F,
-        DEPTH24
+        DEPTH24,
+        BC7,
     };
 
     struct TextureData
@@ -47,6 +48,8 @@ namespace ufps
             return "RGB16F";
         case DEPTH24:
             return "DEPTH24";
+        case BC7:
+            return "BC7";
         default:
             return "unknown";
         }

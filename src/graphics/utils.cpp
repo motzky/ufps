@@ -21,6 +21,7 @@
 #include <stb_image.h>
 #pragma GCC diagnostic pop
 
+#include "graphics/dds.h"
 #include "graphics/model_data.h"
 #include "graphics/texture_data.h"
 #include "graphics/vertex_data.h"
@@ -33,37 +34,6 @@
 
 namespace
 {
-#define DWORD std::uint32_t
-
-    struct DDS_PIXELFORMAT
-    {
-        DWORD dwSize;
-        DWORD dwFlags;
-        DWORD dwFourCC;
-        DWORD dwRGBBitCount;
-        DWORD dwRBitMask;
-        DWORD dwGBitMask;
-        DWORD dwBBitMask;
-        DWORD dwABitMask;
-    };
-
-    struct DDS_HEADER
-    {
-        DWORD dwSize;
-        DWORD dwFlags;
-        DWORD dwHeight;
-        DWORD dwWidth;
-        DWORD dwPitchOrLinearSize;
-        DWORD dwDepth;
-        DWORD dwMipMapCount;
-        DWORD dwReserved1[11];
-        DDS_PIXELFORMAT ddspf;
-        DWORD dwCaps;
-        DWORD dwCaps2;
-        DWORD dwCaps3;
-        DWORD dwCaps4;
-        DWORD dwReserved2;
-    };
 
     template <ufps::log::Level L>
     class AssimpLogStreamAdapter : public ::Assimp::LogStream
@@ -217,13 +187,17 @@ namespace ufps
             std::memcpy(&dds_header, image_data.data() + sizeof(dds_magic), sizeof(dds_header));
 
             ensure(dds_header.dwSize == sizeof(dds_header), "invalid dds_header size: {}", dds_header.dwSize);
+            ensure(dds_header.ddspf.dwFourCC == 0x30315833, "not DX10 format");
+
+            auto dx10_header = DDS_HEADER_DXT10{};
+            std::memcpy(&dx10_header, image_data.data() + sizeof(dds_magic) + sizeof(dds_header), sizeof(dx10_header));
 
             return {
                 .width = static_cast<std::uint32_t>(dds_header.dwWidth),
                 .height = static_cast<std::uint32_t>(dds_header.dwHeight),
-                .format = channels_to_format(dds_header.ddspf.dwRGBBitCount / 8u, is_srgb),
+                .format = TextureFormat::BC7, // should be read from dds
                 .data = image_data |
-                        std::views::drop(sizeof(dds_magic) + sizeof(dds_header)) |
+                        std::views::drop(sizeof(dds_magic) + sizeof(dds_header) + sizeof(dx10_header)) |
                         std::ranges::to<std::vector>(),
                 .is_compressed = true,
             };

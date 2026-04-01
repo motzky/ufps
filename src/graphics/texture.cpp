@@ -30,31 +30,8 @@ namespace
             return GL_RGB16F;
         case DEPTH24:
             return GL_DEPTH_COMPONENT24;
-
-        default:
-            throw ufps::Exception("unknown texture format: {}", format);
-        }
-    }
-    auto to_opengl_compressed(ufps::TextureFormat format) -> ::GLenum
-    {
-        switch (format)
-        {
-            using enum ufps::TextureFormat;
-        case R:
-            return GL_COMPRESSED_RED;
-        case RGB:
-            return GL_COMPRESSED_RGB;
-        case SRGB:
-            return GL_COMPRESSED_SRGB;
-        case RGBA:
-            return GL_COMPRESSED_RGBA;
-        case SRGBA:
-            return GL_COMPRESSED_SRGB_ALPHA;
-        case RGB16F:
-            return GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT;
-        case DEPTH24:
-            return GL_DEPTH_COMPONENT24;
-
+        case BC7:
+            return GL_COMPRESSED_RGBA_BPTC_UNORM;
         default:
             throw ufps::Exception("unknown texture format: {}", format);
         }
@@ -75,11 +52,13 @@ namespace ufps
         ::glObjectLabel(GL_TEXTURE, _handle, name.length(), name.data());
 
         ::glTextureStorage2D(_handle, 1, to_opengl(texture.format, true), texture.width, texture.height);
+
         if (const auto &data = texture.data; data)
         {
             if (texture.is_compressed)
             {
-                ::glCompressedTextureSubImage2D(_handle, 0, 0, 0, texture.width, texture.height, to_opengl_compressed(texture.format), data->size(), data->data());
+                const auto size = ((_width + 3u) / 4u) * ((_height + 3u) / 4u) / 16u;
+                ::glCompressedTextureSubImage2D(_handle, 0, 0, 0, texture.width, texture.height, to_opengl(texture.format, false), size, data->data());
             }
             else
             {
