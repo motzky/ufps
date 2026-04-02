@@ -169,7 +169,7 @@ namespace ufps
         _gbuffer_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        _gbuffer_program.use();
+        _gbuffer_program.bind();
 
         _camera_buffer.write(scene.camera().data_view(), 0zu);
 
@@ -212,12 +212,14 @@ namespace ufps
             command_count,
             0);
 
+        _gbuffer_program.unbind();
+
         ::glEnable(GL_BLEND);
         ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         _light_pass_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        _light_pass_program.use();
+        _light_pass_program.bind();
 
         {
             const auto &lights = scene.lights();
@@ -254,12 +256,14 @@ namespace ufps
             1u,
             0);
 
+        _light_pass_program.unbind();
+
         ::glDisable(GL_BLEND);
 
         static constexpr auto min_log_luminance = -8.f;
         static constexpr auto max_log_luminance = 3.5f;
 
-        _luminance_program.use();
+        _luminance_program.bind();
         const auto zero = ::GLuint{0};
         ::glClearNamedBufferData(_luminance_histogram_buffer.native_handle(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
 
@@ -274,8 +278,9 @@ namespace ufps
             1);
 
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
+        _luminance_program.unbind();
 
-        _average_luminance_program.use();
+        _average_luminance_program.bind();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _luminance_histogram_buffer.native_handle());
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _average_luminance_buffer.native_handle());
 
@@ -287,9 +292,11 @@ namespace ufps
         ::glDispatchCompute(256, 1, 1);
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
 
+        _average_luminance_program.unbind();
+
         _ssao_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        _ssao_program.use();
+        _ssao_program.bind();
 
         _ssao_program.set_uniforms(_gbuffer_rt.first_color_attachment_index + 1u,
                                    _gbuffer_rt.first_color_attachment_index + 2u,
@@ -312,9 +319,11 @@ namespace ufps
             1u,
             0);
 
+        _ssao_program.unbind();
+
         _tone_map_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        _tone_map_program.use();
+        _tone_map_program.bind();
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
@@ -340,6 +349,8 @@ namespace ufps
             reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
             1u,
             0);
+
+        _tone_map_program.unbind();
 
         _final_fb = &_tone_map_rt.fb;
 

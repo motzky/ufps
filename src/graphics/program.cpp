@@ -31,6 +31,8 @@ namespace
 namespace ufps
 {
     Program::Program(const Shader &vertex_shader, const Shader &fragment_shader, std::string_view name)
+        : _handle{},
+          _is_bound{}
     {
         expect(vertex_shader.type() == ShaderType::VERTEX, "vertex_shader must be a vertex shader");
         expect(fragment_shader.type() == ShaderType::FRAGMENT, "fragment_shader must be a fragment shader");
@@ -51,6 +53,8 @@ namespace ufps
     }
 
     Program::Program(const Shader &compute_shader, std::string_view name)
+        : _handle{},
+          _is_bound{}
     {
         expect(compute_shader.type() == ShaderType::COMPUTE, "shader must be a compute shader");
         _handle = {::glCreateProgram(), ::glDeleteProgram};
@@ -72,28 +76,41 @@ namespace ufps
         return _handle;
     }
 
-    auto Program::use() -> void
+    auto Program::bind() -> void
     {
+        expect(!_is_bound, "binding already bound program");
         ::glUseProgram(_handle);
+        _is_bound = true;
+    }
+
+    auto Program::unbind() -> void
+    {
+        expect(_is_bound, "unbinding already unbound program");
+        ::glUseProgram(0);
+        _is_bound = false;
     }
 
     auto Program::set_uniform(std::size_t index, std::uint32_t value) const -> void
     {
+        expect(_is_bound, "setting uniform on unbound program");
         ::glProgramUniform1ui(_handle, static_cast<std::uint32_t>(index), value);
     }
 
     auto Program::set_uniform(std::size_t index, float value) const -> void
     {
+        expect(_is_bound, "setting uniform on unbound program");
         ::glProgramUniform1f(_handle, static_cast<std::uint32_t>(index), value);
     }
 
     auto Program::set_uniform(std::size_t index, const Matrix4 &value) const -> void
     {
+        expect(_is_bound, "setting uniform on unbound program");
         ::glProgramUniformMatrix4fv(_handle, index, 1u, GL_FALSE, value.data().data());
     }
 
     auto Program::set_uniform(std::size_t index, const Color &value) const -> void
     {
+        expect(_is_bound, "setting uniform on unbound program");
         ::glProgramUniform3f(_handle, index, value.r, value.g, value.b);
     }
 

@@ -18,7 +18,9 @@ namespace ufps
         Program(const Shader &vertex_shader, const Shader &fragment_shader, std::string_view name);
         Program(const Shader &compute_shader, std::string_view name);
 
-        auto use() -> void;
+        auto bind() -> void;
+        auto unbind() -> void;
+
         auto native_handle() const -> ::GLuint;
 
         auto set_uniform(std::size_t index, std::uint32_t value) const -> void;
@@ -37,5 +39,6 @@ namespace ufps
 
     private:
         AutoRelease<::GLuint> _handle;
+        bool _is_bound;
     };
 }

@@ -150,7 +150,7 @@ namespace ufps
             GL_DEPTH_BUFFER_BIT,
             GL_NEAREST);
 
-        _debug_light_program.use();
+        _debug_light_program.bind();
 
         const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
@@ -176,12 +176,13 @@ namespace ufps
 
             ::glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, reinterpret_cast<const void *>(cube_indices_offset_bytes));
         }
+        _debug_light_program.unbind();
 
         auto debug_line_count = 0zu;
 
         if (!_debug_lines.empty())
         {
-            _debug_line_program.use();
+            _debug_line_program.bind();
             debug_line_count = _debug_lines.size();
 
             resize_gpu_buffer(_debug_lines, _debug_line_buffer);
@@ -190,6 +191,8 @@ namespace ufps
             ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
 
             ::glDrawArrays(GL_LINES, 0, _debug_lines.size());
+
+            _debug_line_program.unbind();
 
             _debug_lines.clear();
             _debug_line_buffer.advance();
