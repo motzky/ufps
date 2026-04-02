@@ -232,6 +232,7 @@ namespace ufps
             _selected = &scene.lights().lights.back();
         }
 
+        ::ImGui::Text("Tonemap options");
         {
             auto value = scene.tone_map_options().max_brightness;
             if (::ImGui::SliderFloat("Max Brightness", &value, 0.f, 100.f))
@@ -276,6 +277,34 @@ namespace ufps
             }
         }
 
+        ::ImGui::Text("SSAO options");
+
+        {
+            auto value = static_cast<int>(scene.ssao_options().sample_count);
+            if (::ImGui::SliderInt("sample count", &value, 1, 64))
+            {
+                scene.ssao_options().sample_count = value;
+            }
+        }
+
+        {
+            auto value = scene.ssao_options().radius;
+            if (::ImGui::SliderFloat("radius", &value, .1f, 2.f))
+            {
+                scene.ssao_options().radius = value;
+            }
+        }
+
+        {
+            auto value = scene.ssao_options().bias;
+            if (::ImGui::SliderFloat("bias", &value, .01f, .1f))
+            {
+                scene.ssao_options().bias = value;
+            }
+        }
+
+        ::ImGui::Text("Luminance");
+
         auto average_luminance = 0.0f;
         ::glGetNamedBufferSubData(_average_luminance_buffer.native_handle(), 0, sizeof(average_luminance), &average_luminance);
 
@@ -304,6 +333,8 @@ namespace ufps
                                                            { return e.c_str(); }) |
                                      std::ranges::to<std::vector>();
 
+        ::ImGui::Text("Meshes");
+
         auto mesh_selected_index = std::optional<std::uint32_t>{};
 
         if (::ImGui::BeginCombo("Mesh names", mesh_names_cstr.front()))
@@ -328,12 +359,16 @@ namespace ufps
             ::ImGui::CollapsingHeader(entity.name().c_str());
         }
 
+        ::ImGui::Text("Lights");
+
         for (const auto &[index, light] : std::views::enumerate(scene.lights().lights))
         {
             const auto light_name = std::format("light {}", index);
 
             ::ImGui::CollapsingHeader(light_name.c_str());
         }
+
+        ::ImGui::Text("Ambient light");
 
         float amb_color[3]{};
         std::memcpy(amb_color, &scene.lights().ambient, sizeof(amb_color));
@@ -342,6 +377,8 @@ namespace ufps
         {
             std::memcpy(&scene.lights().ambient, amb_color, sizeof(amb_color));
         }
+
+        ::ImGui::Text("Camera transform");
 
         const auto camera_transform = scene.camera().data().view;
 
