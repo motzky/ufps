@@ -11,7 +11,7 @@
 namespace ufps
 {
     Scene::Scene(MeshManager &mesh_manager, MaterialManager &material_manager, TextureManager &texture_manager, Camera camera, LightData lights,
-                 ToneMapOptions tone_map_options)
+                 ToneMapOptions tone_map_options, SSAOOptions ssao_options)
         : _entities{},
           _entity_cache{},
           _mesh_manager{mesh_manager},
@@ -19,7 +19,8 @@ namespace ufps
           _texture_manager{texture_manager},
           _camera{std::move(camera)},
           _lights{std::move(lights)},
-          _tone_map_options{std::move(tone_map_options)}
+          _tone_map_options{std::move(tone_map_options)},
+          _ssao_options{std::move(ssao_options)}
     {
     }
 

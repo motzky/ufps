@@ -41,6 +41,13 @@ namespace ufps
         float gamma;
     };
 
+    struct SSAOOptions
+    {
+        std::uint32_t sample_count = 64u;
+        float radius = .75f;
+        float bias = .025f;
+    };
+
     class Scene
     {
     public:
@@ -49,7 +56,8 @@ namespace ufps
               TextureManager &texture_manager,
               Camera camera,
               LightData lights,
-              ToneMapOptions tone_map_options);
+              ToneMapOptions tone_map_options,
+              SSAOOptions ssao_options);
 
         constexpr auto intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>;
 
@@ -99,6 +107,11 @@ namespace ufps
             return _tone_map_options;
         }
 
+        constexpr auto &ssao_options(this auto &&self)
+        {
+            return self._ssao_options;
+        }
+
     private:
         std::vector<Entity> _entities;
         std::vector<Entity> _entity_cache;
@@ -108,6 +121,7 @@ namespace ufps
         Camera _camera;
         LightData _lights;
         ToneMapOptions _tone_map_options;
+        SSAOOptions _ssao_options;
     };
 
     constexpr auto Scene::intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>

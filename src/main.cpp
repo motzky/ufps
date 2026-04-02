@@ -314,7 +314,8 @@ auto main(int argc, char **argv) -> int
                             .specular_power = 32.f,
                         }},
                 },
-                {.max_brightness = 1.f, .contrast = 1.f, .linear_section_start = .22f, .linear_section_length = .4f, .black_tightness = 1.33f, .pedestal = 0.f, .gamma = 2.2f}};
+                {.max_brightness = 1.f, .contrast = 1.f, .linear_section_start = .22f, .linear_section_length = .4f, .black_tightness = 1.33f, .pedestal = 0.f, .gamma = 2.2f},
+                {}};
 
             const auto models_to_load = std::vector{
                 "models/SM_Corridor015_06_08_B.fbx"sv,
