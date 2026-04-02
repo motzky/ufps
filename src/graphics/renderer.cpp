@@ -28,6 +28,21 @@ using namespace std::literals;
 
 namespace
 {
+    template <class T>
+    struct AutoBind
+    {
+        AutoBind(T &obj)
+            : obj{obj}
+        {
+            obj.bind();
+        }
+        ~AutoBind()
+        {
+            obj.unbind();
+        }
+        T &obj;
+    };
+
     auto create_render_target(
         std::uint32_t color_attachment_count,
         std::uint32_t width,
@@ -212,7 +227,7 @@ namespace ufps
         _gbuffer_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        _gbuffer_program.bind();
+        [[maybe_unused]] const auto auto_bind = AutoBind(_gbuffer_program);
 
         const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
@@ -252,15 +267,14 @@ namespace ufps
             reinterpret_cast<const void *>(_command_buffer.offset_bytes()),
             command_count,
             0);
-
-        _gbuffer_program.unbind();
     }
 
     auto Renderer::execute_lighting_pass(Scene &scene) -> void
     {
         _light_pass_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        _light_pass_program.bind();
+
+        [[maybe_unused]] const auto auto_bind = AutoBind{_light_pass_program};
 
         const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
 
@@ -302,14 +316,13 @@ namespace ufps
             1u,
             0);
 
-        _light_pass_program.unbind();
-
         ::glDisable(GL_BLEND);
     }
 
     auto Renderer::execute_luminance_histogram_pass(Scene &scene) -> void
     {
-        _luminance_program.bind();
+        [[maybe_unused]] const auto auto_bind = AutoBind{_luminance_program};
+
         const auto zero = ::GLuint{0};
         ::glClearNamedBufferData(_luminance_histogram_buffer.native_handle(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
 
@@ -324,14 +337,14 @@ namespace ufps
             1);
 
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
-        _luminance_program.unbind();
     }
 
     auto Renderer::execute_luminance_average_pass(Scene &scene) -> void
     {
         static auto delta_time = 1.f / 240.f;
 
-        _average_luminance_program.bind();
+        [[maybe_unused]] const auto auto_bind = AutoBind{_average_luminance_program};
+
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _luminance_histogram_buffer.native_handle());
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _average_luminance_buffer.native_handle());
 
@@ -342,8 +355,6 @@ namespace ufps
 
         ::glDispatchCompute(256, 1, 1);
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
-
-        _average_luminance_program.unbind();
     }
 
     auto Renderer::execute_ssao_pass(Scene &scene) -> void
@@ -352,7 +363,8 @@ namespace ufps
 
         _ssao_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        _ssao_program.bind();
+
+        [[maybe_unused]] const auto auto_bind = AutoBind{_ssao_program};
 
         _ssao_program.set_uniforms(_gbuffer_rt.first_color_attachment_index + 1u,
                                    _gbuffer_rt.first_color_attachment_index + 2u,
@@ -374,8 +386,6 @@ namespace ufps
             reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
             1u,
             0);
-
-        _ssao_program.unbind();
     }
 
     auto Renderer::execute_tone_mapping_pass(Scene &scene) -> void
@@ -384,7 +394,8 @@ namespace ufps
 
         _tone_map_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        _tone_map_program.bind();
+
+        [[maybe_unused]] const auto auto_bind = AutoBind{_tone_map_program};
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
@@ -410,7 +421,5 @@ namespace ufps
             reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
             1u,
             0);
-
-        _tone_map_program.unbind();
     }
 }
