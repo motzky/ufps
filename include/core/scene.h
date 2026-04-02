@@ -48,6 +48,12 @@ namespace ufps
         float bias = .025f;
     };
 
+    struct ExposureOptions
+    {
+        float min_log_luminance = -8.f;
+        float max_log_luminance = 3.5f;
+    };
+
     class Scene
     {
     public:
@@ -57,7 +63,8 @@ namespace ufps
               Camera camera,
               LightData lights,
               ToneMapOptions tone_map_options,
-              SSAOOptions ssao_options);
+              SSAOOptions ssao_options,
+              ExposureOptions exposure_options);
 
         constexpr auto intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>;
 
@@ -112,6 +119,11 @@ namespace ufps
             return self._ssao_options;
         }
 
+        constexpr auto &exposure_options(this auto &&self)
+        {
+            return self._exposure_options;
+        }
+
     private:
         std::vector<Entity> _entities;
         std::vector<Entity> _entity_cache;
@@ -122,6 +134,7 @@ namespace ufps
         LightData _lights;
         ToneMapOptions _tone_map_options;
         SSAOOptions _ssao_options;
+        ExposureOptions _exposure_options;
     };
 
     constexpr auto Scene::intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>
