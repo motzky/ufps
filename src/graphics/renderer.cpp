@@ -306,7 +306,7 @@ namespace ufps
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _camera_buffer.native_handle());
+        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
 
         ::glMultiDrawElementsIndirect(
             GL_TRIANGLES,
