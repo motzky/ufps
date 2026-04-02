@@ -73,5 +73,13 @@ namespace ufps
         RenderTarget _tone_map_rt;
         RenderTarget _ssao_rt;
         FrameBuffer *_final_fb;
+
+    private:
+        auto execute_gbuffer_pass(Scene &scene) -> void;
+        auto execute_lighting_pass(Scene &scene) -> void;
+        auto execute_luminance_histogram_pass(Scene &scene) -> void;
+        auto execute_luminance_average_pass(Scene &scene) -> void;
+        auto execute_ssao_pass(Scene &scene) -> void;
+        auto execute_tone_mapping_pass(Scene &scene) -> void;
     };
 }

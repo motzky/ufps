@@ -164,14 +164,55 @@ namespace ufps
 
     auto Renderer::render(Scene &scene) -> void
     {
-        static auto delta_time = 1.f / 240.f;
+        _camera_buffer.write(scene.camera().data_view(), 0zu);
 
+        execute_gbuffer_pass(scene);
+
+        execute_lighting_pass(scene);
+
+        execute_luminance_histogram_pass(scene);
+
+        execute_luminance_average_pass(scene);
+
+        execute_ssao_pass(scene);
+
+        execute_tone_mapping_pass(scene);
+
+        _final_fb = &_tone_map_rt.fb;
+
+        post_render(scene);
+
+        _command_buffer.advance();
+        _camera_buffer.advance();
+        _light_buffer.advance();
+        _object_data_buffer.advance();
+    }
+
+    auto Renderer::post_render(Scene &) -> void
+    {
+        _final_fb->unbind();
+
+        ::glBlitNamedFramebuffer(
+            _final_fb->native_handle(),
+            0u,
+            0u,
+            0u,
+            _final_fb->width(),
+            _final_fb->height(),
+            0u,
+            0u,
+            _final_fb->width(),
+            _final_fb->height(),
+            GL_COLOR_BUFFER_BIT,
+            GL_NEAREST);
+    }
+
+    auto Renderer::execute_gbuffer_pass(Scene &scene) -> void
+    {
         _gbuffer_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         _gbuffer_program.bind();
-
-        _camera_buffer.write(scene.camera().data_view(), 0zu);
 
         const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
@@ -213,13 +254,18 @@ namespace ufps
             0);
 
         _gbuffer_program.unbind();
+    }
 
-        ::glEnable(GL_BLEND);
-        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+    auto Renderer::execute_lighting_pass(Scene &scene) -> void
+    {
         _light_pass_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         _light_pass_program.bind();
+
+        const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+
+        ::glEnable(GL_BLEND);
+        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         {
             const auto &lights = scene.lights();
@@ -259,15 +305,15 @@ namespace ufps
         _light_pass_program.unbind();
 
         ::glDisable(GL_BLEND);
+    }
 
-        static constexpr auto min_log_luminance = -8.f;
-        static constexpr auto max_log_luminance = 3.5f;
-
+    auto Renderer::execute_luminance_histogram_pass(Scene &scene) -> void
+    {
         _luminance_program.bind();
         const auto zero = ::GLuint{0};
         ::glClearNamedBufferData(_luminance_histogram_buffer.native_handle(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
 
-        _luminance_program.set_uniforms(_light_pass_rt.first_color_attachment_index, min_log_luminance, 1.f / (max_log_luminance - min_log_luminance));
+        _luminance_program.set_uniforms(_light_pass_rt.first_color_attachment_index, scene.exposure_options().min_log_luminance, 1.f / (scene.exposure_options().max_log_luminance - scene.exposure_options().min_log_luminance));
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, scene.texture_manager().native_handle());
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _luminance_histogram_buffer.native_handle());
@@ -279,13 +325,18 @@ namespace ufps
 
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
         _luminance_program.unbind();
+    }
+
+    auto Renderer::execute_luminance_average_pass(Scene &scene) -> void
+    {
+        static auto delta_time = 1.f / 240.f;
 
         _average_luminance_program.bind();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _luminance_histogram_buffer.native_handle());
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _average_luminance_buffer.native_handle());
 
-        _average_luminance_program.set_uniforms(min_log_luminance,
-                                                max_log_luminance - min_log_luminance,
+        _average_luminance_program.set_uniforms(scene.exposure_options().min_log_luminance,
+                                                scene.exposure_options().max_log_luminance - scene.exposure_options().min_log_luminance,
                                                 std::clamp(1.f - std::exp(-delta_time * 1.1f), 0.f, 1.f),
                                                 static_cast<float>(_light_pass_rt.fb.width() * _light_pass_rt.fb.height()));
 
@@ -293,6 +344,11 @@ namespace ufps
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
 
         _average_luminance_program.unbind();
+    }
+
+    auto Renderer::execute_ssao_pass(Scene &scene) -> void
+    {
+        const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
 
         _ssao_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -320,6 +376,11 @@ namespace ufps
             0);
 
         _ssao_program.unbind();
+    }
+
+    auto Renderer::execute_tone_mapping_pass(Scene &scene) -> void
+    {
+        const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
 
         _tone_map_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -351,33 +412,5 @@ namespace ufps
             0);
 
         _tone_map_program.unbind();
-
-        _final_fb = &_tone_map_rt.fb;
-
-        post_render(scene);
-
-        _command_buffer.advance();
-        _camera_buffer.advance();
-        _light_buffer.advance();
-        _object_data_buffer.advance();
-    }
-
-    auto Renderer::post_render(Scene &) -> void
-    {
-        _final_fb->unbind();
-
-        ::glBlitNamedFramebuffer(
-            _final_fb->native_handle(),
-            0u,
-            0u,
-            0u,
-            _final_fb->width(),
-            _final_fb->height(),
-            0u,
-            0u,
-            _final_fb->width(),
-            _final_fb->height(),
-            GL_COLOR_BUFFER_BIT,
-            GL_NEAREST);
     }
 }
