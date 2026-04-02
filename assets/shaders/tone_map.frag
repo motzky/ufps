@@ -34,6 +34,7 @@ layout(location = 4) uniform float in_l;
 layout(location = 5) uniform float in_c;
 layout(location = 6) uniform float in_b;
 layout(location = 7) uniform float in_gamma;
+layout(location = 8) uniform uint ssao_tex_index;
 
 
 layout(location = 0) in vec2 uv;
@@ -123,7 +124,23 @@ void main()
     vec3 in_color = convertYxy2RGB(Yxz);
 
     vec3 tone_mapped_color = uchimura(in_color, in_P, in_a, in_m, in_l, in_c, in_b);
-    vec3 gamma_corrected = pow(tone_mapped_color, vec3(1.0 / in_gamma));
+    
+    vec2 texelSize = 1.0 / vec2(textureSize(textures[ssao_tex_index], 0));
+
+    float result = 0.0;
+    for (int x = -2; x<2; ++x)
+    {
+        for(int y=-2; y<2; ++y)
+        {
+            vec2 offset = vec2(float(x), float(y)) * texelSize;
+            result += texture(textures[ssao_tex_index], uv + offset).r;
+        }
+    }
+
+    // vec3 occlusion = texture(textures[ssao_tex_index], uv).rgb;
+    float occlusion = result / 16.0;
+
+    vec3 gamma_corrected = pow(tone_mapped_color * occlusion, vec3(1.0 / in_gamma));
 
     out_color = vec4(gamma_corrected, 1.0);
 }

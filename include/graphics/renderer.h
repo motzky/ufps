@@ -66,10 +66,12 @@ namespace ufps
         Program _tone_map_program;
         Program _luminance_program;
         Program _average_luminance_program;
+        Program _ssao_program;
         Sampler _fb_sampler;
         RenderTarget _gbuffer_rt;
         RenderTarget _light_pass_rt;
         RenderTarget _tone_map_rt;
+        RenderTarget _ssao_rt;
         FrameBuffer *_final_fb;
     };
 }
