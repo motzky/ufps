@@ -234,13 +234,13 @@ namespace ufps
             writer.write<PointLight>(lights.lights);
         }
 
-        ::glProgramUniform1ui(_light_pass_program.native_handle(), 0u, _gbuffer_rt.first_color_attachment_index + 0u);
-        ::glProgramUniform1ui(_light_pass_program.native_handle(), 1u, _gbuffer_rt.first_color_attachment_index + 1u);
-        ::glProgramUniform1ui(_light_pass_program.native_handle(), 2u, _gbuffer_rt.first_color_attachment_index + 2u);
-        ::glProgramUniform1ui(_light_pass_program.native_handle(), 3u, _gbuffer_rt.first_color_attachment_index + 3u);
-        ::glProgramUniform1ui(_light_pass_program.native_handle(), 4u, _gbuffer_rt.first_color_attachment_index + 4u);
-        ::glProgramUniform1ui(_light_pass_program.native_handle(), 5u, _gbuffer_rt.first_color_attachment_index + 5u);
-        ::glProgramUniform1ui(_light_pass_program.native_handle(), 6u, _gbuffer_rt.first_color_attachment_index + 6u);
+        _light_pass_program.set_uniforms(_gbuffer_rt.first_color_attachment_index + 0u,
+                                         _gbuffer_rt.first_color_attachment_index + 1u,
+                                         _gbuffer_rt.first_color_attachment_index + 2u,
+                                         _gbuffer_rt.first_color_attachment_index + 3u,
+                                         _gbuffer_rt.first_color_attachment_index + 4u,
+                                         _gbuffer_rt.first_color_attachment_index + 5u,
+                                         _gbuffer_rt.first_color_attachment_index + 6u);
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
@@ -263,9 +263,7 @@ namespace ufps
         const auto zero = ::GLuint{0};
         ::glClearNamedBufferData(_luminance_histogram_buffer.native_handle(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
 
-        ::glProgramUniform1ui(_luminance_program.native_handle(), 0u, _light_pass_rt.first_color_attachment_index);
-        ::glProgramUniform1f(_luminance_program.native_handle(), 1u, min_log_luminance);
-        ::glProgramUniform1f(_luminance_program.native_handle(), 2u, 1.f / (max_log_luminance - min_log_luminance));
+        _luminance_program.set_uniforms(_light_pass_rt.first_color_attachment_index, min_log_luminance, 1.f / (max_log_luminance - min_log_luminance));
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, scene.texture_manager().native_handle());
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _luminance_histogram_buffer.native_handle());
@@ -281,10 +279,10 @@ namespace ufps
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _luminance_histogram_buffer.native_handle());
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _average_luminance_buffer.native_handle());
 
-        ::glProgramUniform1f(_average_luminance_program.native_handle(), 0u, min_log_luminance);
-        ::glProgramUniform1f(_average_luminance_program.native_handle(), 1u, max_log_luminance - min_log_luminance);
-        ::glProgramUniform1f(_average_luminance_program.native_handle(), 2u, std::clamp(1.f - std::exp(-delta_time * 1.1f), 0.f, 1.f));
-        ::glProgramUniform1f(_average_luminance_program.native_handle(), 3u, static_cast<float>(_light_pass_rt.fb.width() * _light_pass_rt.fb.height()));
+        _average_luminance_program.set_uniforms(min_log_luminance,
+                                                max_log_luminance - min_log_luminance,
+                                                std::clamp(1.f - std::exp(-delta_time * 1.1f), 0.f, 1.f),
+                                                static_cast<float>(_light_pass_rt.fb.width() * _light_pass_rt.fb.height()));
 
         ::glDispatchCompute(256, 1, 1);
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
@@ -293,16 +291,15 @@ namespace ufps
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         _ssao_program.use();
 
-        ::glProgramUniform1ui(_ssao_program.native_handle(), 0u, _gbuffer_rt.first_color_attachment_index + 1u);
-        ::glProgramUniform1ui(_ssao_program.native_handle(), 1u, _gbuffer_rt.first_color_attachment_index + 2u);
-        ::glProgramUniform1ui(_ssao_program.native_handle(), 2u, _gbuffer_rt.first_color_attachment_index + 5u);
-        ::glProgramUniform1ui(_ssao_program.native_handle(), 3u, _gbuffer_rt.first_color_attachment_index + 6u);
-
-        ::glProgramUniform1f(_ssao_program.native_handle(), 4u, _ssao_rt.fb.width());
-        ::glProgramUniform1f(_ssao_program.native_handle(), 5u, _ssao_rt.fb.height());
-        ::glProgramUniform1ui(_ssao_program.native_handle(), 6u, scene.ssao_options().sample_count);
-        ::glProgramUniform1f(_ssao_program.native_handle(), 7u, scene.ssao_options().radius);
-        ::glProgramUniform1f(_ssao_program.native_handle(), 8u, scene.ssao_options().bias);
+        _ssao_program.set_uniforms(_gbuffer_rt.first_color_attachment_index + 1u,
+                                   _gbuffer_rt.first_color_attachment_index + 2u,
+                                   _gbuffer_rt.first_color_attachment_index + 5u,
+                                   _gbuffer_rt.first_color_attachment_index + 6u,
+                                   static_cast<float>(_ssao_rt.fb.width()),
+                                   static_cast<float>(_ssao_rt.fb.height()),
+                                   scene.ssao_options().sample_count,
+                                   scene.ssao_options().radius,
+                                   scene.ssao_options().bias);
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
@@ -323,15 +320,15 @@ namespace ufps
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
 
-        ::glProgramUniform1ui(_tone_map_program.native_handle(), 0u, _light_pass_rt.first_color_attachment_index + 0u);
-        ::glProgramUniform1f(_tone_map_program.native_handle(), 1u, scene.tone_map_options().max_brightness);
-        ::glProgramUniform1f(_tone_map_program.native_handle(), 2u, scene.tone_map_options().contrast);
-        ::glProgramUniform1f(_tone_map_program.native_handle(), 3u, scene.tone_map_options().linear_section_start);
-        ::glProgramUniform1f(_tone_map_program.native_handle(), 4u, scene.tone_map_options().linear_section_length);
-        ::glProgramUniform1f(_tone_map_program.native_handle(), 5u, scene.tone_map_options().black_tightness);
-        ::glProgramUniform1f(_tone_map_program.native_handle(), 6u, scene.tone_map_options().pedestal);
-        ::glProgramUniform1f(_tone_map_program.native_handle(), 7u, scene.tone_map_options().gamma);
-        ::glProgramUniform1ui(_tone_map_program.native_handle(), 8u, _ssao_rt.first_color_attachment_index);
+        _tone_map_program.set_uniforms(_light_pass_rt.first_color_attachment_index + 0u,
+                                       scene.tone_map_options().max_brightness,
+                                       scene.tone_map_options().contrast,
+                                       scene.tone_map_options().linear_section_start,
+                                       scene.tone_map_options().linear_section_length,
+                                       scene.tone_map_options().black_tightness,
+                                       scene.tone_map_options().pedestal,
+                                       scene.tone_map_options().gamma,
+                                       _ssao_rt.first_color_attachment_index);
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());

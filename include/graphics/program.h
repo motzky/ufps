@@ -1,10 +1,13 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <string_view>
 
+#include "graphics/color.h"
 #include "graphics/opengl.h"
 #include "graphics/shader.h"
+#include "math/matrix4.h"
 #include "utils/auto_release.h"
 
 namespace ufps
@@ -14,8 +17,23 @@ namespace ufps
     public:
         Program(const Shader &vertex_shader, const Shader &fragment_shader, std::string_view name);
         Program(const Shader &compute_shader, std::string_view name);
+
         auto use() -> void;
         auto native_handle() const -> ::GLuint;
+
+        auto set_uniform(std::size_t index, std::uint32_t value) const -> void;
+        auto set_uniform(std::size_t index, float value) const -> void;
+        auto set_uniform(std::size_t index, const Matrix4 &value) const -> void;
+        auto set_uniform(std::size_t index, const Color &value) const -> void;
+
+        template <class... Args>
+        auto set_uniforms(Args &&...args) const -> void
+        {
+            [&]<std::size_t... Index>(std::index_sequence<Index...>)
+            {
+                (set_uniform(Index, std::forward<Args>(args)), ...);
+            }(std::make_index_sequence<sizeof...(Args)>());
+        }
 
     private:
         AutoRelease<::GLuint> _handle;

@@ -76,4 +76,25 @@ namespace ufps
     {
         ::glUseProgram(_handle);
     }
+
+    auto Program::set_uniform(std::size_t index, std::uint32_t value) const -> void
+    {
+        ::glProgramUniform1ui(_handle, static_cast<std::uint32_t>(index), value);
+    }
+
+    auto Program::set_uniform(std::size_t index, float value) const -> void
+    {
+        ::glProgramUniform1f(_handle, static_cast<std::uint32_t>(index), value);
+    }
+
+    auto Program::set_uniform(std::size_t index, const Matrix4 &value) const -> void
+    {
+        ::glProgramUniformMatrix4fv(_handle, index, 1u, GL_FALSE, value.data().data());
+    }
+
+    auto Program::set_uniform(std::size_t index, const Color &value) const -> void
+    {
+        ::glProgramUniform3f(_handle, index, value.r, value.g, value.b);
+    }
+
 }

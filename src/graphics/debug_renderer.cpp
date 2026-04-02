@@ -172,13 +172,7 @@ namespace ufps
 
             _debug_lines.append_range(create_aabb_lines(debug_light_aabb, {}, {1.f, 0.f, 0.f}));
 
-            ::glProgramUniformMatrix4fv(_debug_light_program.native_handle(), 0u, 1u, GL_FALSE, light_model.data().data());
-            ::glProgramUniform3f(
-                _debug_light_program.native_handle(),
-                1u,
-                light.color.r,
-                light.color.g,
-                light.color.b);
+            _debug_light_program.set_uniforms(light_model, light.color);
 
             ::glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, reinterpret_cast<const void *>(cube_indices_offset_bytes));
         }
