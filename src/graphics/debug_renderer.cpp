@@ -225,7 +225,8 @@ namespace ufps
                     .constant_attenuation = 1.f,
                     .linear_attenuation = 0.007f,
                     .quadratic_attenuation = 0.0002f,
-                    .specular_power = 32.f});
+                    .specular_power = 32.f,
+                    .intensity = 1.f});
             _selected = &scene.lights().lights.back();
         }
 
@@ -297,6 +298,32 @@ namespace ufps
             if (::ImGui::SliderFloat("bias", &value, .01f, .1f))
             {
                 scene.ssao_options().bias = value;
+            }
+        }
+
+        ::ImGui::Text("exposure options");
+
+        {
+            auto value = scene.exposure_options().min_log_luminance;
+            if (::ImGui::SliderFloat("min log luminance", &value, -10.f, 10.f))
+            {
+                scene.exposure_options().min_log_luminance = value;
+            }
+        }
+
+        {
+            auto value = scene.exposure_options().max_log_luminance;
+            if (::ImGui::SliderFloat("max log luminance", &value, -10.f, 10.f))
+            {
+                scene.exposure_options().min_log_luminance = value;
+            }
+        }
+
+        {
+            auto value = scene.exposure_options().tau;
+            if (::ImGui::SliderFloat("tau", &value, .1f, 2.f))
+            {
+                scene.exposure_options().tau = value;
             }
         }
 
@@ -551,6 +578,12 @@ namespace ufps
                     light->constant_attenuation = att[0];
                     light->linear_attenuation = att[1];
                     light->quadratic_attenuation = att[2];
+                }
+
+                auto intensity = light->intensity;
+                if (::ImGui::SliderFloat("intensity", &intensity, 0.f, 100.f))
+                {
+                    light->intensity = intensity;
                 }
 
                 auto transform = Matrix4{light->position};

@@ -350,7 +350,7 @@ namespace ufps
 
         _average_luminance_program.set_uniforms(scene.exposure_options().min_log_luminance,
                                                 scene.exposure_options().max_log_luminance - scene.exposure_options().min_log_luminance,
-                                                std::clamp(1.f - std::exp(-delta_time * 1.1f), 0.f, 1.f),
+                                                std::clamp(1.f - std::exp(-delta_time * scene.exposure_options().tau), 0.f, 1.f),
                                                 static_cast<float>(_light_pass_rt.fb.width() * _light_pass_rt.fb.height()));
 
         ::glDispatchCompute(256, 1, 1);

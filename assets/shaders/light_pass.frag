@@ -18,6 +18,7 @@ struct PointLight
     float color[3];
     float attenuation[3];
     float specular_power;
+    float intensity;
 };
 
 layout(binding = 0, std430) readonly buffer vertices {
@@ -99,7 +100,7 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 vec3 calculate_point_light(PointLight light, vec3 view_pos, vec3 view_dir, vec3 normal, vec3 frag_pos, vec3 albedo, vec3 F0, float metallic, float roughness, float ao)
 {
     vec3 point_pos = vec3(light.pos[0], light.pos[1], light.pos[2]);
-    vec3 point_color = vec3(light.color[0], light.color[1], light.color[2]);
+    vec3 point_color = vec3(light.color[0], light.color[1], light.color[2]) * vec3(light.intensity);
     vec3 point_attenuation = vec3(light.attenuation[0], light.attenuation[1], light.attenuation[2]);
 
     vec3 light_dir = normalize(point_pos - frag_pos);

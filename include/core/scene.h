@@ -52,6 +52,7 @@ namespace ufps
     {
         float min_log_luminance = -8.f;
         float max_log_luminance = 3.5f;
+        float tau = 1.1f;
     };
 
     class Scene
