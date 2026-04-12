@@ -1,4 +1,4 @@
-#include "utils/log.h"
+#include "log.h"
 
 auto main() -> int
 {
