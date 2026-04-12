@@ -150,7 +150,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(stb_lib)
 
 add_subdirectory(src)
-# add_subdirectory(tools)
+add_subdirectory(tools)
 
 enable_testing()
 include(CTest)

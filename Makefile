@@ -25,6 +25,9 @@ run: build
 clean:
 	cmake --build build --target clean
 
+resources: build
+	./build/tools/Debug/resource_packer
+
 test:
 	cmake --build build --config Debug --target unit_tests
 	ctest --test-dir ./build -C Debug --progress -j
