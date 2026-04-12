@@ -66,4 +66,16 @@ namespace ufps
         return load<DataBuffer>(name);
     }
 
+    auto FileResourceLoader::resources(std::string_view type) -> std::vector<std::string>
+    {
+        const auto dir_iter = std::filesystem::directory_iterator{_root / type};
+
+        return dir_iter |
+               std::views::filter([&](const auto &e)
+                                  { return e.is_regular_file(); }) |
+               std::views::transform([&](const auto &e)
+                                     { return std::format("{}\\{}", type, e.path().filename().string()); }) |
+               std::ranges::to<std::vector>();
+    }
+
 }
