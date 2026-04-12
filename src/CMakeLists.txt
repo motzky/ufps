@@ -123,7 +123,7 @@ target_link_libraries(
     ufpslib
     PUBLIC imguilib
     # PUBLIC imguilib Jolt lua
-    PRIVATE GL glfw Backtrace::Backtrace stdc++exp assimp
+    PRIVATE GL glfw Backtrace::Backtrace stdc++exp assimp yaml-cpp libzstd_static
     # PRIVATE GL glfw Backtrace::Backtrace stdc++exp libzstd_static ${FREETYPE_LIBRARY_NAME}
 )
 target_link_libraries(
