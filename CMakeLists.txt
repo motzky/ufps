@@ -65,6 +65,25 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(assimp)
 
+FetchContent_Declare(
+  yaml-cpp
+  GIT_REPOSITORY https://github.com/jbeder/yaml-cpp
+  GIT_TAG yaml-cpp-0.9.0)
+
+  FetchContent_MakeAvailable(yaml-cpp)
+
+set(ZSTD_BUILD_STATIC ON)
+set(ZSTD_BUILD_SHARED OFF)
+
+FetchContent_Declare(
+    zstd
+    GIT_REPOSITORY https://github.com/facebook/zstd
+    GIT_TAG v1.5.7
+    SOURCE_SUBDIR build/cmake
+)
+
+FetchContent_MakeAvailable(zstd)
+
 if(UNIX)
 find_package(glfw3 REQUIRED)
 find_package(Backtrace REQUIRED)
