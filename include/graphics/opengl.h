@@ -38,6 +38,7 @@
     DO(::PFNGLBUFFERDATAPROC, glBufferData)                                                   \
     DO(::PFNGLVERTEXATTRIBPOINTERPROC, glVertexAttribPointer)                                 \
     DO(::PFNGLENABLEVERTEXATTRIBARRAYPROC, glEnableVertexAttribArray)                         \
+    DO(::PFNGLDRAWELEMENTSBASEVERTEXPROC, glDrawElementsBaseVertex)                           \
     DO(::PFNGLUSEPROGRAMPROC, glUseProgram)                                                   \
     DO(::PFNGLGETSHADERINFOLOGPROC, glGetShaderInfoLog)                                       \
     DO(::PFNGLGETPROGRAMINFOLOGPROC, glGetProgramInfoLog)                                     \
