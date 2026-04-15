@@ -53,6 +53,12 @@ namespace ufps
             return _material_data_gpu.native_handle();
         }
 
+        auto material(std::uint32_t index) const -> const MaterialData &
+        {
+            expect(index < _material_data_cpu.size(), "material index out of bounds: {}", index);
+            return _material_data_cpu[index];
+        }
+
     private:
         std::vector<MaterialData> _material_data_cpu;
         Buffer _material_data_gpu;
