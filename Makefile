@@ -17,7 +17,7 @@ config:
 # 	./build/tools/resource_packer/Release/resource_packer ./assets ./assets/resources
 
 build:
-	cmake --build build --config Debug --target ufps
+	cmake --build build --config Debug
 
 run: build
 	DRI_PRIME=1 ./build/src/Debug/ufps ./assets
@@ -26,9 +26,9 @@ clean:
 	cmake --build build --target clean
 
 resources: build
-	./build/tools/Debug/resource_packer
+	./build/tools/Debug/resource_packer ./build/ ./assets
 
-test:
+test: build
 	cmake --build build --config Debug --target unit_tests
 	ctest --test-dir ./build -C Debug --progress -j
 

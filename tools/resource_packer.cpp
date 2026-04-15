@@ -1,6 +1,294 @@
-#include "log.h"
+#include <filesystem>
+#include <fstream>
+#include <ranges>
+#include <unordered_set>
 
-auto main() -> int
+#include <yaml-cpp/yaml.h>
+
+#include "graphics/utils.h"
+#include "log.h"
+#include "resources/file_resource_loader.h"
+#include "utils/compress.h"
+#include "utils/ensure.h"
+
+namespace
 {
-    ufps::log::info("Packing resources...");
+    auto format_size(std::size_t size, std::uint16_t base = 1000) -> std::string
+    {
+        auto num = 0.f;
+        auto prefix = "";
+
+        auto fsize = static_cast<float>(size);
+
+        if (fsize < base)
+        {
+            num = fsize;
+        }
+        else if (fsize < base * base)
+        {
+            prefix = "K";
+            num = fsize / base;
+        }
+        else if (fsize < base * base * base)
+        {
+            prefix = "M";
+            num = fsize / (base * base);
+        }
+        else if (fsize < base * base * base * base)
+        {
+            prefix = "G";
+            num = fsize / (base * base * base);
+        }
+        else if (fsize < base * base * base * base * base)
+        {
+            prefix = "T";
+            num = fsize / (base * base * base * base);
+        }
+
+        auto str = std::format("{:.1f}", num);
+
+        return std::format("{}{}", str, prefix);
+    }
+    auto format_file_size(std::size_t size) -> std::string
+    {
+        return format_size(size, 1024);
+    }
+
+}
+
+auto main(int argc, char **argv) -> int
+{
+    try
+    {
+        ufps::ensure(argc >= 2, "usage: ./resource_packer output_dir dir1 [dir2 ...]");
+
+        auto resource_dirs = std::views::iota(2, argc) |
+                             std::views::transform([&](int i)
+                                                   { return std::filesystem::path{argv[i]}; }) |
+                             std::ranges::to<std::vector>();
+
+        const auto output_asset_dir = std::filesystem::path{argv[1]} / "build_assets";
+        std::filesystem::create_directories(output_asset_dir);
+
+        const auto output_blobs_dir = output_asset_dir / "blobs";
+        std::filesystem::create_directories(output_blobs_dir);
+
+        const auto output_configs_dir = output_asset_dir / "configs";
+        std::filesystem::create_directories(output_configs_dir);
+
+        ufps::log::info("packing resources fbx files");
+
+        auto resource_loader = ufps::FileResourceLoader{resource_dirs};
+        auto models = resource_loader.resources("models") |
+                      std::views::filter([](const auto &e)
+                                         { return e.ends_with(".fbx"); });
+
+        auto vertex_offset = 0zu;
+        auto index_offset = 0zu;
+        auto vertex_data = std::vector<ufps::VertexData>{};
+        auto index_data = std::vector<std::uint32_t>{};
+
+        auto texture_names = std::unordered_set<std::string>{};
+
+        {
+            const auto manifest_path = output_configs_dir / "model_manifest.yaml";
+            auto manifest_file = std::ofstream{manifest_path};
+
+            auto out = ::YAML::Emitter{manifest_file};
+            out << ::YAML::BeginMap;
+
+            for (const auto &m : models)
+            {
+                ufps::log::debug("found model resource: {}", m);
+                const auto &[name, sub_models] = ufps::load_model(resource_loader.load_data_buffer(m), "fbx");
+
+                if (sub_models.empty())
+                {
+                    ufps::log::warn("model {} has no submodels, skipping", name);
+                    continue;
+                }
+
+                out << ::YAML::Key << name << ::YAML::Value << ::YAML::BeginMap;
+
+                for (const auto &[index, model] : sub_models | std::views::enumerate)
+                {
+                    const auto &mesh_data = model.mesh_data;
+                    const auto vertex_count = mesh_data.vertices.size();
+                    const auto index_count = mesh_data.indices.size();
+
+                    ufps::log::debug(
+                        "model: {}, submodel: {}, vertex count: {}, index count: {}, vertex offset: {}, index offset:{}",
+                        name,
+                        index,
+                        index,
+                        vertex_count,
+                        index_count,
+                        vertex_offset,
+                        index_offset);
+
+                    vertex_data.append_range(mesh_data.vertices);
+                    index_data.append_range(mesh_data.indices);
+
+                    out << ::YAML::Key << std::format("submodel_{}", index) << ::YAML::Value << ::YAML::BeginMap;
+                    out << ::YAML::Key << "vertex_count" << ::YAML::Value << vertex_count;
+                    out << ::YAML::Key << "vertex_offset" << ::YAML::Value << vertex_offset;
+                    out << ::YAML::Key << "index_count" << ::YAML::Value << index_count;
+                    out << ::YAML::Key << "index_offset" << ::YAML::Value << index_offset;
+
+                    if (model.albedo && !model.albedo->ends_with(".psd"))
+                    {
+                        texture_names.insert(*model.albedo);
+                        out << ::YAML::Key << "albedo_name" << ::YAML::Value << *model.albedo;
+                    }
+                    else
+                    {
+                        out << ::YAML::Key << "albedo_name" << ::YAML::Value << "";
+                    }
+
+                    if (model.normal)
+                    {
+                        texture_names.insert(*model.normal);
+                        out << ::YAML::Key << "normal_name" << ::YAML::Value << *model.normal;
+                    }
+                    else
+                    {
+                        out << ::YAML::Key << "normal_name" << ::YAML::Value << "";
+                    }
+
+                    if (model.specular)
+                    {
+                        texture_names.insert(*model.specular);
+                        out << ::YAML::Key << "specular_name" << ::YAML::Value << *model.specular;
+                    }
+                    else
+                    {
+                        out << ::YAML::Key << "specular_name" << ::YAML::Value << "";
+                    }
+
+                    if (model.roughness)
+                    {
+                        texture_names.insert(*model.roughness);
+                        out << ::YAML::Key << "roughness_name" << ::YAML::Value << *model.roughness;
+                    }
+                    else
+                    {
+                        out << ::YAML::Key << "roughness_name" << ::YAML::Value << "";
+                    }
+
+                    if (model.ambient_occlusion)
+                    {
+                        texture_names.insert(*model.ambient_occlusion);
+                        out << ::YAML::Key << "ambient_occlusion_name" << ::YAML::Value << *model.ambient_occlusion;
+                    }
+                    else
+                    {
+                        out << ::YAML::Key << "ambient_occlusion_name" << ::YAML::Value << "";
+                    }
+
+                    if (model.emissive_color)
+                    {
+                        texture_names.insert(*model.emissive_color);
+                        out << ::YAML::Key << "emissive_color_name" << ::YAML::Value << *model.emissive_color;
+                    }
+                    else
+                    {
+                        out << ::YAML::Key << "emissive_color_name" << ::YAML::Value << "";
+                    }
+
+                    out << ::YAML::EndMap;
+
+                    vertex_offset += vertex_count;
+                    index_offset += index_count;
+                }
+
+                out << ::YAML::EndMap;
+            }
+
+            ufps::log::info("finished packing models, packing textures");
+            auto texture_blob = ufps::DataBuffer{};
+
+            {
+                const auto manifest_path = output_configs_dir / "texture_manifest.yaml";
+                auto manifest_file = std::ofstream{manifest_path};
+
+                auto out = ::YAML::Emitter{manifest_file};
+                out << ::YAML::BeginMap;
+
+                auto offset = 0zu;
+
+                for (const auto &t : texture_names)
+                {
+                    if (t.ends_with(".psd"))
+                    {
+                        ufps::log::debug("skipping Photoshop file {}", t);
+                        continue;
+                    }
+
+                    ufps::log::debug("packing texture: {}", t);
+
+                    const auto texture_data = resource_loader.load_data_buffer(t);
+                    const auto size = texture_data.size();
+
+                    texture_blob.append_range(std::as_bytes(std::span{texture_data.data(), size}));
+
+                    out << ::YAML::Key << t << ::YAML::Value << ::YAML::BeginMap;
+                    out << ::YAML::Key << "offset" << ::YAML::Value << offset;
+                    out << ::YAML::Key << "size" << ::YAML::Value << size;
+                    out << ::YAML::EndMap;
+
+                    offset += size;
+                }
+
+                out << ::YAML::EndMap;
+            }
+
+            ufps::log::info("finished packing textures, writing to disk");
+
+            const auto compressed_vertex_data = ufps::compress(std::as_bytes(std::span{vertex_data.data(), vertex_data.size()}));
+
+            const auto vertex_data_path = output_blobs_dir / "vertex_data.bin";
+            auto vertex_data_file = std::ofstream{vertex_data_path, std::ios::binary};
+            vertex_data_file.write(reinterpret_cast<const char *>(compressed_vertex_data.data()), compressed_vertex_data.size());
+
+            ufps::log::info(
+                "wrote vertex data: {} vertices, {} bytes, compression ratio: {:.2f}%",
+                format_size(vertex_data.size()),
+                format_file_size(compressed_vertex_data.size()),
+                100.f * compressed_vertex_data.size() / (vertex_data.size() * sizeof(ufps::VertexData)));
+
+            const auto compressed_index_data = ufps::compress(std::as_bytes(std::span{index_data.data(), index_data.size()}));
+
+            const auto index_data_path = output_blobs_dir / "index_data.bin";
+            auto index_data_file = std::ofstream{index_data_path, std::ios::binary};
+            index_data_file.write(reinterpret_cast<const char *>(compressed_index_data.data()), compressed_index_data.size());
+
+            ufps::log::info(
+                "wrote index data: {} indices, {} bytes, compression ratio: {:.2f}%",
+                format_size(index_data.size()),
+                format_file_size(compressed_index_data.size()),
+                100.f * compressed_index_data.size() / (index_data.size() * sizeof(std::uint32_t)));
+
+            const auto compressed_texture_blob = ufps::compress(texture_blob);
+
+            const auto texture_blob_path = output_blobs_dir / "texture_data.bin";
+            auto texture_blob_file = std::ofstream{texture_blob_path, std::ios::binary};
+            texture_blob_file.write(reinterpret_cast<const char *>(compressed_texture_blob.data()), compressed_texture_blob.size());
+
+            ufps::log::info(
+                "wrote texture blob: {} textures, {} bytes, compression ratio: {:.2f}%",
+                format_size(texture_names.size()),
+                format_file_size(compressed_texture_blob.size()),
+                100.f * compressed_texture_blob.size() / texture_blob.size());
+        }
+    }
+    catch (const ufps::Exception &e)
+    {
+        ufps::log::error("error packing resources: {}", e.what());
+        return 1;
+    }
+    catch (...)
+    {
+        ufps::log::error("unknown error packing resources");
+        return 1;
+    }
 }
