@@ -362,6 +362,16 @@ namespace ufps
 
     auto Renderer::execute_ssao_pass(Scene &scene) -> void
     {
+        if (!scene.ssao_options().enabled)
+        {
+            ::glClearColor(1.f, 0.f, 0.f, 0.f);
+            _ssao_blur_rt.fb.bind();
+            ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            ::glClearColor(0.f, 0.f, 0.f, 1.f);
+
+            return;
+        }
+
         ::glViewport(0, 0, _ssao_rt.fb.width(), _ssao_rt.fb.height());
         const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
 

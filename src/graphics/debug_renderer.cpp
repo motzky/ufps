@@ -279,6 +279,14 @@ namespace ufps
         ::ImGui::Text("SSAO options");
 
         {
+            auto value = scene.ssao_options().enabled;
+            if (::ImGui::Checkbox("enabled", &value))
+            {
+                scene.ssao_options().enabled = value;
+            }
+        }
+
+        {
             auto value = static_cast<int>(scene.ssao_options().sample_count);
             if (::ImGui::SliderInt("sample count", &value, 1, 64))
             {
