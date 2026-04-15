@@ -504,7 +504,7 @@ namespace ufps
         }
 
         ::ImGui::Image(
-            scene.texture_manager().texture(_ssao_rt.first_color_attachment_index)->native_handle(),
+            scene.texture_manager().texture(_ssao_blur_rt.first_color_attachment_index)->native_handle(),
             ::ImVec2(width * aspect_ratio, width),
             ::ImVec2(0.f, 1.f),
             ::ImVec2(1.f, 0.f));

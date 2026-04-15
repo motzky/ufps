@@ -67,11 +67,13 @@ namespace ufps
         Program _luminance_program;
         Program _average_luminance_program;
         Program _ssao_program;
+        Program _ssao_blur_program;
         Sampler _fb_sampler;
         RenderTarget _gbuffer_rt;
         RenderTarget _light_pass_rt;
         RenderTarget _tone_map_rt;
         RenderTarget _ssao_rt;
+        RenderTarget _ssao_blur_rt;
         FrameBuffer *_final_fb;
 
     private:
