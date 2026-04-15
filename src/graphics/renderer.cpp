@@ -139,7 +139,7 @@ namespace ufps
           _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},                                                   //
           _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")},                                             //
           _tone_map_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "tone_map")},
-          _ssao_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "ssao", TextureFormat::RG16F)},
+          _ssao_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, texture_manager, "ssao", TextureFormat::RG16F)},
           _final_fb{}
     {
 
@@ -360,6 +360,7 @@ namespace ufps
 
     auto Renderer::execute_ssao_pass(Scene &scene) -> void
     {
+        ::glViewport(0, 0, _ssao_rt.fb.width(), _ssao_rt.fb.height());
         const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
 
         _ssao_rt.fb.bind();
@@ -387,6 +388,8 @@ namespace ufps
             reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
             1u,
             0);
+
+        ::glViewport(0, 0, _window.width(), _window.height());
     }
 
     auto Renderer::execute_tone_mapping_pass(Scene &scene) -> void
