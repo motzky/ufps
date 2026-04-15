@@ -448,7 +448,14 @@ namespace
 
 auto main(int argc, char **argv) -> int
 {
-    ufps::log::info("starting game {}.{}.{}", ufps::version::major, ufps::version::minor, ufps::version::patch);
+    if (ufps::version::tweak == 0)
+    {
+        ufps::log::info("starting game {}.{}.{}", ufps::version::year, ufps::version::month, ufps::version::day);
+    }
+    else
+    {
+        ufps::log::info("starting game {}.{}.{}.{}", ufps::version::year, ufps::version::month, ufps::version::day, ufps::version::tweak);
+    }
 
     const auto args = std::vector<std::string_view>(argv + 1u, argv + argc);
 
