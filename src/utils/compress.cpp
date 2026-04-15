@@ -20,6 +20,8 @@ namespace ufps
             throw Exception("failed to decompress data: {}", ::ZSTD_getErrorName(compressed_size));
         }
 
+        compressed_buffer.resize(compressed_size);
+
         return compressed_buffer;
     }
 }
