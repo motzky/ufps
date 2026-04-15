@@ -32,8 +32,12 @@ namespace
             return GL_RGB16F;
         case DEPTH24:
             return GL_DEPTH_COMPONENT24;
+        case BC5U:
+            return GL_COMPRESSED_RG_RGTC2;
         case BC7:
             return GL_COMPRESSED_RGBA_BPTC_UNORM;
+        case BC7_SRGB:
+            return GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM;
         default:
             throw ufps::Exception("unknown texture format: {}", format);
         }

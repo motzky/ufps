@@ -438,7 +438,8 @@ namespace
                                                                    sampler));
                                                            });
 
-                const auto material_index = material_manager.add(ufps::Color{1.0f, 0.f, 1.f}, albedo_index, normal_index, specular_index, roughness_index, ao_index, emissive_index);
+                auto normal_compressed = normal_index < 65567 ? sub_model_data["normal_compressed"].as<bool>() : false;
+                const auto material_index = material_manager.add(ufps::Color{1.0f, 0.f, 1.f}, albedo_index, normal_index, normal_compressed, specular_index, roughness_index, ao_index, emissive_index);
                 material_lookup[name].push_back(material_index);
             }
         }
