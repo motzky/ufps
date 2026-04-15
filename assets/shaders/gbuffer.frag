@@ -21,6 +21,7 @@ struct MaterialData
     float color[3];
     uint albedo_index;
     uint normal_index;
+    uint normal_compressed;
     uint specular_index;
     uint roughness_index;
     uint ao_index;
@@ -87,8 +88,16 @@ void main()
     vec3 nm = vec3(0.0, 0.0, 1.0);
     if(normal_tex_index < 65535)
     {
-        nm = texture(textures[normal_tex_index], uv).xyz;
-        nm = (nm*2.0) - 1.0;
+        if(material_data[material_index].normal_compressed != 0)
+        {
+            nm.xy = texture(textures[normal_tex_index], uv).rg * 2.0 - 1.0;
+            nm.z = sqrt(max(1.0 - dot(nm.xy, nm.xy), 0.0));
+        }
+        else
+        {
+            nm = texture(textures[normal_tex_index], uv).xyz;
+            nm = (nm*2.0) - 1.0;
+        }
     }
 
     vec3 n = normalize(tbn * nm);
@@ -121,4 +130,3 @@ void main()
         out_emissive_color = texture(textures[emissive_tex_index], uv);
     }
 }
-

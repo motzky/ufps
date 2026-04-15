@@ -20,6 +20,7 @@ struct MaterialData
     float color[3];
     uint albedo_index;
     uint normal_index;
+    uint normal_compressed;
     uint specular_index;
     uint roughness_index;
     uint ao_index;

@@ -149,6 +149,7 @@ auto main(int argc, char **argv) -> int
                     {
                         texture_names.insert(*model.normal);
                         out << ::YAML::Key << "normal_name" << ::YAML::Value << *model.normal;
+                        out << ::YAML::Key << "normal_compressed" << ::YAML::Value << model.normal->ends_with(".dds");
                     }
                     else
                     {
