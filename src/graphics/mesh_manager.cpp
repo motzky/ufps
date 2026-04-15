@@ -26,6 +26,48 @@ namespace ufps
     {
     }
 
+    MeshManager::MeshManager(
+        std::vector<VertexData> vertex_data,
+        std::vector<std::uint32_t> index_data,
+        StringUnorderedMap<std::vector<MeshView>> mesh_lookup)
+        : _vertex_data_cpu{std::move(vertex_data)},
+          _index_data_cpu{std::move(index_data)},
+          _vertex_data_gpu{sizeof(VertexData), "vertex_mesh_data"},
+          _index_data_gpu{sizeof(std::uint32_t), "index_mesh_data"},
+          _mesh_lookup{std::move(mesh_lookup)}
+    {
+        resize_gpu_buffer(_vertex_data_cpu, _vertex_data_gpu);
+        const auto vertex_data_view = DataBufferView{
+            reinterpret_cast<const std::byte *>(_vertex_data_cpu.data()), _vertex_data_gpu.size() * sizeof(VertexData)};
+        _vertex_data_gpu.write(vertex_data_view, 0u);
+
+        resize_gpu_buffer(_index_data_cpu, _index_data_gpu);
+        const auto index_data_view = DataBufferView{
+            reinterpret_cast<const std::byte *>(_index_data_cpu.data()), _index_data_cpu.size() * sizeof(std::uint32_t)};
+        _index_data_gpu.write(index_data_view, 0u);
+    }
+
+    MeshManager::MeshManager(
+        DataBufferView raw_vertex_data,
+        DataBufferView raw_index_data,
+        StringUnorderedMap<std::vector<MeshView>> mesh_lookup)
+        : _vertex_data_cpu{
+              reinterpret_cast<const VertexData *>(raw_vertex_data.data()),
+              reinterpret_cast<const VertexData *>(raw_vertex_data.data() + raw_vertex_data.size())},
+          _index_data_cpu{
+              reinterpret_cast<const std::uint32_t *>(raw_index_data.data()),
+              reinterpret_cast<const std::uint32_t *>(raw_index_data.data() + raw_index_data.size())},
+          _vertex_data_gpu{sizeof(VertexData), "vertex_mesh_data"},
+          _index_data_gpu{sizeof(std::uint32_t), "index_mesh_data"},
+          _mesh_lookup{std::move(mesh_lookup)}
+    {
+        resize_gpu_buffer(_vertex_data_cpu, _vertex_data_gpu);
+        _vertex_data_gpu.write(raw_vertex_data, 0u);
+
+        resize_gpu_buffer(_index_data_cpu, _index_data_gpu);
+        _index_data_gpu.write(raw_index_data, 0u);
+    }
+
     auto MeshManager::load(std::string_view name, std::span<const MeshData> meshes) -> std::span<const MeshView>
     {
         expect(!_mesh_lookup.contains(name), "{} mesh exists", name);
@@ -93,5 +135,4 @@ namespace ufps
     {
         return std::format("mesh manager: vertex count: {}, index count:", _vertex_data_cpu.size(), _index_data_cpu.size());
     }
-
 }

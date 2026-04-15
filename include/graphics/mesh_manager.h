@@ -18,6 +18,17 @@ namespace ufps
     {
     public:
         MeshManager();
+
+        MeshManager(
+            std::vector<VertexData> vertex_data,
+            std::vector<std::uint32_t> index_data,
+            StringUnorderedMap<std::vector<MeshView>> mesh_lookup);
+
+        MeshManager(
+            DataBufferView raw_vertex_data,
+            DataBufferView raw_index_data,
+            StringUnorderedMap<std::vector<MeshView>> mesh_lookup);
+
         auto load(std::string_view name, std::span<const MeshData> meshes) -> std::span<const MeshView>;
 
         auto mesh(std::string_view name) -> std::span<const MeshView>;
