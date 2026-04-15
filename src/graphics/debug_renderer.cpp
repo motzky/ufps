@@ -551,65 +551,37 @@ namespace ufps
                 }
                 ::ImGui::EndTable();
 
+                auto debug_draw_texture = [scene](auto idx, auto should_same_line) -> void
+                {
+                    if (idx < 65537)
+                    {
+                        const auto *texture = scene.texture_manager().texture(idx);
+                        if (texture)
+                        {
+                            ::ImGui::Image(
+                                texture->native_handle(),
+                                ::ImVec2(64.f, 64.f),
+                                ::ImVec2(0.f, 1.f),
+                                ::ImVec2(1.f, 0.f));
+                            if (should_same_line)
+                            {
+                                ::ImGui::SameLine();
+                            }
+                        }
+                    }
+                };
+
                 for (const auto &render_entity : entity->render_entities())
                 {
                     const auto material_index = render_entity.material_index();
                     const auto &material = scene.material_manager().material(material_index);
 
-                    const auto *albedo_texture = scene.texture_manager().texture(material.albedo_texture_index);
-                    if (albedo_texture)
-                    {
-                        ::ImGui::Image(
-                            albedo_texture->native_handle(),
-                            ::ImVec2(64.f, 64.f),
-                            ::ImVec2(0.f, 1.f),
-                            ::ImVec2(1.f, 0.f));
-                    }
-                    const auto *normal_texture = scene.texture_manager().texture(material.normal_texture_index);
-                    if (normal_texture)
-                    {
-                        ::ImGui::Image(
-                            normal_texture->native_handle(),
-                            ::ImVec2(64.f, 64.f),
-                            ::ImVec2(0.f, 1.f),
-                            ::ImVec2(1.f, 0.f));
-                    }
-                    const auto *specular_texture = scene.texture_manager().texture(material.specular_texture_index);
-                    if (specular_texture)
-                    {
-                        ::ImGui::Image(
-                            specular_texture->native_handle(),
-                            ::ImVec2(64.f, 64.f),
-                            ::ImVec2(0.f, 1.f),
-                            ::ImVec2(1.f, 0.f));
-                    }
-                    const auto *roughness_texture = scene.texture_manager().texture(material.roughness_texture_index);
-                    if (roughness_texture)
-                    {
-                        ::ImGui::Image(
-                            roughness_texture->native_handle(),
-                            ::ImVec2(64.f, 64.f),
-                            ::ImVec2(0.f, 1.f),
-                            ::ImVec2(1.f, 0.f));
-                    }
-                    const auto *ao_texture = scene.texture_manager().texture(material.ao_texture_index);
-                    if (ao_texture)
-                    {
-                        ::ImGui::Image(
-                            ao_texture->native_handle(),
-                            ::ImVec2(64.f, 64.f),
-                            ::ImVec2(0.f, 1.f),
-                            ::ImVec2(1.f, 0.f));
-                    }
-                    const auto *emissive_texture = scene.texture_manager().texture(material.emissive_texture_index);
-                    if (emissive_texture)
-                    {
-                        ::ImGui::Image(
-                            emissive_texture->native_handle(),
-                            ::ImVec2(64.f, 64.f),
-                            ::ImVec2(0.f, 1.f),
-                            ::ImVec2(1.f, 0.f));
-                    }
+                    debug_draw_texture(material.albedo_texture_index, true);
+                    debug_draw_texture(material.normal_texture_index, true);
+                    debug_draw_texture(material.specular_texture_index, false);
+                    debug_draw_texture(material.roughness_texture_index, true);
+                    debug_draw_texture(material.ao_texture_index, true);
+                    debug_draw_texture(material.emissive_texture_index, false);
                 }
 
                 const auto &camera_data = scene.camera().data();
