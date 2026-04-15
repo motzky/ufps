@@ -140,5 +140,5 @@ void main()
     occlusion = baked_occlusion * occlusion;
 
 
-    frag_color = vec4(occlusion, occlusion, occlusion, 1.0);
+    frag_color = vec4(occlusion, 0.0, 0.0, 1.0);
 }

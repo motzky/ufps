@@ -18,6 +18,8 @@ namespace
             using enum ufps::TextureFormat;
         case R:
             return include_size ? GL_R8 : GL_RED;
+        case RG16F:
+            return include_size ? GL_RG16F : GL_RG;
         case RGB:
             return include_size ? GL_RGB8 : GL_RGB;
         case SRGB:

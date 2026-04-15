@@ -49,12 +49,13 @@ namespace
         std::uint32_t height,
         ufps::Sampler &sampler,
         ufps::TextureManager &texture_manager,
-        std::string_view name) -> ufps::RenderTarget
+        std::string_view name,
+        ufps::TextureFormat format = ufps::TextureFormat::RGB16F) -> ufps::RenderTarget
     {
         const auto color_attachment_texture_data = ufps::TextureData{
             .width = width,
             .height = height,
-            .format = ufps::TextureFormat::RGB16F,
+            .format = format,
             .data = std::nullopt,
             .is_compressed = false,
         };
@@ -138,7 +139,7 @@ namespace ufps
           _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},                                                   //
           _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")},                                             //
           _tone_map_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "tone_map")},
-          _ssao_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "ssao")},
+          _ssao_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "ssao", TextureFormat::RG16F)},
           _final_fb{}
     {
 

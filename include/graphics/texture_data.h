@@ -11,6 +11,7 @@ namespace ufps
     enum class TextureFormat
     {
         R,
+        RG16F,
         RGB,
         SRGB,
         RGBA,
@@ -36,6 +37,8 @@ namespace ufps
             using enum TextureFormat;
         case R:
             return "R";
+        case RG16F:
+            return "RG16F";
         case RGB:
             return "RGB";
         case SRGB:
