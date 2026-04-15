@@ -47,6 +47,7 @@ namespace ufps
         std::uint32_t sample_count = 64u;
         float radius = .75f;
         float bias = .025f;
+        float power = 2.f;
     };
 
     struct ExposureOptions

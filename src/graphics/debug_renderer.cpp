@@ -310,6 +310,14 @@ namespace ufps
             }
         }
 
+        {
+            auto value = scene.ssao_options().power;
+            if (::ImGui::SliderFloat("power", &value, 1.f, 4.f))
+            {
+                scene.ssao_options().power = value;
+            }
+        }
+
         ::ImGui::Text("exposure options");
 
         {

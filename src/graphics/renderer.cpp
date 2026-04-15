@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <optional>
+#include <random>
 #include <ranges>
 #include <span>
 #include <string_view>
@@ -129,6 +130,7 @@ namespace ufps
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                        //
           _luminance_histogram_buffer{sizeof(std::uint32_t) * 256, "luminance_histogram_buffer"},                                                                                                               //
           _average_luminance_buffer{sizeof(float) * 1, "average_luminance_buffer"},                                                                                                                             //
+          _ssao_samples_buffer{sizeof(Vector4) * 64, "ssao_samples_buffer"},                                                                                                                                    //
           _gbuffer_program{create_program(resource_loader, "gbuffer_program"sv, "shaders/gbuffer.vert"sv, "gbuffer_vertex_shader"sv, "shaders/gbuffer.frag"sv, "gbuffer_fragement_shader"sv)},                  //
           _light_pass_program{create_program(resource_loader, "light_pass_program"sv, "shaders/light_pass.vert"sv, "light_pass_vertex_shader"sv, "shaders/light_pass.frag"sv, "light_pass_fragment_shader"sv)}, //
           _tone_map_program{create_program(resource_loader, "tone_map_program"sv, "shaders/tone_map.vert"sv, "tone_map_vertex_shader"sv, "shaders/tone_map.frag"sv, "tone_map_fragment_shader"sv)},             //
@@ -147,6 +149,28 @@ namespace ufps
 
         ::glGenVertexArrays(1u, &_dummy_vao);
         ::glBindVertexArray(_dummy_vao);
+
+        auto generator = std::mt19937{std::random_device{}()};
+        auto distribution = std::uniform_real_distribution<float>{0.f, 1.f};
+
+        auto ssao_samples = std::vector<Vector4>{};
+        for (auto u = 0u; u < 64u; ++u)
+        {
+            auto sample = Vector3{
+                distribution(generator) * 2.f - 1.f,
+                distribution(generator) * 2.f - 1.f,
+                distribution(generator)};
+            sample = Vector3::normalize(sample);
+            sample *= distribution(generator);
+
+            auto scale = static_cast<float>(u) / 64.f;
+            scale = std::lerp(.1f, 1.f, scale * scale);
+            sample *= scale;
+
+            ssao_samples.push_back(Vector4{sample, 0.f});
+        }
+
+        _ssao_samples_buffer.write(std::as_bytes(std::span{ssao_samples.data(), ssao_samples.size()}), 0u);
 
         _post_processing_command_buffer.build(_post_process_sprite);
 
@@ -389,11 +413,13 @@ namespace ufps
                                        static_cast<float>(_ssao_rt.fb.height()),
                                        scene.ssao_options().sample_count,
                                        scene.ssao_options().radius,
-                                       scene.ssao_options().bias);
+                                       scene.ssao_options().bias,
+                                       scene.ssao_options().power);
 
             ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
             ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
             ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
+            ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, _ssao_samples_buffer.native_handle());
 
             ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
 

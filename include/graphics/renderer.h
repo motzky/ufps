@@ -61,6 +61,7 @@ namespace ufps
         MultiBuffer<PersistentBuffer> _object_data_buffer;
         Buffer _luminance_histogram_buffer;
         Buffer _average_luminance_buffer;
+        Buffer _ssao_samples_buffer;
         Program _gbuffer_program;
         Program _light_pass_program;
         Program _tone_map_program;
