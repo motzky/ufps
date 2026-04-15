@@ -160,6 +160,7 @@ namespace ufps
         const auto cube_parts = scene.mesh_manager().mesh("cube");
         ensure(cube_parts.size() == 1u, "cube mesh should have exactly 1 part");
         const auto cube_indices_offset_bytes = cube_parts.front().index_offset * sizeof(std::uint32_t);
+        const auto cube_vertex_offset = cube_parts.front().vertex_offset;
 
         for (const auto &light : scene.lights().lights)
         {
@@ -174,7 +175,7 @@ namespace ufps
 
             _debug_light_program.set_uniforms(light_model, light.color);
 
-            ::glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, reinterpret_cast<const void *>(cube_indices_offset_bytes));
+            ::glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, reinterpret_cast<const void *>(cube_indices_offset_bytes), cube_vertex_offset);
         }
         _debug_light_program.unbind();
 
@@ -351,8 +352,10 @@ namespace ufps
             std::ranges::max(scaled_histogram),
             ::ImVec2(::ImGui::GetContentRegionAvail().x, 150.f));
 
-        auto names = scene.mesh_manager().mesh_names();
-        const auto mesh_names_cstr = names |
+        auto mesh_names = scene.mesh_manager().mesh_names();
+        const auto mesh_names_cstr = mesh_names |
+                                     std::views::filter([](const auto &e)
+                                                        { return !e.empty(); }) |
                                      std::views::transform([](const auto &e)
                                                            { return e.c_str(); }) |
                                      std::ranges::to<std::vector>();
@@ -375,7 +378,7 @@ namespace ufps
 
         if (mesh_selected_index)
         {
-            scene.create_entity(names[*mesh_selected_index]);
+            scene.create_entity(mesh_names[*mesh_selected_index]);
         }
 
         for (auto &entity : scene.entities())
@@ -531,6 +534,67 @@ namespace ufps
                     }
                 }
                 ::ImGui::EndTable();
+
+                for (const auto &render_entity : entity->render_entities())
+                {
+                    const auto material_index = render_entity.material_index();
+                    const auto &material = scene.material_manager().material(material_index);
+
+                    const auto *albedo_texture = scene.texture_manager().texture(material.albedo_texture_index);
+                    if (albedo_texture)
+                    {
+                        ::ImGui::Image(
+                            albedo_texture->native_handle(),
+                            ::ImVec2(64.f, 64.f),
+                            ::ImVec2(0.f, 1.f),
+                            ::ImVec2(1.f, 0.f));
+                    }
+                    const auto *normal_texture = scene.texture_manager().texture(material.normal_texture_index);
+                    if (normal_texture)
+                    {
+                        ::ImGui::Image(
+                            normal_texture->native_handle(),
+                            ::ImVec2(64.f, 64.f),
+                            ::ImVec2(0.f, 1.f),
+                            ::ImVec2(1.f, 0.f));
+                    }
+                    const auto *specular_texture = scene.texture_manager().texture(material.specular_texture_index);
+                    if (specular_texture)
+                    {
+                        ::ImGui::Image(
+                            specular_texture->native_handle(),
+                            ::ImVec2(64.f, 64.f),
+                            ::ImVec2(0.f, 1.f),
+                            ::ImVec2(1.f, 0.f));
+                    }
+                    const auto *roughness_texture = scene.texture_manager().texture(material.roughness_texture_index);
+                    if (roughness_texture)
+                    {
+                        ::ImGui::Image(
+                            roughness_texture->native_handle(),
+                            ::ImVec2(64.f, 64.f),
+                            ::ImVec2(0.f, 1.f),
+                            ::ImVec2(1.f, 0.f));
+                    }
+                    const auto *ao_texture = scene.texture_manager().texture(material.ao_texture_index);
+                    if (ao_texture)
+                    {
+                        ::ImGui::Image(
+                            ao_texture->native_handle(),
+                            ::ImVec2(64.f, 64.f),
+                            ::ImVec2(0.f, 1.f),
+                            ::ImVec2(1.f, 0.f));
+                    }
+                    const auto *emissive_texture = scene.texture_manager().texture(material.emissive_texture_index);
+                    if (emissive_texture)
+                    {
+                        ::ImGui::Image(
+                            emissive_texture->native_handle(),
+                            ::ImVec2(64.f, 64.f),
+                            ::ImVec2(0.f, 1.f),
+                            ::ImVec2(1.f, 0.f));
+                    }
+                }
 
                 const auto &camera_data = scene.camera().data();
                 static float snap_translation[3] = {1.f, 1.f, 1.f};
