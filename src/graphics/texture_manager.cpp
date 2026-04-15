@@ -67,6 +67,19 @@ namespace ufps
         return std::addressof(_textures[index]);
     }
 
+    auto TextureManager::try_get_texture_index(std::string_view name) const -> std::optional<std::uint32_t>
+    {
+        auto iter = std::ranges::find_if(_textures, [name](const auto &t)
+                                         { return t.name() == name; });
+
+        if (iter == std::ranges::cend(_textures))
+        {
+            return std::nullopt;
+        }
+
+        return static_cast<std::uint32_t>(std::distance(std::ranges::cbegin(_textures), iter));
+    }
+
     auto TextureManager::textures(const std::vector<std::uint32_t> &indices) const -> std::vector<const Texture *>
     {
 

@@ -20,6 +20,8 @@ namespace ufps
         auto native_handle() -> ::GLuint;
 
         auto texture(const std::uint32_t indiex) const -> const Texture *;
+        auto try_get_texture_index(std::string_view name) const -> std::optional<std::uint32_t>;
+        auto texture_index(std::string_view name) const -> std::uint32_t;
         auto textures(const std::vector<std::uint32_t> &indices) const -> std::vector<const Texture *>;
 
     private:
