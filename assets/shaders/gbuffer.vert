@@ -94,14 +94,16 @@ layout (location = 3) out mat3 tbn;
 
 void main()
 {
+    mat3 normal_mat = transpose(inverse(mat3(object_data[gl_DrawID].model)));
+
     frag_position = object_data[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
     gl_Position = projection * view * frag_position;
     material_index = object_data[gl_DrawID].material_index;
     uv = get_uv(gl_VertexID);
 
-    vec3 t = normalize(vec3(object_data[gl_DrawID].model * vec4(get_tangent(gl_VertexID), 0.0)));
-    vec3 b = normalize(vec3(object_data[gl_DrawID].model * vec4(get_bitangent(gl_VertexID), 0.0)));
-    vec3 n = normalize(vec3(object_data[gl_DrawID].model * vec4(get_normal(gl_VertexID), 0.0)));
+    vec3 t = normalize(normal_mat * get_tangent(gl_VertexID));
+    vec3 b = normalize(normal_mat * get_bitangent(gl_VertexID));
+    vec3 n = normalize(normal_mat * get_normal(gl_VertexID));
 
     tbn = mat3(t,b,n);
 }
