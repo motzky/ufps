@@ -230,7 +230,7 @@ namespace ufps
         }
     }
 
-    auto load_model(DataBufferView model_data, ResourceLoader &resource_loader, std::string format) -> std::tuple<std::string, std::vector<ModelData>>
+    auto load_model(DataBufferView model_data, std::string format) -> std::tuple<std::string, std::vector<ModelData>>
     {
         if (config::log_assimp)
         {
@@ -241,8 +241,8 @@ namespace ufps
 
                 logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::ERROR>{}, ::Assimp::Logger::Err);
                 logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::WARN>{}, ::Assimp::Logger::Warn);
-                logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::INFO>{}, ::Assimp::Logger::Info);
-                logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::DEBUG>{}, ::Assimp::Logger::Debugging);
+                // logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::INFO>{}, ::Assimp::Logger::Info);
+                // logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::DEBUG>{}, ::Assimp::Logger::Debugging);
 
                 return logger;
             }();
@@ -265,14 +265,20 @@ namespace ufps
             log::info("found {} meshes, {} materials {} lights", loaded_meshes.size(), materials.size(), scene->mNumLights);
         }
 
-        ensure(loaded_meshes.size() == materials.size(), "mismatch mesh/material count in model file");
-
         auto models = std::vector<ModelData>{};
 
         for (const auto &[index, mesh] : loaded_meshes | std::views::enumerate)
         {
+            log::info("found mesh: {}", mesh->mName.C_Str());
+
+            if (index >= scene->mNumMaterials)
+            {
+                log::warn("mesh {} has invalid material index: {}", mesh->mName.C_Str(), index);
+                continue;
+            }
+
             const auto *material = scene->mMaterials[index];
-            log::info("found mesh: {}, material: {}", mesh->mName.C_Str(), material->GetName().C_Str());
+            log::info("found material: {}", material->GetName().C_Str());
 
             const auto base_color_count = material->GetTextureCount(::aiTextureType_BASE_COLOR);
             const auto diffuse_color_count = material->GetTextureCount(::aiTextureType_DIFFUSE);
@@ -342,27 +348,27 @@ namespace ufps
 
             if (albedo_filename.has_value())
             {
-                model.albedo = load_texture(resource_loader, *albedo_filename, true);
+                model.albedo = *albedo_filename;
             }
             if (normal_filename.has_value())
             {
-                model.normal = load_texture(resource_loader, *normal_filename, false);
+                model.normal = *normal_filename;
             }
             if (specular_filename.has_value())
             {
-                model.specular = load_texture(resource_loader, *specular_filename, false);
+                model.specular = *specular_filename;
             }
             if (roughness_filename.has_value())
             {
-                model.roughness = load_texture(resource_loader, *roughness_filename, false);
+                model.roughness = *roughness_filename;
             }
             if (ao_filename.has_value())
             {
-                model.ambient_occlusion = load_texture(resource_loader, *ao_filename, false);
+                model.ambient_occlusion = *ao_filename;
             }
             if (emissive_filename.has_value())
             {
-                model.emissive_color = load_texture(resource_loader, *emissive_filename, true);
+                model.emissive_color = *emissive_filename;
             }
 
             models.push_back(model);

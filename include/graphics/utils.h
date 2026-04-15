@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "graphics/model_data.h"
+#include "graphics/opengl.h"
 #include "graphics/texture_data.h"
 #include "graphics/vertex_data.h"
 #include "log.h"
@@ -45,7 +46,7 @@ namespace ufps
     auto load_texture(ResourceLoader &resource_loader, std::string id, bool is_srgb) -> TextureData;
     auto load_texture(DataBufferView image_data, bool is_srgb) -> TextureData;
 
-    auto load_model(DataBufferView model_data, ResourceLoader &resource_loader, std::string format = "") -> std::tuple<std::string, std::vector<ModelData>>;
+    auto load_model(DataBufferView model_data, std::string format = "") -> std::tuple<std::string, std::vector<ModelData>>;
 
     template <class... Args>
     auto vertices(Args &&...args) -> std::vector<ufps::VertexData>
