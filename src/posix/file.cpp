@@ -78,7 +78,7 @@ namespace ufps
             auto e = errno;
             log::error("{}", e);
         }
-        ensure(_map_view.get() != MAP_FAILED, "failed to map file");
+        ensure(_map_view.get() != MAP_FAILED, "failed to map file: {}", path.string());
 
         _mapped = true;
 
