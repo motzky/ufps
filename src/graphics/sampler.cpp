@@ -26,11 +26,34 @@ namespace
 
         throw ufps::Exception("unknown filter type: {}", filter_type);
     }
+
+    auto to_opengl(ufps::WrapMode wrap_mode) -> ::GLenum
+    {
+        switch (wrap_mode)
+        {
+            using enum ufps::WrapMode;
+        case REPEAT:
+            return GL_REPEAT;
+        case CLAMP_TO_EDGE:
+            return GL_CLAMP_TO_EDGE;
+        case MIRRORED_REPEAT:
+            return GL_MIRRORED_REPEAT;
+        }
+
+        throw ufps::Exception("unknown wrap mode: {}", wrap_mode);
+    }
 }
 
 namespace ufps
 {
-    Sampler::Sampler(FilterType min_filter, FilterType mag_filter, const std::string &name, std::optional<float> ansisotropic_samples)
+    Sampler::Sampler(
+        FilterType min_filter,
+        FilterType mag_filter,
+        WrapMode wrap_s,
+        WrapMode wrap_t,
+        const std::string &name,
+        std::optional<float> ansisotropic_samples)
+
         : _handle{0u, [](auto sampler)
                   { ::glDeleteSamplers(1, &sampler); }},
           _name(name)
@@ -40,6 +63,8 @@ namespace ufps
 
         ::glSamplerParamerteri(_handle, GL_TEXTURE_MIN_FILTER, to_opengl(min_filter));
         ::glSamplerParamerteri(_handle, GL_TEXTURE_MAG_FILTER, to_opengl(mag_filter));
+        ::glSamplerParamerteri(_handle, GL_TEXTURE_WRAP_S, to_opengl(wrap_s));
+        ::glSamplerParamerteri(_handle, GL_TEXTURE_WRAP_T, to_opengl(wrap_t));
         if (ansisotropic_samples)
         {
             expect(*ansisotropic_samples >= 1.f, "invalid samples: {}", *ansisotropic_samples);
@@ -68,6 +93,22 @@ namespace ufps
             return "LINEAR";
         case NEAREST:
             return "NEAREST";
+        default:
+            return "<unknown>";
+        }
+    }
+
+    auto to_string(WrapMode wrap_mode) -> std::string
+    {
+        switch (wrap_mode)
+        {
+            using enum ufps::WrapMode;
+        case REPEAT:
+            return "REPEAT";
+        case CLAMP_TO_EDGE:
+            return "CLAMP_TO_EDGE";
+        case MIRRORED_REPEAT:
+            return "MIRRORED_REPEAT";
         default:
             return "<unknown>";
         }

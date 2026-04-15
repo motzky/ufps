@@ -471,7 +471,12 @@ auto main(int argc, char **argv) -> int
             auto window = ufps::Window{1920u, 1080u, 0u, 0u};
             auto running = true;
 
-            const auto sampler = ufps::Sampler{ufps::FilterType::LINEAR, ufps::FilterType::LINEAR, "sampler"};
+            const auto sampler = ufps::Sampler{
+                ufps::FilterType::LINEAR,
+                ufps::FilterType::LINEAR,
+                ufps::WrapMode::REPEAT,
+                ufps::WrapMode::REPEAT,
+                "sampler"};
 
             auto resource_loader = std::unique_ptr<ufps::ResourceLoader>();
             if constexpr (ufps::config::use_embedded_resource_loader)

@@ -15,10 +15,23 @@ namespace ufps
         NEAREST
     };
 
+    enum class WrapMode
+    {
+        REPEAT,
+        CLAMP_TO_EDGE,
+        MIRRORED_REPEAT
+    };
+
     class Sampler
     {
     public:
-        Sampler(FilterType min_filter, FilterType mag_filter, const std::string &name, std::optional<float> ansisotropic_samples = std::nullopt);
+        Sampler(
+            FilterType min_filter,
+            FilterType mag_filter,
+            WrapMode wrap_s,
+            WrapMode wrap_t,
+            const std::string &name,
+            std::optional<float> ansisotropic_samples = std::nullopt);
 
         auto native_handle() const -> ::GLuint;
 
@@ -30,4 +43,5 @@ namespace ufps
     };
 
     auto to_string(FilterType filter_type) -> std::string;
+    auto to_string(WrapMode wrap_mode) -> std::string;
 }
