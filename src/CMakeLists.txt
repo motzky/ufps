@@ -41,6 +41,7 @@ install(TARGETS ufps DESTINATION bin COMPONENT application)
 install(FILES ${PROJECT_BINARY_DIR}/resources DESTINATION bin COMPONENT application)
 
 add_subdirectory(core)
+add_subdirectory(concurrency)
 add_subdirectory(events)
 add_subdirectory(graphics)
 add_subdirectory(math)
