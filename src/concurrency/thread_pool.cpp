@@ -87,7 +87,6 @@ namespace ufps
                 job = _job_queue.pop();
             }
 
-            log::debug("doing work on worker thread: {}", std::this_thread::get_id());
             job();
             --_job_count;
 
