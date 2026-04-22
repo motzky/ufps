@@ -17,10 +17,10 @@ namespace ufps
 
     ThreadPool::ThreadPool(std::uint32_t worker_count)
         : _worker_count{worker_count},
-          _workers{},
           _job_queue{},
           _worker_cv{},
-          _job_count{}
+          _job_count{},
+          _workers{}
     {
         log::info("starting thread poll with {} workers", worker_count);
 
@@ -35,10 +35,14 @@ namespace ufps
 
     ThreadPool::~ThreadPool()
     {
+        log::info("stopping threads");
+
         for (auto &thread : _workers)
         {
             thread.request_stop();
         }
+
+        _workers.clear();
     }
 
     auto ThreadPool::add(Job job) -> void
