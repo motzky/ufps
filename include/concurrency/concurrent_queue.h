@@ -42,6 +42,19 @@ namespace ufps
             return _size;
         }
 
+        auto yield() -> Q
+        {
+            auto q = Q{};
+
+            {
+                const auto lock = std::scoped_lock{_lock};
+                std::ranges::swap(q, _q);
+                _size = 0u;
+            }
+
+            return q;
+        }
+
     private:
         Q _q;
         Lock<> _lock;
