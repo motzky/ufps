@@ -127,6 +127,15 @@ namespace ufps
             return self._exposure_options;
         }
 
+        constexpr auto remove(const Entity &entity) -> void
+        {
+            const auto iter = std::ranges::find_if(_entities, [&entity](const auto &e)
+                                                   { return &e == &entity; });
+            expect(iter != std::ranges::cend(_entities), "entity to delete not found");
+
+            _entities.erase(iter);
+        }
+
     private:
         std::vector<Entity> _entities;
         std::vector<Entity> _entity_cache;

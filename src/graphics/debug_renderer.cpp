@@ -369,6 +369,7 @@ namespace ufps
             ::ImVec2(::ImGui::GetContentRegionAvail().x, 150.f));
 
         auto mesh_names = scene.mesh_manager().mesh_names();
+        std::ranges::sort(mesh_names);
         const auto mesh_names_cstr = mesh_names |
                                      std::views::filter([](const auto &e)
                                                         { return !e.empty(); }) |
@@ -395,6 +396,16 @@ namespace ufps
         if (mesh_selected_index)
         {
             scene.create_entity(mesh_names[*mesh_selected_index]);
+        }
+
+        if (::ImGui::Button("delete"))
+        {
+            if (auto **selected_entity = std::get_if<Entity *>(&_selected))
+            {
+                auto *entity = *selected_entity;
+                scene.remove(*entity);
+                _selected = std::monostate{};
+            }
         }
 
         for (auto &entity : scene.entities())
