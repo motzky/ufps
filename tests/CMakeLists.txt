@@ -13,6 +13,7 @@ add_executable(unit_tests
     multi_buffer_tests.cpp
     quaternion_tests.cpp
     vector3_tests.cpp
+    yaml_serializer_tests.cpp
 )
 
 target_compile_features(unit_tests PUBLIC cxx_std_23)

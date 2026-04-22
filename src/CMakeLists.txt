@@ -45,6 +45,7 @@ add_subdirectory(events)
 add_subdirectory(graphics)
 add_subdirectory(math)
 add_subdirectory(resources)
+add_subdirectory(serialization)
 add_subdirectory(utils)
 
 configure_file(${PROJECT_SOURCE_DIR}/include/config.h.in ${PROJECT_SOURCE_DIR}/include/config.h)
