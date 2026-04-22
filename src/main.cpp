@@ -582,8 +582,17 @@ auto main(int argc, char **argv) -> int
                             {
                                 if (arg.key() == ufps::Key::ESC && arg.state() == ufps::KeyState::UP)
                                 {
-                                    ufps::log::info("stopping");
-                                    running = false;
+                                    if (!show_debug_ui)
+                                    {
+                                        ufps::log::info("hiding Debug UI");
+                                        show_debug_ui = false;
+                                        renderer.set_enabled(show_debug_ui);
+                                    }
+                                    else
+                                    {
+                                        ufps::log::info("stopping");
+                                        running = false;
+                                    }
                                 }
                                 else if (arg.key() == ufps::Key::F1 && arg.state() == ufps::KeyState::UP)
                                 {
