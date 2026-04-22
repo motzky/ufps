@@ -15,6 +15,9 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include "concurrency/awaitable_manager.h"
+#include "concurrency/task.h"
+#include "concurrency/thread_pool.h"
 #include "config.h"
 #include "core/render_entity.h"
 #include "core/scene.h"
@@ -445,6 +448,31 @@ namespace
         }
         return material_lookup;
     }
+
+    auto pulse_light(ufps::AwaitableManager &awaitable, ufps::PointLight *light) -> ufps::EagerTask
+    {
+        auto fake_time = 0.f;
+
+        for (;;)
+        {
+            light->intensity = 10.f * (std::sin(fake_time) + 1.f) / 2.f;
+            fake_time += 0.01f;
+
+            co_await awaitable;
+        }
+    }
+
+    auto flicker_light(ufps::AwaitableManager &awaitable, ufps::PointLight *light) -> ufps::EagerTask
+    {
+        auto original_intensity = light->intensity;
+        for (;;)
+        {
+            co_await awaitable(1s);
+            light->intensity = 0.f;
+            co_await awaitable(100ms);
+            light->intensity = original_intensity;
+        }
+    }
 }
 
 auto main(int argc, char **argv) -> int
@@ -498,6 +526,9 @@ auto main(int argc, char **argv) -> int
                 resource_loader = std::make_unique<ufps::FileResourceLoader>(std::vector<std::filesystem::path>{"assets", "build/build_assets"});
             }
 
+            auto pool = ufps::ThreadPool{};
+            auto awaitable_manager = ufps::AwaitableManager{pool};
+
             auto mesh_manager = ufps::MeshManager{
                 ufps::decompress(resource_loader->load_data_buffer("blobs/vertex_data.bin")),
                 ufps::decompress(resource_loader->load_data_buffer("blobs/index_data.bin")),
@@ -525,8 +556,15 @@ auto main(int argc, char **argv) -> int
                 {
                     .ambient = {.r = .05f, .g = .05f, .b = .05f},
                     .lights = {
-                        {.position = {0.f, 2.5f, 0.f},
-                         .color = {.r = .5f, .g = .5f, .b = .5f},
+                        {.position = {1.f, 2.5f, 0.f},
+                         .color = {.r = 1.f, .g = 0.f, .b = 0.f},
+                         .constant_attenuation = 1.f,
+                         .linear_attenuation = .045f,
+                         .quadratic_attenuation = .0075f,
+                         .specular_power = 32.f,
+                         .intensity = 1.f},
+                        {.position = {-1.f, 2.5f, 0.f},
+                         .color = {.r = 0.f, .g = 1.f, .b = 0.f},
                          .constant_attenuation = 1.f,
                          .linear_attenuation = .045f,
                          .quadratic_attenuation = .0075f,
@@ -556,6 +594,9 @@ auto main(int argc, char **argv) -> int
 
             scene.create_entity("SM_Corner01_8_8_X");
 
+            pulse_light(awaitable_manager, std::addressof(scene.lights().lights[0]));
+            flicker_light(awaitable_manager, std::addressof(scene.lights().lights[1]));
+
             auto key_state = std::unordered_map<ufps::Key, bool>{
                 {ufps::Key::A, false},
                 {ufps::Key::D, false},
@@ -582,7 +623,7 @@ auto main(int argc, char **argv) -> int
                             {
                                 if (arg.key() == ufps::Key::ESC && arg.state() == ufps::KeyState::UP)
                                 {
-                                    if (!show_debug_ui)
+                                    if (show_debug_ui)
                                     {
                                         ufps::log::info("hiding Debug UI");
                                         show_debug_ui = false;
@@ -636,6 +677,9 @@ auto main(int argc, char **argv) -> int
                     event = window.pump_event();
                 }
 
+                awaitable_manager.pump();
+                pool.drain();
+
                 scene.camera().translate(walk_direction(key_state, scene.camera()));
                 scene.camera().update();
 
@@ -643,6 +687,9 @@ auto main(int argc, char **argv) -> int
 
                 window.swap();
             }
+
+            awaitable_manager.pump();
+            pool.drain();
         }
         catch (const ufps::Exception &err)
         {
