@@ -20,8 +20,7 @@ namespace ufps
           _workers{},
           _job_queue{},
           _worker_cv{},
-          _job_count{},
-          _jobs_complete{true}
+          _job_count{}
     {
         log::info("starting thread poll with {} workers", worker_count);
 
@@ -44,9 +43,8 @@ namespace ufps
 
     auto ThreadPool::add(Job job) -> void
     {
-        _job_queue.push(std::move(job));
         ++_job_count;
-        _jobs_complete = false;
+        _job_queue.push(std::move(job));
         _worker_cv.notify_one();
     }
 
@@ -57,9 +55,11 @@ namespace ufps
 
     auto ThreadPool::drain() const -> void
     {
-        while (_job_count != 0u)
+        auto count = _job_count.load();
+        while (count != 0u)
         {
-            _jobs_complete.wait(true);
+            _job_count.wait(count);
+            count = _job_count.load();
         }
     }
 
@@ -88,12 +88,10 @@ namespace ufps
             }
 
             job();
-            --_job_count;
 
-            if (_job_count == 0u)
+            if (--_job_count == 0u)
             {
-                _jobs_complete = true;
-                _jobs_complete.notify_one();
+                _job_count.notify_all();
             }
         }
         log::info("ending worker thread: {}", std::this_thread::get_id());

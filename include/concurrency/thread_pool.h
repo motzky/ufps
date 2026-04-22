@@ -36,6 +36,5 @@ namespace ufps
         Lock<> _worker_lock;
         CondVar _worker_cv;
         std::atomic<std::uint32_t> _job_count;
-        std::atomic<bool> _jobs_complete;
     };
 }
