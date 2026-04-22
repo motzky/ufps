@@ -228,7 +228,7 @@ namespace
         auto mesh_lookup = ufps::StringUnorderedMap<std::vector<ufps::MeshView>>{};
 
         const auto manifest_str = resource_loader.load_string("configs/model_manifest.yaml");
-        const auto manifest = YAML::Load(manifest_str);
+        const auto manifest = ::YAML::Load(manifest_str);
 
         for (const auto &model : manifest)
         {
