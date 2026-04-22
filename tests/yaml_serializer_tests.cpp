@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "serialization/yaml_serialization.h"
+#include "serialization/yaml_serializer.h"
 
 struct Simple
 {
