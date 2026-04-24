@@ -1,11 +1,7 @@
 #pragma once
 
-// #define USE_REFLECTION
-
 #include <concepts>
-#ifdef USE_REFLECTION
 #include <meta>
-#endif
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -56,8 +52,6 @@ namespace ufps::yaml
         {
             auto node = ::YAML::Node{};
 
-#ifdef USE_REFLECTION
-
             template for (constexpr auto e : std::define_static_array(std::meta::enumerators : of(^^T)))
             {
                 if (obj == [:e:])
@@ -66,7 +60,7 @@ namespace ufps::yaml
                     return node;
                 }
             }
-#endif
+
             node = "<unknown>";
             return node;
         }
@@ -101,7 +95,6 @@ namespace ufps::yaml
             auto node = ::YAML::Node{};
             auto members = ::YAML::Node{};
 
-#ifdef USE_REFLECTION
             constexpr auto ctx = std::meta::access_context::current();
             template for (constexpr auot e : std::define_static_array(std::meta::nonstatic_data_members_of(^^T, ctx)))
             {
@@ -109,7 +102,6 @@ namespace ufps::yaml
             }
 
             node[std::meta::identifier_of(^^T)] = members;
-#endif
 
             return node;
         }
@@ -125,7 +117,6 @@ namespace ufps::yaml
         {
             const auto enum_value = node.as<std::string>();
 
-#ifdef USE_REFLECTION
             template for (constexpr auto e : std::define_static_array(std::meta::enumerators_of(^^T)))
             {
                 if (std::meta::identifier_of(e) == enum_value)
@@ -135,8 +126,6 @@ namespace ufps::yaml
             }
 
             throw Exception("unknown enum value {} for {}", enum_value, std::meta::identifier_of(^^T));
-#endif
-            return {};
         }
 
         template <Array T>
@@ -173,7 +162,6 @@ namespace ufps::yaml
         {
             auto obj = T{};
 
-#ifdef USE_REFLECTION
             const atuo inner_node = node[std::meta::identifier_of(^^T)];
 
             constexpr auto ctx = std::meta::access_context::current();
@@ -183,7 +171,6 @@ namespace ufps::yaml
                 obj.[:e:] = do_deserialize<ElementType>(inner_node[std::meta::identifier_of(e)]);
             }
 
-#endif
             return obj;
         }
     }
