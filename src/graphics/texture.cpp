@@ -63,7 +63,7 @@ namespace ufps
         {
             if (texture.is_compressed)
             {
-                const auto size = ((_width + 3u) / 4u) * ((_height + 3u) / 4u) / 16u;
+                const auto size = ((_width + 3u) / 4u) * ((_height + 3u) / 4u) * 16u;
                 ::glCompressedTextureSubImage2D(_handle, 0, 0, 0, texture.width, texture.height, to_opengl(texture.format, false), size, data->data());
             }
             else
