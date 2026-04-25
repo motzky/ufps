@@ -1,12 +1,15 @@
 #include "concurrency/thread_pool.h"
 
 #include <algorithm>
+#include <chrono>
 #include <thread>
 
 #include "concurrency/concurrent_queue.h"
 #include "concurrency/cond_var.h"
 #include "concurrency/thread.h"
 #include "log.h"
+
+using namespace std::literals;
 
 namespace ufps
 {
@@ -43,6 +46,8 @@ namespace ufps
         }
 
         _workers.clear();
+
+        std::this_thread::sleep_for(100ms);
     }
 
     auto ThreadPool::add(Job job) -> void
