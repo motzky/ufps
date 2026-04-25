@@ -208,6 +208,13 @@ namespace ufps
         };
     }
 
+    auto has_resource(std::string_view name) -> bool
+    {
+        auto it = _lookup.find(name);
+
+        return it != _lookup.end();
+    }
+
     auto EmbeddedResourceLoader::load_string(std::string_view name) -> std::string
     {
         const auto res = _lookup.find(name);
