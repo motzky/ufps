@@ -197,7 +197,7 @@ namespace ufps
             std::memcpy(&dds_header, image_data.data() + sizeof(dds_magic), sizeof(dds_header));
 
             ensure(dds_header.dwSize == sizeof(dds_header), "invalid dds_header size: {}", dds_header.dwSize);
-            if (dds_header.ddspf.dwFourCC == 0x30315833)
+            if (dds_header.ddspf.dwFourCC == 0x30315844)
             {
                 auto dx10_header = DDS_HEADER_DXT10{};
                 std::memcpy(&dx10_header, image_data.data() + sizeof(dds_magic) + sizeof(dds_header), sizeof(dx10_header));
