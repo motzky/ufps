@@ -71,7 +71,7 @@ namespace ufps
 
         constexpr auto intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>;
 
-        auto create_entity(std::string_view name) -> void;
+        auto create_entity(std::string_view name) -> Entity *;
 
         template <class Self>
         auto entities(this Self &&self)
@@ -125,6 +125,24 @@ namespace ufps
         constexpr auto &exposure_options(this auto &&self)
         {
             return self._exposure_options;
+        }
+
+        constexpr auto remove(const Entity &entity) -> void
+        {
+            const auto iter = std::ranges::find_if(_entities, [&entity](const auto &e)
+                                                   { return &e == &entity; });
+            expect(iter != std::ranges::cend(_entities), "Entity not found");
+
+            _entities.erase(iter);
+        }
+
+        constexpr auto remove(const PointLight &light) -> void
+        {
+            const auto iter = std::ranges::find_if(_lights.lights, [&light](const auto &e)
+                                                   { return &e == &light; });
+            expect(iter != std::ranges::cend(_lights.lights), "light not found");
+
+            _lights.lights.erase(iter);
         }
 
     private:

@@ -25,7 +25,7 @@ namespace ufps
     {
     }
 
-    auto Scene::create_entity(std::string_view name) -> void
+    auto Scene::create_entity(std::string_view name) -> Entity *
     {
         const auto cached = std::ranges::find_if(_entity_cache, [name](const auto &e)
                                                  { return e.name() == name; });
@@ -33,6 +33,8 @@ namespace ufps
 
         auto &new_entity = _entities.emplace_back(*cached);
         new_entity.set_transform({});
+
+        return &new_entity;
     }
 
     auto Scene::cache_entity(std::string_view name, Entity entity) -> void

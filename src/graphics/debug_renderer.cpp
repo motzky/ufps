@@ -395,6 +395,42 @@ namespace ufps
         if (mesh_selected_index)
         {
             scene.create_entity(mesh_names[*mesh_selected_index]);
+            _selected = &scene.entities().back();
+        }
+
+        if (::ImGui::Button("delete"))
+        {
+            if (auto **selected_entity = std::get_if<Entity *>(&_selected))
+            {
+                auto *entity = *selected_entity;
+                scene.remove(*entity);
+                _selected = std::monostate{};
+            }
+            if (auto **selected_entity = std::get_if<PointLight *>(&_selected))
+            {
+                auto *entity = *selected_entity;
+                scene.remove(*entity);
+                _selected = std::monostate{};
+            }
+        }
+
+        ::ImGui::SameLine();
+
+        if (::ImGui::Button("duplicate"))
+        {
+            if (auto **selected_entity = std::get_if<Entity *>(&_selected))
+            {
+                auto *entity = *selected_entity;
+                auto *new_entity = scene.create_entity(entity->name());
+                new_entity->set_transform(entity->transform());
+                _selected = new_entity;
+            }
+            if (auto **selected_light = std::get_if<PointLight *>(&_selected))
+            {
+                auto *light = *selected_light;
+                scene.add(*light);
+                _selected = &scene.lights().lights.back();
+            }
         }
 
         for (auto &entity : scene.entities())
