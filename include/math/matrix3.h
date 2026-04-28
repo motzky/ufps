@@ -78,7 +78,7 @@ namespace ufps
             return m;
         }
 
-        auto row(std::size_t index) const -> Vector3
+        constexpr auto row(std::size_t index) const -> Vector3
         {
             ensure(index < 3, "index out of range");
 
