@@ -475,7 +475,7 @@ namespace
     }
 }
 
-auto main(int argc, char **argv) -> int
+auto start(int argc, char **argv) -> int
 {
     if (ufps::version::tweak == 0)
     {
@@ -500,214 +500,222 @@ auto main(int argc, char **argv) -> int
     std::println("]");
 #endif
 
+    auto window = ufps::Window{1920u, 1080u, 0u, 0u};
+    auto running = true;
+
+    const auto sampler = ufps::Sampler{
+        ufps::FilterType::LINEAR,
+        ufps::FilterType::LINEAR,
+        ufps::WrapMode::REPEAT,
+        ufps::WrapMode::REPEAT,
+        "sampler"};
+
+    auto resource_loader = std::unique_ptr<ufps::ResourceLoader>();
+    if constexpr (ufps::config::use_embedded_resource_loader)
     {
+        ufps::log::info("using embedded resource loader");
+        resource_loader = std::make_unique<ufps::EmbeddedResourceLoader>();
+    }
+    else
+    {
+        ufps::log::info("using file resource loader");
+        resource_loader = std::make_unique<ufps::FileResourceLoader>(std::vector<std::filesystem::path>{"assets", "build/build_assets"});
+    }
 
-        try
+    auto pool = ufps::ThreadPool{};
+    auto awaitable_manager = ufps::AwaitableManager{pool};
+
+    auto mesh_manager = ufps::MeshManager{
+        ufps::decompress(resource_loader->load_data_buffer("blobs/vertex_data.bin")),
+        ufps::decompress(resource_loader->load_data_buffer("blobs/index_data.bin")),
+        build_mesh_lookup(*resource_loader)};
+    auto material_manager = ufps::MaterialManager{};
+    auto texture_manager = ufps::TextureManager{};
+
+    mesh_manager.load("cube", std::vector{cube()});
+
+    auto renderer = ufps::DebugRenderer{window, *resource_loader, texture_manager, mesh_manager};
+    auto show_debug_ui = false;
+
+    auto scene = ufps::Scene{
+        mesh_manager,
+        material_manager,
+        texture_manager,
+        {{},
+         {0.f, 0.f, -1.f},
+         {0.f, 1.f, 0.f},
+         std::numbers::pi_v<float> / 4.f,
+         static_cast<float>(window.width()),
+         static_cast<float>(window.height()),
+         0.01f,
+         1000.f},
         {
-            auto window = ufps::Window{1920u, 1080u, 0u, 0u};
-            auto running = true;
+            .ambient = {.r = .05f, .g = .05f, .b = .05f},
+            .lights = {
+                {.position = {1.f, 2.5f, 0.f},
+                 .color = {.r = 1.f, .g = 0.f, .b = 0.f},
+                 .constant_attenuation = 1.f,
+                 .linear_attenuation = .045f,
+                 .quadratic_attenuation = .0075f,
+                 .specular_power = 32.f,
+                 .intensity = 1.f},
+                {.position = {-1.f, 2.5f, 0.f},
+                 .color = {.r = 0.f, .g = 1.f, .b = 0.f},
+                 .constant_attenuation = 1.f,
+                 .linear_attenuation = .045f,
+                 .quadratic_attenuation = .0075f,
+                 .specular_power = 32.f,
+                 .intensity = 1.f}},
+        },
+        {.max_brightness = 1.f, .contrast = 1.f, .linear_section_start = .22f, .linear_section_length = .4f, .black_tightness = 1.33f, .pedestal = 0.f, .gamma = 2.2f},
+        {},
+        {}};
 
-            const auto sampler = ufps::Sampler{
-                ufps::FilterType::LINEAR,
-                ufps::FilterType::LINEAR,
-                ufps::WrapMode::REPEAT,
-                ufps::WrapMode::REPEAT,
-                "sampler"};
+    const auto material_lookup = build_materials(*resource_loader, texture_manager, material_manager, sampler);
 
-            auto resource_loader = std::unique_ptr<ufps::ResourceLoader>();
-            if constexpr (ufps::config::use_embedded_resource_loader)
-            {
-                ufps::log::info("using embedded resource loader");
-                resource_loader = std::make_unique<ufps::EmbeddedResourceLoader>();
-            }
-            else
-            {
-                ufps::log::info("using file resource loader");
-                resource_loader = std::make_unique<ufps::FileResourceLoader>(std::vector<std::filesystem::path>{"assets", "build/build_assets"});
-            }
+    for (const auto &[name, materials] : material_lookup)
+    {
+        auto mesh_views = mesh_manager.mesh(name);
+        auto render_entities = std::views::zip(mesh_views, materials) |
+                               std::views::transform(
+                                   [&mesh_manager](const auto &e)
+                                   {
+                                       const auto &[mesh_view, material] = e;
+                                       return ufps::RenderEntity(mesh_view, material, mesh_manager);
+                                   }) |
+                               std::ranges::to<std::vector>();
 
-            auto pool = ufps::ThreadPool{};
-            auto awaitable_manager = ufps::AwaitableManager{pool};
+        scene.cache_entity(name, {std::string{name}, std::move(render_entities), {}});
+    }
 
-            auto mesh_manager = ufps::MeshManager{
-                ufps::decompress(resource_loader->load_data_buffer("blobs/vertex_data.bin")),
-                ufps::decompress(resource_loader->load_data_buffer("blobs/index_data.bin")),
-                build_mesh_lookup(*resource_loader)};
-            auto material_manager = ufps::MaterialManager{};
-            auto texture_manager = ufps::TextureManager{};
+    scene.create_entity("SM_Corner01_8_8_X");
 
-            mesh_manager.load("cube", std::vector{cube()});
+    pulse_light(awaitable_manager, std::addressof(scene.lights().lights[0]));
+    flicker_light(awaitable_manager, std::addressof(scene.lights().lights[1]));
 
-            auto renderer = ufps::DebugRenderer{window, *resource_loader, texture_manager, mesh_manager};
-            auto show_debug_ui = false;
+    auto key_state = std::unordered_map<ufps::Key, bool>{
+        {ufps::Key::A, false},
+        {ufps::Key::D, false},
+        {ufps::Key::S, false},
+        {ufps::Key::W, false},
+    };
 
-            auto scene = ufps::Scene{
-                mesh_manager,
-                material_manager,
-                texture_manager,
-                {{},
-                 {0.f, 0.f, -1.f},
-                 {0.f, 1.f, 0.f},
-                 std::numbers::pi_v<float> / 4.f,
-                 static_cast<float>(window.width()),
-                 static_cast<float>(window.height()),
-                 0.01f,
-                 1000.f},
+    while (running)
+    {
+        auto event = window.pump_event();
+        while (event && running)
+        {
+            std::visit(
+                [&](auto &&arg)
                 {
-                    .ambient = {.r = .05f, .g = .05f, .b = .05f},
-                    .lights = {
-                        {.position = {1.f, 2.5f, 0.f},
-                         .color = {.r = 1.f, .g = 0.f, .b = 0.f},
-                         .constant_attenuation = 1.f,
-                         .linear_attenuation = .045f,
-                         .quadratic_attenuation = .0075f,
-                         .specular_power = 32.f,
-                         .intensity = 1.f},
-                        {.position = {-1.f, 2.5f, 0.f},
-                         .color = {.r = 0.f, .g = 1.f, .b = 0.f},
-                         .constant_attenuation = 1.f,
-                         .linear_attenuation = .045f,
-                         .quadratic_attenuation = .0075f,
-                         .specular_power = 32.f,
-                         .intensity = 1.f}},
-                },
-                {.max_brightness = 1.f, .contrast = 1.f, .linear_section_start = .22f, .linear_section_length = .4f, .black_tightness = 1.33f, .pedestal = 0.f, .gamma = 2.2f},
-                {},
-                {}};
+                    using T = std::decay_t<decltype(arg)>;
 
-            const auto material_lookup = build_materials(*resource_loader, texture_manager, material_manager, sampler);
-
-            for (const auto &[name, materials] : material_lookup)
-            {
-                auto mesh_views = mesh_manager.mesh(name);
-                auto render_entities = std::views::zip(mesh_views, materials) |
-                                       std::views::transform(
-                                           [&mesh_manager](const auto &e)
-                                           {
-                                               const auto &[mesh_view, material] = e;
-                                               return ufps::RenderEntity(mesh_view, material, mesh_manager);
-                                           }) |
-                                       std::ranges::to<std::vector>();
-
-                scene.cache_entity(name, {std::string{name}, std::move(render_entities), {}});
-            }
-
-            scene.create_entity("SM_Corner01_8_8_X");
-
-            pulse_light(awaitable_manager, std::addressof(scene.lights().lights[0]));
-            flicker_light(awaitable_manager, std::addressof(scene.lights().lights[1]));
-
-            auto key_state = std::unordered_map<ufps::Key, bool>{
-                {ufps::Key::A, false},
-                {ufps::Key::D, false},
-                {ufps::Key::S, false},
-                {ufps::Key::W, false},
-            };
-
-            while (running)
-            {
-                auto event = window.pump_event();
-                while (event && running)
-                {
-                    std::visit(
-                        [&](auto &&arg)
+                    if constexpr (std::same_as<T, ufps::StopEvent>)
+                    {
+                        ufps::log::info("stopping");
+                        running = false;
+                    }
+                    if constexpr (std::same_as<T, ufps::KeyEvent>)
+                    {
+                        if (arg.key() == ufps::Key::ESC && arg.state() == ufps::KeyState::UP)
                         {
-                            using T = std::decay_t<decltype(arg)>;
-
-                            if constexpr (std::same_as<T, ufps::StopEvent>)
+                            if (show_debug_ui)
+                            {
+                                ufps::log::info("hiding Debug UI");
+                                show_debug_ui = false;
+                                renderer.set_enabled(show_debug_ui);
+                            }
+                            else
                             {
                                 ufps::log::info("stopping");
                                 running = false;
                             }
-                            if constexpr (std::same_as<T, ufps::KeyEvent>)
+                        }
+                        else if (arg.key() == ufps::Key::F1 && arg.state() == ufps::KeyState::UP)
+                        {
+                            if (!show_debug_ui)
                             {
-                                if (arg.key() == ufps::Key::ESC && arg.state() == ufps::KeyState::UP)
-                                {
-                                    if (show_debug_ui)
-                                    {
-                                        ufps::log::info("hiding Debug UI");
-                                        show_debug_ui = false;
-                                        renderer.set_enabled(show_debug_ui);
-                                    }
-                                    else
-                                    {
-                                        ufps::log::info("stopping");
-                                        running = false;
-                                    }
-                                }
-                                else if (arg.key() == ufps::Key::F1 && arg.state() == ufps::KeyState::UP)
-                                {
-                                    if (!show_debug_ui)
-                                    {
-                                        ufps::log::info("showing Debug UI");
-                                    }
-                                    else
-                                    {
-                                        ufps::log::info("hiding Debug UI");
-                                    }
-                                    show_debug_ui = !show_debug_ui;
-                                    renderer.set_enabled(show_debug_ui);
-                                }
-                                else
-                                {
-                                    key_state[arg.key()] = arg.state() == ufps::KeyState::DOWN;
-                                }
+                                ufps::log::info("showing Debug UI");
                             }
-                            else if constexpr (std::same_as<T, ufps::MouseEvent>)
+                            else
                             {
-                                if (!show_debug_ui || key_state[ufps::Key::LSHIFT])
-                                {
-                                    static constexpr auto sensitivity = float{0.002f};
-                                    const auto delta_x = arg.delta_x() * sensitivity;
-                                    const auto delta_y = arg.delta_y() * sensitivity;
-                                    scene.camera().adjust_yaw(-delta_x);
-                                    scene.camera().adjust_pitch(delta_y);
-                                }
+                                ufps::log::info("hiding Debug UI");
                             }
-                            else if constexpr (std::same_as<T, ufps::MouseButtonEvent>)
-                            {
-                                if (show_debug_ui)
-                                {
-                                    renderer.add_mouse_event(arg);
-                                }
-                            }
-                        },
-                        *event);
+                            show_debug_ui = !show_debug_ui;
+                            renderer.set_enabled(show_debug_ui);
+                        }
+                        else
+                        {
+                            key_state[arg.key()] = arg.state() == ufps::KeyState::DOWN;
+                        }
+                    }
+                    else if constexpr (std::same_as<T, ufps::MouseEvent>)
+                    {
+                        if (!show_debug_ui || key_state[ufps::Key::LSHIFT])
+                        {
+                            static constexpr auto sensitivity = float{0.002f};
+                            const auto delta_x = arg.delta_x() * sensitivity;
+                            const auto delta_y = arg.delta_y() * sensitivity;
+                            scene.camera().adjust_yaw(-delta_x);
+                            scene.camera().adjust_pitch(delta_y);
+                        }
+                    }
+                    else if constexpr (std::same_as<T, ufps::MouseButtonEvent>)
+                    {
+                        if (show_debug_ui)
+                        {
+                            renderer.add_mouse_event(arg);
+                        }
+                    }
+                },
+                *event);
 
-                    event = window.pump_event();
-                }
-
-                awaitable_manager.pump();
-                pool.drain();
-
-                scene.camera().translate(walk_direction(key_state, scene.camera()));
-                scene.camera().update();
-
-                renderer.render(scene);
-
-                window.swap();
-            }
-
-            awaitable_manager.pump();
-            pool.drain();
+            event = window.pump_event();
         }
-        catch (const ufps::Exception &err)
-        {
-            std::println(std::cerr, "{}", err);
-        }
-        catch (const std::runtime_error &err)
-        {
-            std::println(std::cerr, "{}", err.what());
-        }
-        catch (...)
-        {
-            std::println(std::cerr, "unknown exception");
-        }
+
+        awaitable_manager.pump();
+        pool.drain();
+
+        scene.camera().translate(walk_direction(key_state, scene.camera()));
+        scene.camera().update();
+
+        renderer.render(scene);
+
+        window.swap();
+    }
+
+    awaitable_manager.pump();
+    pool.drain();
+
+    return 0;
+}
+
+auto main(int argc, char **argv) -> int
+{
+    int return_code;
+    try
+    {
+        return_code = start(argc, argv);
+    }
+    catch (const ufps::Exception &err)
+    {
+        ufps::log::error("{}", err);
+        return_code = -1;
+    }
+    catch (const std::exception &e)
+    {
+        ufps::log::error("{}", e.what());
+        return_code = -1;
+    }
+    catch (...)
+    {
+        ufps::log::error("unhadnled unknown exception");
+        return_code = -1;
     }
 
 #ifndef WIN32
     ::glfwTerminate();
 #endif
 
-    return 0;
+    return return_code;
 }
