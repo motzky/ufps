@@ -49,7 +49,7 @@ namespace ufps
     auto load_model(DataBufferView model_data, std::string format = "") -> std::tuple<std::string, std::vector<ModelData>>;
 
     template <class... Args>
-    auto vertices(Args &&...args) -> std::vector<ufps::VertexData>
+    constexpr auto vertices(Args &&...args) -> std::vector<ufps::VertexData>
     {
         return std::views::zip_transform(
                    []<class... A>(A &&...a)
