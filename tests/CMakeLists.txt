@@ -5,7 +5,8 @@ include(GoogleTest)
 mark_as_advanced(BUILD_GMOCK BUILD_GTEST gtest_hide_internal_symbols)
 
 add_executable(unit_tests
-    auto_release_tests.cpp    
+    auto_release_tests.cpp
+    concurrent_queue_tests.cpp
     ensure_tests.cpp
     formatter_tests.cpp
     matrix3_tests.cpp
