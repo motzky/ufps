@@ -13,12 +13,28 @@
 
 namespace ufps
 {
+
+    template <class... Args>
+    constexpr auto expect(bool predicate, std::format_string<Args...> msg, Args &&...args) -> void;
+
+    template <class T, class... Args>
+    constexpr auto expect(std::unique_ptr<T> &obj, std::format_string<Args...>(msg), Args &&...args) -> void;
+
+    template <class... Args>
+    constexpr auto ensure(bool predicate, std::format_string<Args...> msg, Args &&...args) -> void;
+
+    template <class T, T Invalid, class... Args>
+    constexpr auto ensure(AutoRelease<T, Invalid> &obj, std::format_string<Args...> msg, Args &&...args) -> void;
+
+    template <class T, class D, class... Args>
+    constexpr auto ensure(std::unique_ptr<T, D> &obj, std::format_string<Args...> msg, Args &&...args) -> void;
+
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4702)
 #endif
     template <class... Args>
-    auto expect(bool predicate, std::format_string<Args...> msg, Args &&...args) -> void
+    constexpr auto expect(bool predicate, std::format_string<Args...> msg, Args &&...args) -> void
     {
         if (!predicate)
         {
@@ -33,7 +49,7 @@ namespace ufps
 #endif
 
     template <class... Args>
-    auto ensure(bool predicate, std::format_string<Args...> msg, Args &&...args) -> void
+    constexpr auto ensure(bool predicate, std::format_string<Args...> msg, Args &&...args) -> void
     {
         if (!predicate)
         {
@@ -42,13 +58,13 @@ namespace ufps
     }
 
     template <class T, T Invalid, class... Args>
-    auto ensure(AutoRelease<T, Invalid> &obj, std::format_string<Args...> msg, Args &&...args) -> void
+    constexpr auto ensure(AutoRelease<T, Invalid> &obj, std::format_string<Args...> msg, Args &&...args) -> void
     {
         ensure(!!obj, msg, std::forward<Args>(args)...);
     }
 
     template <class T, class D, class... Args>
-    auto ensure(std::unique_ptr<T, D> &obj, std::format_string<Args...> msg, Args &&...args) -> void
+    constexpr auto ensure(std::unique_ptr<T, D> &obj, std::format_string<Args...> msg, Args &&...args) -> void
     {
         ensure(obj != nullptr, msg, std::forward<Args>(args)...);
     }
