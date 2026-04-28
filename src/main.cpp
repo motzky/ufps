@@ -455,7 +455,7 @@ namespace
 
         for (;;)
         {
-            light->intensity = 10.f * (std::sin(fake_time) + 1.f) / 2.f;
+            light->intensity = 5.f + 10.f * (std::sin(fake_time) + 1.f) / 2.f;
             fake_time += 0.01f;
 
             co_await awaitable;
@@ -467,7 +467,7 @@ namespace
         auto original_intensity = light->intensity;
         for (;;)
         {
-            co_await awaitable(1s);
+            co_await awaitable(3s);
             light->intensity = 0.f;
             co_await awaitable(100ms);
             light->intensity = original_intensity;
