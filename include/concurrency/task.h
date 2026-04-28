@@ -1,7 +1,11 @@
 #pragma once
 
 #include <coroutine>
+#include <stdexcept>
 #include <type_traits>
+
+#include "concurrency/awaitable_manager.h"
+#include "log.h"
 
 namespace ufps
 {
@@ -26,6 +30,8 @@ namespace ufps
 
             auto unhandled_exception() -> void
             {
+                ufps::log::error("unhandled exception in Task");
+                AwaitableManager::last_exception() = std::current_exception();
             }
 
             auto get_return_object()
