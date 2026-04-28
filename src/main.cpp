@@ -449,7 +449,7 @@ namespace
         return material_lookup;
     }
 
-    auto pulse_light(ufps::AwaitableManager &awaitable, ufps::PointLight *light) -> ufps::EagerTask
+    auto pulse_light(ufps::AwaitableManager &awaitable, ufps::PointLight *light) -> ufps::Task
     {
         auto fake_time = 0.f;
 
@@ -462,7 +462,7 @@ namespace
         }
     }
 
-    auto flicker_light(ufps::AwaitableManager &awaitable, ufps::PointLight *light) -> ufps::EagerTask
+    auto flicker_light(ufps::AwaitableManager &awaitable, ufps::PointLight *light) -> ufps::Task
     {
         auto original_intensity = light->intensity;
         for (;;)
