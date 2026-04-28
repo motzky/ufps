@@ -5,10 +5,10 @@
 namespace ufps::version
 {
     // clang-format off
-    static constexpr auto year = @ufps_VERSION_MAJOR@;
-    static constexpr auto month = @ufps_VERSION_MINOR@;
-    static constexpr auto day = @ufps_VERSION_PATCH@;
-    static constexpr auto tweak = @ufps_VERSION_TWEAK@;
+    inline constexpr auto year = @ufps_VERSION_MAJOR@;
+    inline constexpr auto month = @ufps_VERSION_MINOR@;
+    inline constexpr auto day = @ufps_VERSION_PATCH@;
+    inline constexpr auto tweak = @ufps_VERSION_TWEAK@;
     // clang-format on
 
 }
@@ -16,10 +16,10 @@ namespace ufps::version
 namespace ufps::config
 {
     // clang-format off
-    static constexpr auto log_to_file = ${LOG_TO_FILE};
-    static constexpr auto log_enable_debug = ${LOG_ENABLE_DEBUG};
-    static constexpr auto log_assimp = ${LOG_ASSIMP};
-    static constexpr auto opengl_debug_enabled = ${OPENGL_ENABLE_DEBUG};
-    static constexpr bool use_embedded_resource_loader = UFPS_USE_EMBEDDED_RESOURCE_LOADER;
+    inline constexpr auto log_to_file = ${LOG_TO_FILE};
+    inline constexpr auto log_enable_debug = ${LOG_ENABLE_DEBUG};
+    inline constexpr auto log_assimp = ${LOG_ASSIMP};
+    inline constexpr auto opengl_debug_enabled = ${OPENGL_ENABLE_DEBUG};
+    inline constexpr bool use_embedded_resource_loader = UFPS_USE_EMBEDDED_RESOURCE_LOADER;
     // clang-format on
 }
