@@ -26,13 +26,28 @@ namespace ufps
         {
         }
 
-        auto stacktrace() const -> std::string;
-        auto to_string() const -> std::string;
-        auto what() const -> std::string_view;
+        constexpr auto stacktrace() const -> std::string;
+        constexpr auto to_string() const -> std::string;
+        constexpr auto what() const -> std::string_view;
 
     private:
         std::stacktrace _trace;
         std::string _what;
     };
+
+    constexpr auto Exception::stacktrace() const -> std::string
+    {
+        return std::to_string(_trace);
+    }
+
+    constexpr auto Exception::what() const -> std::string_view
+    {
+        return _what;
+    }
+
+    constexpr auto Exception::to_string() const -> std::string
+    {
+        return std::format("{}\n{}", what(), stacktrace());
+    }
 
 }
