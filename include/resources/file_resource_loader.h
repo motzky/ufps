@@ -16,6 +16,7 @@ namespace ufps
         FileResourceLoader(const std::vector<std::filesystem::path> &roots);
         ~FileResourceLoader() override = default;
 
+        auto has_resource(std::string_view name) -> bool override;
         auto load_string(std::string_view name) -> std::string override;
         auto load_data_buffer(std::string_view name) -> DataBuffer override;
         auto resources(std::string_view) -> std::vector<std::string> override;

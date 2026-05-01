@@ -1,6 +1,9 @@
 #pragma once
 
+#include <format>
 #include <string>
+
+#include "utils/formatter.h"
 
 namespace ufps
 {
@@ -14,13 +17,13 @@ namespace ufps
     {
 
     public:
-        MouseButtonEvent(float x, float y, MouseButtonState state);
+        constexpr MouseButtonEvent(float x, float y, MouseButtonState state);
 
-        auto x() const -> float;
-        auto y() const -> float;
-        auto state() const -> MouseButtonState;
+        constexpr auto x() const -> float;
+        constexpr auto y() const -> float;
+        constexpr auto state() const -> MouseButtonState;
 
-        auto to_string() const -> std::string;
+        constexpr auto to_string() const -> std::string;
 
     private:
         float _x;
@@ -28,6 +31,42 @@ namespace ufps
         MouseButtonState _state;
     };
 
-    auto to_string(MouseButtonState obj) -> std::string;
+    constexpr auto to_string(MouseButtonState obj) -> std::string;
 
+    constexpr MouseButtonEvent::MouseButtonEvent(float x, float y, MouseButtonState state)
+        : _x(x), _y(y), _state(state)
+    {
+    }
+
+    constexpr auto MouseButtonEvent::x() const -> float
+    {
+        return _x;
+    }
+    constexpr auto MouseButtonEvent::y() const -> float
+    {
+        return _y;
+    }
+    constexpr auto MouseButtonEvent::state() const -> MouseButtonState
+    {
+        return _state;
+    }
+
+    constexpr auto MouseButtonEvent::to_string() const -> std::string
+    {
+        return std::format("MouseButtonEvent: {} @ {} {}", _state, _x, _y);
+    }
+
+    constexpr auto to_string(MouseButtonState obj) -> std::string
+    {
+        switch (obj)
+        {
+            using enum ufps::MouseButtonState;
+        case UP:
+            return "UP";
+        case DOWN:
+            return "DOWN";
+        default:
+            return "UNKNOWN";
+        }
+    }
 }

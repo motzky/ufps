@@ -3,11 +3,13 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <mutex>
 #include <print>
 #include <source_location>
 #include <string>
 #include <vector>
 
+#include "concurrency/lock.h"
 #include "config.h"
 #include "utils/exception.h"
 #include "utils/formatter.h"
@@ -42,6 +44,7 @@ namespace ufps::log
     };
 
     inline std::vector<std::pair<Level, std::string>> history{};
+    inline Lock history_lock{};
 
     template <Level L, class... Args>
     struct Print
@@ -78,6 +81,9 @@ namespace ufps::log
             const auto path = std::filesystem::path{loc.file_name()};
             const auto log_line = std::format(
                 "[{}] ({}:{}) - {}", level, path.filename().string(), loc.line(), std::format(msg, std::forward<Args>(args)...));
+
+            const auto lock = std::scoped_lock(history_lock);
+
             std::println("{}", log_line);
 
             if constexpr (config::log_to_file)

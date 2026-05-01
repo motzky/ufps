@@ -21,14 +21,14 @@ namespace ufps
         struct ToStringCPO
         {
             template <HasToStringMember T>
-            auto operator()(T &&obj) const -> std::string
+            constexpr auto operator()(T &&obj) const -> std::string
             {
                 return obj.to_string();
             }
 
             template <class T>
                 requires(!HasToStringMember<T> && HasToStringFree<T>)
-            auto operator()(T &&obj) const -> std::string
+            constexpr auto operator()(T &&obj) const -> std::string
             {
                 return to_string(obj);
             }
@@ -45,7 +45,7 @@ namespace ufps
             return std::begin(ctx);
         }
 
-        auto format(const T &obj, std::format_context &ctx) const
+        constexpr auto format(const T &obj, std::format_context &ctx) const
         {
             return std::format_to(ctx.out(), "{}", util::to_string(obj));
         }

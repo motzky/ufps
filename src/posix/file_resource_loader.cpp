@@ -23,6 +23,21 @@ namespace ufps
         }
     }
 
+    auto FileResourceLoader::has_resource(std::string_view name) -> bool
+    {
+        for (const auto &root : _roots)
+        {
+            auto path = root / name;
+
+            if (std::filesystem::exists(path))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     auto FileResourceLoader::load_string(std::string_view name) -> std::string
     {
         for (const auto &root : _roots)

@@ -90,7 +90,8 @@
     "buffer": "cpp",
     "netfwd": "cpp",
     "coroutine": "cpp"
-},
+  },
   "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
-  "Lua.diagnostics.globals": ["Vector3", "distance"]
+  "Lua.diagnostics.globals": ["Vector3", "distance"],
+  "cmake.ctest.neverDebugTestsWithLaunchConfiguration": true
 }

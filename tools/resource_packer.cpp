@@ -147,9 +147,12 @@ auto main(int argc, char **argv) -> int
 
                     if (model.normal)
                     {
+
+                        auto compressed = !resource_loader.has_resource(*model.normal);
+
                         texture_names.insert(*model.normal);
                         out << ::YAML::Key << "normal_name" << ::YAML::Value << *model.normal;
-                        out << ::YAML::Key << "normal_compressed" << ::YAML::Value << model.normal->ends_with(".dds");
+                        out << ::YAML::Key << "normal_compressed" << ::YAML::Value << compressed;
                     }
                     else
                     {
@@ -227,7 +230,16 @@ auto main(int argc, char **argv) -> int
 
                     ufps::log::debug("packing texture: {}", t);
 
-                    const auto texture_data = resource_loader.load_data_buffer(t);
+                    auto real_t = t;
+                    if (!resource_loader.has_resource(t))
+                    {
+                        auto pos = t.find(".png");
+                        if (pos != std::string::npos)
+                        {
+                            real_t = real_t.replace(pos, 4uz, ".dds");
+                        }
+                    }
+                    const auto texture_data = resource_loader.load_data_buffer(real_t);
                     const auto size = texture_data.size();
 
                     texture_blob.append_range(std::as_bytes(std::span{texture_data.data(), size}));

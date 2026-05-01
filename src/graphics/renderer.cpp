@@ -320,7 +320,7 @@ namespace ufps
             auto writer = BufferWriter{_light_buffer};
             writer.write(lights.ambient);
             writer.write(static_cast<std::uint32_t>(lights.lights.size()));
-            writer.write<PointLight>(lights.lights);
+            writer.write(lights.lights.data());
         }
 
         _light_pass_program.set_uniforms(_gbuffer_rt.first_color_attachment_index + 0u,

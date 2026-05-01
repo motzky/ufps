@@ -40,8 +40,7 @@ add_executable(
 install(TARGETS ufps DESTINATION bin COMPONENT application)
 install(FILES ${PROJECT_BINARY_DIR}/resources DESTINATION bin COMPONENT application)
 
-add_subdirectory(core)
-add_subdirectory(events)
+add_subdirectory(concurrency)
 add_subdirectory(graphics)
 add_subdirectory(math)
 add_subdirectory(resources)
@@ -105,7 +104,7 @@ target_compile_options(ufpslib PRIVATE
     -Werror
     -Wcast-qual
     -Wconversion-null
-    -Wmissing-declarations
+    -Wno-missing-declarations
     -Woverlength-strings
     -Wpointer-arith
     -Wunused-local-typedefs
@@ -125,7 +124,7 @@ target_compile_options(ufps PRIVATE
     -Werror
     -Wcast-qual
     -Wconversion-null
-    -Wmissing-declarations
+    -Wno-missing-declarations
     -Woverlength-strings
     -Wpointer-arith
     -Wunused-local-typedefs

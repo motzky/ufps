@@ -30,5 +30,6 @@ resources: build
 
 test: build
 	cmake --build build --config Debug --target unit_tests
-	ctest --test-dir ./build -C Debug --progress -j
+# 	ctest --test-dir ./build -C Debug --progress -j
+	./build/tests/Debug/unit_tests --gtest_color=yes
 

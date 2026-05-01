@@ -6,7 +6,7 @@ namespace
 {
 #ifndef WIN32
 #define DWORD std::uint32_t
-#define UINT std::uint16_t
+#define UINT std::uint32_t
 #endif
 
     struct DDS_PIXELFORMAT
