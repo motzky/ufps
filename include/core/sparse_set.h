@@ -16,21 +16,23 @@ namespace ufps
     {
         class Handle
         {
-            inline static constexpr auto Invalid = std::numeric_limits<std::size_t>::max();
+            inline static constexpr auto Invalid = std::numeric_limits<std::uint32_t>::max();
 
             constexpr Handle()
                 : Handle(Invalid)
             {
             }
 
-            constexpr explicit Handle(std::size_t index)
-                : _index{index}
+            constexpr explicit Handle(std::uint32_t index, std::uint32_t version)
+                : _index{index},
+                  _version{version}
             {
             }
 
             constexpr auto operator<=>(const Handle &) const = default;
 
-            std::size_t _index;
+            std::uint32_t _index;
+            std::uint32_t _version;
 
             friend SparseSet;
         };
@@ -44,15 +46,29 @@ namespace ufps
         template <class... Args>
         constexpr auto emplace(Args &&...args) -> handle_type
         {
-            const auto dense_index = std::ranges::size(_data);
+            const auto dense_index = static_cast<std::uint32_t>(std::ranges::size(_data));
             _data.emplace_back(std::forward<Args>(args)...);
 
-            const auto sparse_index = std::ranges::size(_sparse);
-            _sparse.push_back(dense_index);
+            auto sparse_index = static_cast<std::uint32_t>(std::ranges::size(_sparse));
+            auto version = 0u;
+
+            if (!std::ranges::empty(_free))
+            {
+                sparse_index = _free.back();
+                _free.pop_back();
+
+                _sparse[sparse_index]._index = dense_index;
+                ++_sparse[sparse_index]._version;
+                version = _sparse[sparse_index]._version;
+            }
+            else
+            {
+                _sparse.push_back(handle_type{dense_index, version});
+            }
 
             _dense.push_back(sparse_index);
 
-            return handle_type{sparse_index};
+            return handle_type{sparse_index, version};
         }
 
         template <class Self>
@@ -75,13 +91,13 @@ namespace ufps
                 return std::optional<RetType>{};
             }
 
-            const auto dense_index = self._sparse[sparse_index];
+            const auto dense_index = self._sparse[sparse_index]._index;
             if (dense_index >= std::ranges::size(self._dense))
             {
                 return std::optional<RetType>{};
             }
 
-            if (self._dense[dense_index] != sparse_index)
+            if (self._dense[dense_index] != sparse_index || handle._version != self._sparse[sparse_index]._version)
             {
                 return std::optional<RetType>{};
             }
@@ -100,18 +116,20 @@ namespace ufps
 
     private:
         template <class U>
-        using VectorRebind = std::vector<U, typename std::allocator_traits<Allocator>::template rebind_alloc<std::size_t>>;
+        using VectorRebind = std::vector<U, typename std::allocator_traits<Allocator>::template rebind_alloc<U>>;
 
-        VectorRebind<std::size_t> _sparse;
-        VectorRebind<std::size_t> _dense;
+        VectorRebind<handle_type> _sparse;
+        VectorRebind<std::uint32_t> _dense;
         std::vector<T, Allocator> _data;
+        VectorRebind<std::size_t> _free;
     };
 
     template <class T, class Allocator>
     constexpr SparseSet<T, Allocator>::SparseSet()
         : _sparse{},
           _dense{},
-          _data{}
+          _data{},
+          _free{}
     {
     }
 
@@ -133,7 +151,7 @@ namespace ufps
         const auto sparse_index = handle._index;
         ensure(sparse_index < std::ranges::size(_sparse), "invalid handle: {}", sparse_index);
 
-        const auto dense_index = _sparse[sparse_index];
+        const auto dense_index = _sparse[sparse_index]._index;
         ensure(dense_index < std::ranges::size(_dense), "invalid handle: {}", sparse_index);
 
         ensure(_dense[dense_index] == sparse_index, "invalid handle: {}", sparse_index);
@@ -142,20 +160,22 @@ namespace ufps
         {
             _data.pop_back();
             _dense.pop_back();
-            _sparse[sparse_index] = handle_type::Invalid;
+            _sparse[sparse_index]._index = handle_type::Invalid;
+            _free.push_back(sparse_index);
 
             return;
         }
 
-        std::ranges::swap(_data[_sparse[sparse_index]], *(std::ranges::end(_data) - 1zu));
+        std::ranges::swap(_data[_sparse[sparse_index]._index], *(std::ranges::end(_data) - 1u));
         _data.pop_back();
-        std::ranges::swap(_dense[_sparse[sparse_index]], *(std::ranges::end(_dense) - 1zu));
+        std::ranges::swap(_dense[_sparse[sparse_index]._index], *(std::ranges::end(_dense) - 1u));
         _dense.pop_back();
 
-        _sparse[sparse_index] = handle_type::Invalid;
+        _sparse[sparse_index]._index = handle_type::Invalid;
+        _free.push_back(sparse_index);
         if (!std::ranges::empty(_dense))
         {
-            _sparse[std::ranges::size(_sparse) - 1zu] = dense_index;
+            _sparse[std::ranges::size(_sparse) - 1u]._index = dense_index;
         }
     }
 
@@ -164,9 +184,7 @@ namespace ufps
     {
         return _sparse |
                std::views::filter([](const auto &e)
-                                  { return e != handle_type::Invalid; }) |
-               std::views::transform([](const auto &e)
-                                     { return handle_type{e}; }) |
+                                  { return e._index != handle_type::Invalid; }) |
                std::ranges::to<std::vector>();
     }
 
