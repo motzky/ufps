@@ -471,17 +471,32 @@ namespace
         }
     }
 
-    // auto flicker_light(ufps::AwaitableManager &awaitable, ufps::PointLight *light) -> ufps::Task
-    // {
-    //     auto original_intensity = light->intensity;
-    //     for (;;)
-    //     {
-    //         co_await awaitable(3s);
-    //         light->intensity = 0.f;
-    //         co_await awaitable(100ms);
-    //         light->intensity = original_intensity;
-    //     }
-    // }
+    auto flicker_light(ufps::AwaitableManager &awaitable, ufps::PointLightHandle handle, ufps::Scene &scene) -> ufps::Task
+    {
+        auto light = scene.lights().lights[handle];
+        if (!light)
+        {
+            ufps::log::warn("light did not exist when starting flicker_light coro");
+            co_return;
+        }
+
+        auto original_intensity = light->intensity;
+        for (;;)
+        {
+            if (auto light = scene.lights().lights[handle]; light)
+            {
+                co_await awaitable(3s);
+                light->intensity = 0.f;
+                co_await awaitable(100ms);
+                light->intensity = original_intensity;
+            }
+            else
+            {
+                ufps::log::info("ending flicker_light coro");
+                co_return;
+            }
+        }
+    }
 }
 
 auto start(int argc, char **argv) -> int
@@ -602,7 +617,7 @@ auto start(int argc, char **argv) -> int
 
     const auto point_light_handles = scene.lights().lights.handles();
     pulse_light(awaitable_manager, point_light_handles[0], scene);
-    // flicker_light(awaitable_manager, std::addressof(scene.lights().lights[1]));
+    flicker_light(awaitable_manager, point_light_handles[1], scene);
 
     auto key_state = std::unordered_map<ufps::Key, bool>{
         {ufps::Key::A, false},
