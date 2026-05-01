@@ -205,6 +205,74 @@ TEST(sparse_set, handles)
     ASSERT_EQ(s[handles[2]], 200);
 }
 
+TEST(sparse_set, handles_complex)
+{
+    auto s = ufps::SparseSet<int>{};
+    const auto h1 = s.emplace(2);
+    const auto h2 = s.emplace(20);
+    s.emplace(200);
+    s.emplace(2000);
+    s.emplace(20000);
+
+    s.remove(h1);
+    s.remove(h2);
+
+    auto handles = std::vector<ufps::SparseSet<int>::handle_type>{};
+
+    for (const auto &h : s.handles())
+    {
+        handles.push_back(h);
+    }
+
+    const auto expected_values = std::vector<int>{200, 2000, 20000};
+    *s[handles[0]];
+    *s[handles[1]];
+    *s[handles[2]];
+    const auto values =
+        handles | std::views::transform([&s](const auto &h)
+                                        { return *s[h]; }) |
+        std::ranges::to<std::vector>();
+
+    ASSERT_EQ(values, expected_values);
+}
+
+TEST(sparse, handles_with_gap)
+{
+    auto s = ufps::SparseSet<int>{};
+    s.emplace(2);
+    const auto h = s.emplace(20);
+    s.emplace(200);
+
+    s.remove(h);
+
+    const auto handles = s.handles();
+
+    ASSERT_EQ(std::ranges::size(handles), 2zu);
+    ASSERT_TRUE(!!s[handles[0]]);
+    ASSERT_EQ(*s[handles[0]], 2);
+    ASSERT_TRUE(!!s[handles[1]]);
+    ASSERT_EQ(*s[handles[1]], 200);
+}
+
+TEST(sparse_set, handles_with_gap_end)
+{
+    auto s = ufps::SparseSet<int>{};
+    s.emplace(2);
+    s.emplace(20);
+    const auto h = s.emplace(200);
+
+    s.remove(h);
+
+    const auto handles = s.handles();
+
+    ASSERT_EQ(std::ranges::size(handles), 2zu);
+    ASSERT_TRUE(!!s[handles[0]]);
+    ASSERT_EQ(*s[handles[0]], 2);
+    ASSERT_TRUE(!!s[handles[1]]);
+    ASSERT_EQ(*s[handles[1]], 20);
+    ASSERT_TRUE(!s[h]);
+}
+
 TEST(sparse_set, data)
 {
     auto s = ufps::SparseSet<int>{};

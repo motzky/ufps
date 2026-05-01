@@ -175,14 +175,25 @@ namespace ufps
         _free.push_back(sparse_index);
         if (!std::ranges::empty(_dense))
         {
-            _sparse[std::ranges::size(_sparse) - 1u]._index = dense_index;
+            _sparse[_dense[dense_index]]._index = dense_index;
         }
     }
 
     template <class T, class Allocator>
     constexpr auto SparseSet<T, Allocator>::handles() const -> std::vector<handle_type>
     {
-        return _sparse |
+        // we use handle_type in two ways, to store an index into the dense array internally and as an index to the sparse
+        // array which we return to the user
+        // here we convert from the internal representation to the user-facing one by replacing the index with the correct
+        // one if it's valid and filtering out invalid handles
+        return std::views::enumerate(_sparse) |
+               std::views::transform(
+                   [](const auto &e)
+                   {
+                       const auto &[index, handle] = e;
+                       const auto correct_index = handle._index == handle_type::Invalid ? handle._index : index;
+                       return handle_type{static_cast<std::uint32_t>(correct_index), handle._version};
+                   }) |
                std::views::filter([](const auto &e)
                                   { return e._index != handle_type::Invalid; }) |
                std::ranges::to<std::vector>();
