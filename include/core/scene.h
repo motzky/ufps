@@ -6,6 +6,7 @@
 
 #include "core/camera.h"
 #include "core/entity.h"
+#include "core/sparse_set.h"
 #include "graphics/color.h"
 #include "graphics/material_manager.h"
 #include "graphics/mesh_manager.h"
@@ -17,6 +18,8 @@
 
 namespace ufps
 {
+    using PointLightHandle = SparseSet<PointLight>::handle_type;
+
     struct IntersectionResult
     {
         Entity *entity;
@@ -27,7 +30,7 @@ namespace ufps
     struct LightData
     {
         Color ambient;
-        std::vector<PointLight> lights;
+        SparseSet<PointLight> lights;
     };
 
     struct ToneMapOptions
@@ -84,12 +87,11 @@ namespace ufps
         constexpr auto &material_manager(this auto &&self);
 
         constexpr auto &texture_manager(this auto &&self);
-        constexpr auto add(PointLight light) -> void;
         constexpr auto &tone_map_options(this auto &&self);
         constexpr auto &ssao_options(this auto &&self);
         constexpr auto &exposure_options(this auto &&self);
         constexpr auto remove(const Entity &entity) -> void;
-        constexpr auto remove(const PointLight &light) -> void;
+        constexpr auto remove(PointLightHandle light) -> void;
 
     private:
         std::vector<Entity> _entities;
@@ -217,11 +219,6 @@ namespace ufps
         return self._texture_manager;
     }
 
-    constexpr auto Scene::add(PointLight light) -> void
-    {
-        _lights.lights.push_back(std::move(light));
-    }
-
     constexpr auto &Scene::tone_map_options(this auto &&self)
     {
         return self._tone_map_options;
@@ -246,13 +243,9 @@ namespace ufps
         _entities.erase(iter);
     }
 
-    constexpr auto Scene::remove(const PointLight &light) -> void
+    constexpr auto Scene::remove(PointLightHandle light) -> void
     {
-        const auto iter = std::ranges::find_if(_lights.lights, [&light](const auto &e)
-                                               { return &e == &light; });
-        expect(iter != std::ranges::cend(_lights.lights), "light not found");
-
-        _lights.lights.erase(iter);
+        _lights.lights.remove(light);
     }
 
 }

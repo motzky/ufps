@@ -162,7 +162,7 @@ namespace ufps
         const auto cube_indices_offset_bytes = cube_parts.front().index_offset * sizeof(std::uint32_t);
         const auto cube_vertex_offset = cube_parts.front().vertex_offset;
 
-        for (const auto &light : scene.lights().lights)
+        for (const auto &light : scene.lights().lights.data())
         {
             const auto light_transform = Transform{light.position, {debugl_light_scale}, {}};
             const auto light_model = Matrix4{light_transform};
@@ -219,7 +219,7 @@ namespace ufps
 
         if (::ImGui::Button("add light"))
         {
-            scene.add(
+            const auto handle = scene.lights().lights.emplace(
                 PointLight{
                     .position = {},
                     .color = {.r = 1.f, .g = 1.f, .b = 1.f},
@@ -228,7 +228,7 @@ namespace ufps
                     .quadratic_attenuation = 0.0002f,
                     .specular_power = 32.f,
                     .intensity = 1.f});
-            _selected = &scene.lights().lights.back();
+            _selected = handle;
         }
 
         ::ImGui::Text("Tonemap options");
@@ -406,10 +406,9 @@ namespace ufps
                 scene.remove(*entity);
                 _selected = std::monostate{};
             }
-            if (auto **selected_entity = std::get_if<PointLight *>(&_selected))
+            if (auto *selected_entity = std::get_if<PointLightHandle>(&_selected))
             {
-                auto *entity = *selected_entity;
-                scene.remove(*entity);
+                scene.lights().lights.remove(*selected_entity);
                 _selected = std::monostate{};
             }
         }
@@ -425,11 +424,12 @@ namespace ufps
                 new_entity->set_transform(entity->transform());
                 _selected = new_entity;
             }
-            if (auto **selected_light = std::get_if<PointLight *>(&_selected))
+            if (auto *selected_light = std::get_if<PointLightHandle>(&_selected))
             {
-                auto *light = *selected_light;
-                scene.add(*light);
-                _selected = &scene.lights().lights.back();
+                const auto light = scene.lights().lights[*selected_light];
+                ensure(!!light, "missing light");
+
+                _selected = scene.lights().lights.emplace(*light);
             }
         }
 
@@ -440,7 +440,7 @@ namespace ufps
 
         ::ImGui::Text("Lights");
 
-        for (const auto &[index, light] : std::views::enumerate(scene.lights().lights))
+        for (const auto &[index, light] : std::views::enumerate(scene.lights().lights.handles()))
         {
             const auto light_name = std::format("light {}", index);
 
@@ -636,9 +636,10 @@ namespace ufps
 
                 entity->set_transform(transform);
             }
-            else if (auto **selected_light = std::get_if<PointLight *>(&_selected); selected_light)
+            else if (auto *selected_handle = std::get_if<PointLightHandle>(&_selected))
             {
-                auto *light = *selected_light;
+                auto light = scene.lights().lights[*selected_handle];
+                ensure(!!light, "missing light ?");
 
                 ::ImGui::Text("point light");
 
@@ -710,9 +711,14 @@ namespace ufps
             {
                 _selected = std::monostate{};
             }
-            for (auto &light : scene.lights().lights)
+            for (auto light_handle : scene.lights().lights.handles())
             {
-                const auto light_transform = Transform{light.position, {debugl_light_scale}, {}};
+                const auto light = scene.lights().lights[light_handle];
+                if (!light)
+                {
+                    continue;
+                }
+                const auto light_transform = Transform{light->position, {debugl_light_scale}, {}};
                 const auto light_model = Matrix4{light_transform};
 
                 const auto debug_light_aabb = ufps::AABB{
@@ -723,7 +729,7 @@ namespace ufps
                 {
                     if (!intersection || light_intersection < intersection->distance)
                     {
-                        _selected = std::addressof(light);
+                        _selected = light_handle;
                     }
                 }
             }

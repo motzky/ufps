@@ -449,30 +449,39 @@ namespace
         return material_lookup;
     }
 
-    auto pulse_light(ufps::AwaitableManager &awaitable, ufps::PointLight *light) -> ufps::Task
+    auto pulse_light(ufps::AwaitableManager &awaitable, ufps::PointLightHandle handle, ufps::Scene &scene) -> ufps::Task
     {
         auto fake_time = 0.f;
 
         for (;;)
         {
-            light->intensity = 5.f + 10.f * (std::sin(fake_time) + 1.f) / 2.f;
+            if (auto light = scene.lights().lights[handle]; light)
+            {
+                light->intensity = 5.f + 10.f * (std::sin(fake_time) + 1.f) / 2.f;
+            }
+            else
+            {
+                ufps::log::info("ending pulse_light coro");
+                co_return;
+            }
+
             fake_time += 0.01f;
 
             co_await awaitable;
         }
     }
 
-    auto flicker_light(ufps::AwaitableManager &awaitable, ufps::PointLight *light) -> ufps::Task
-    {
-        auto original_intensity = light->intensity;
-        for (;;)
-        {
-            co_await awaitable(3s);
-            light->intensity = 0.f;
-            co_await awaitable(100ms);
-            light->intensity = original_intensity;
-        }
-    }
+    // auto flicker_light(ufps::AwaitableManager &awaitable, ufps::PointLight *light) -> ufps::Task
+    // {
+    //     auto original_intensity = light->intensity;
+    //     for (;;)
+    //     {
+    //         co_await awaitable(3s);
+    //         light->intensity = 0.f;
+    //         co_await awaitable(100ms);
+    //         light->intensity = original_intensity;
+    //     }
+    // }
 }
 
 auto start(int argc, char **argv) -> int
@@ -551,25 +560,26 @@ auto start(int argc, char **argv) -> int
          1000.f},
         {
             .ambient = {.r = .05f, .g = .05f, .b = .05f},
-            .lights = {
-                {.position = {1.f, 2.5f, 0.f},
-                 .color = {.r = 1.f, .g = 0.f, .b = 0.f},
-                 .constant_attenuation = 1.f,
-                 .linear_attenuation = .045f,
-                 .quadratic_attenuation = .0075f,
-                 .specular_power = 32.f,
-                 .intensity = 1.f},
-                {.position = {-1.f, 2.5f, 0.f},
-                 .color = {.r = 0.f, .g = 1.f, .b = 0.f},
-                 .constant_attenuation = 1.f,
-                 .linear_attenuation = .045f,
-                 .quadratic_attenuation = .0075f,
-                 .specular_power = 32.f,
-                 .intensity = 1.f}},
+            .lights = {},
         },
         {.max_brightness = 1.f, .contrast = 1.f, .linear_section_start = .22f, .linear_section_length = .4f, .black_tightness = 1.33f, .pedestal = 0.f, .gamma = 2.2f},
         {},
         {}};
+
+    scene.lights().lights.emplace(ufps::PointLight{.position = {1.f, 2.5f, 0.f},
+                                                   .color = {.r = 1.f, .g = 0.f, .b = 0.f},
+                                                   .constant_attenuation = 1.f,
+                                                   .linear_attenuation = .045f,
+                                                   .quadratic_attenuation = .0075f,
+                                                   .specular_power = 32.f,
+                                                   .intensity = 1.f});
+    scene.lights().lights.emplace(ufps::PointLight{.position = {-1.f, 2.5f, 0.f},
+                                                   .color = {.r = 0.f, .g = 1.f, .b = 0.f},
+                                                   .constant_attenuation = 1.f,
+                                                   .linear_attenuation = .045f,
+                                                   .quadratic_attenuation = .0075f,
+                                                   .specular_power = 32.f,
+                                                   .intensity = 1.f});
 
     const auto material_lookup = build_materials(*resource_loader, texture_manager, material_manager, sampler);
 
@@ -590,8 +600,9 @@ auto start(int argc, char **argv) -> int
 
     scene.create_entity("SM_Corner01_8_8_X");
 
-    pulse_light(awaitable_manager, std::addressof(scene.lights().lights[0]));
-    flicker_light(awaitable_manager, std::addressof(scene.lights().lights[1]));
+    const auto point_light_handles = scene.lights().lights.handles();
+    pulse_light(awaitable_manager, point_light_handles[0], scene);
+    // flicker_light(awaitable_manager, std::addressof(scene.lights().lights[1]));
 
     auto key_state = std::unordered_map<ufps::Key, bool>{
         {ufps::Key::A, false},
