@@ -74,11 +74,7 @@ namespace ufps
         template <class Self>
         constexpr auto operator[](this Self &&self, handle_type handle)
         {
-#if defined(__GNUC__) && (__GNUC__ <= 15)
-            using RetType = std::conditional_t<std::is_const_v<std::remove_reference<Self>>, const value_type, value_type>;
-#else
-            using RetType = std::conditional_t<std::is_const_v<std::remove_reference<Self>>, const value_type &, value_type &>;
-#endif
+            using RetType = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const value_type &, value_type &>;
 
             if (std::ranges::empty(self._dense))
             {
