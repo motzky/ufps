@@ -63,6 +63,15 @@ namespace ufps
     class Scene
     {
     public:
+        struct Description
+        {
+            ToneMapOptions tone_map_options;
+            SSAOOptions ssao_options;
+            ExposureOptions exposure_options;
+            LightData lights;
+            std::vector<Entity::Description> entities;
+        };
+
         constexpr Scene(MeshManager &mesh_manager,
                         MaterialManager &material_manager,
                         TextureManager &texture_manager,
@@ -70,7 +79,15 @@ namespace ufps
                         LightData lights,
                         ToneMapOptions tone_map_options,
                         SSAOOptions ssao_options,
-                        ExposureOptions exposure_options);
+                        ExposureOptions exposure_options,
+                        const StringUnorderedMap<Entity> &entity_cache);
+
+        constexpr Scene(MeshManager &mesh_manager,
+                        MaterialManager &material_manager,
+                        TextureManager &texture_manager,
+                        Camera camera,
+                        const Description &description,
+                        const StringUnorderedMap<Entity> &entity_cache);
 
         constexpr auto intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>;
 
@@ -154,7 +171,7 @@ namespace ufps
     }
 
     constexpr Scene::Scene(MeshManager &mesh_manager, MaterialManager &material_manager, TextureManager &texture_manager, Camera camera, LightData lights,
-                           ToneMapOptions tone_map_options, SSAOOptions ssao_options, ExposureOptions exposure_options)
+                           ToneMapOptions tone_map_options, SSAOOptions ssao_options, ExposureOptions exposure_options, const StringUnorderedMap<Entity> &entity_cache)
         : _entities{},
           _entity_cache{},
           _mesh_manager{mesh_manager},
@@ -166,6 +183,39 @@ namespace ufps
           _ssao_options{std::move(ssao_options)},
           _exposure_options{std::move(exposure_options)}
     {
+        for (const auto &[name, entity] : entity_cache)
+        {
+            cache_entity(name, entity);
+        }
+    }
+
+    constexpr Scene::Scene(MeshManager &mesh_manager, MaterialManager &material_manager, TextureManager &texture_manager, Camera camera, const Description &description,
+                           const StringUnorderedMap<Entity> &entity_cache)
+        : _entities{},
+          _entity_cache{},
+          _mesh_manager{mesh_manager},
+          _material_manager{material_manager},
+          _texture_manager{texture_manager},
+          _camera{std::move(camera)},
+          _lights{description.lights},
+          _tone_map_options{description.tone_map_options},
+          _ssao_options{description.ssao_options},
+          _exposure_options{description.exposure_options}
+    {
+        for (const auto &[name, entity] : entity_cache)
+        {
+            cache_entity(name, entity);
+        }
+
+        for (const auto &entity_description : description.entities)
+        {
+            const auto cached = std::ranges::find_if(_entity_cache, [&entity_description](const auto &e)
+                                                     { return e.name() == entity_description.name; });
+            expect(cached != std::ranges::cend(_entity_cache), "unknown entity: {}", entity_description.name);
+
+            auto &new_entity = _entities.emplace_back(*cached);
+            new_entity.set_transform(entity_description.transform);
+        }
     }
 
     constexpr auto Scene::create_entity(std::string_view name) -> Entity *
