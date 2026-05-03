@@ -4,6 +4,7 @@
 #include <print>
 #include <ranges>
 #include <span>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -38,6 +39,7 @@
 #include "resources/embedded_resource_loader.h"
 #include "resources/file_resource_loader.h"
 #include "resources/resource_loader.h"
+#include "serialization/yaml_serializer.h"
 #include "utils/data_buffer.h"
 #include "utils/decompress.h"
 #include "utils/ensure.h"
@@ -561,6 +563,43 @@ auto start(int argc, char **argv) -> int
     auto renderer = ufps::DebugRenderer{window, *resource_loader, texture_manager, mesh_manager};
     auto show_debug_ui = false;
 
+    auto ss = std::stringstream{};
+    auto scene_description_yaml = std::ifstream{"scene.yaml"};
+
+    if (scene_description_yaml.is_open())
+    {
+        ss << scene_description_yaml.rdbuf();
+    }
+    else
+    {
+        if constexpr (ufps::config::use_embedded_resource_loader)
+        {
+            auto scene_description_str = resource_loader->load_string("configs/scene.yaml");
+            ss << scene_description_str;
+        }
+    }
+
+    const auto scene_description = ufps::yaml::deserialize<ufps::Scene::Description>(ss.str());
+
+    const auto material_lookup = build_materials(*resource_loader, texture_manager, material_manager, sampler);
+
+    auto entity_cache = ufps::StringUnorderedMap<ufps::Entity>{};
+
+    for (const auto &[name, materials] : material_lookup)
+    {
+        auto mesh_views = mesh_manager.mesh(name);
+        auto render_entities = std::views::zip(mesh_views, materials) |
+                               std::views::transform(
+                                   [&mesh_manager](const auto &e)
+                                   {
+                                       const auto &[mesh_view, material] = e;
+                                       return ufps::RenderEntity(mesh_view, material, mesh_manager);
+                                   }) |
+                               std::ranges::to<std::vector>();
+
+        entity_cache.insert({name, {std::string{name}, std::move(render_entities), {}}});
+    }
+
     auto scene = ufps::Scene{
         mesh_manager,
         material_manager,
@@ -573,13 +612,8 @@ auto start(int argc, char **argv) -> int
          static_cast<float>(window.height()),
          0.01f,
          1000.f},
-        {
-            .ambient = {.r = .05f, .g = .05f, .b = .05f},
-            .lights = {},
-        },
-        {.max_brightness = 1.f, .contrast = 1.f, .linear_section_start = .22f, .linear_section_length = .4f, .black_tightness = 1.33f, .pedestal = 0.f, .gamma = 2.2f},
-        {},
-        {}};
+        scene_description,
+        entity_cache};
 
     scene.lights().lights.emplace(ufps::PointLight{.position = {1.f, 2.5f, 0.f},
                                                    .color = {.r = 1.f, .g = 0.f, .b = 0.f},
@@ -595,25 +629,6 @@ auto start(int argc, char **argv) -> int
                                                    .quadratic_attenuation = .0075f,
                                                    .specular_power = 32.f,
                                                    .intensity = 1.f});
-
-    const auto material_lookup = build_materials(*resource_loader, texture_manager, material_manager, sampler);
-
-    for (const auto &[name, materials] : material_lookup)
-    {
-        auto mesh_views = mesh_manager.mesh(name);
-        auto render_entities = std::views::zip(mesh_views, materials) |
-                               std::views::transform(
-                                   [&mesh_manager](const auto &e)
-                                   {
-                                       const auto &[mesh_view, material] = e;
-                                       return ufps::RenderEntity(mesh_view, material, mesh_manager);
-                                   }) |
-                               std::ranges::to<std::vector>();
-
-        scene.cache_entity(name, {std::string{name}, std::move(render_entities), {}});
-    }
-
-    scene.create_entity("SM_Corner01_8_8_X");
 
     const auto point_light_handles = scene.lights().lights.handles();
     pulse_light(awaitable_manager, point_light_handles[0], scene);
