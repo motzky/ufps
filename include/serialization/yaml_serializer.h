@@ -6,7 +6,6 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
-#include <vector>
 
 #include <yaml-cpp/yaml.h>
 
@@ -18,7 +17,7 @@ namespace ufps::yaml
     namespace impl
     {
         template <class T>
-        concept Class = !std::ranges::range<T> && std::is_class_v<T>;
+        concept Class = !std::ranges::range<T> && std::is_class_v<T> && !(requires { typename T::handle_type; });
 
         template <class T>
         concept BaseType = std::integral<T> || std::floating_point<T> || std::same_as<T, std::string>;
@@ -33,13 +32,16 @@ namespace ufps::yaml
         concept Array = std::ranges::range<T> && !Map<T> && !std::same_as<T, std::string>;
 
         template <class T>
+        concept Sparse = requires { typename T::handle_type; } && requires { typename T::value_type; };
+
+        template <class T>
         concept Enum = std::is_enum_v<T>;
 
-        template <class T>
-        auto do_serialize(T &obj) -> ::YAML::Node;
+        template <Class T>
+        auto do_serialize(const T &obj) -> ::YAML::Node;
         auto do_serialize(const Map auto &obj) -> ::YAML::Node;
 
-        template <class T>
+        template <Class T>
         auto do_deserialize(const ::YAML::Node &node) -> T;
 
         auto do_serialize(const BaseType auto &obj) -> ::YAML::Node
@@ -52,7 +54,7 @@ namespace ufps::yaml
         {
             auto node = ::YAML::Node{};
 
-            template for (constexpr auto e : std::define_static_array(std::meta::enumerators : of(^^T)))
+            template for (constexpr auto e : std::define_static_array(std::meta::enumerators_of(^^T)))
             {
                 if (obj == [:e:])
                 {
@@ -81,7 +83,19 @@ namespace ufps::yaml
         {
             auto node = ::YAML::Node{};
 
-            for (const auto &e : obj)
+            for (const auto &[k, v] : obj)
+            {
+                node[k] = do_serialize(v);
+            }
+
+            return node;
+        }
+
+        auto do_serialize(const Sparse auto &obj) -> ::YAML::Node
+        {
+            auto node = ::YAML::Node{};
+
+            for (const auto &e : obj.data())
             {
                 node.push_back(do_serialize(e));
             }
@@ -96,7 +110,7 @@ namespace ufps::yaml
             auto members = ::YAML::Node{};
 
             constexpr auto ctx = std::meta::access_context::current();
-            template for (constexpr auot e : std::define_static_array(std::meta::nonstatic_data_members_of(^^T, ctx)))
+            template for (constexpr auto e : std::define_static_array(std::meta::nonstatic_data_members_of(^^T, ctx)))
             {
                 members[std::meta::identifier_of(e)] = do_serialize(obj.[:e:]);
             }
@@ -157,12 +171,25 @@ namespace ufps::yaml
             return obj;
         }
 
+        template <Sparse T>
+        auto do_deserialize(const ::YAML::Node &node) -> T
+        {
+            auto obj = T{};
+
+            for (const auto &e : node)
+            {
+                obj.emplace(do_deserialize<typename T::value_type>(e));
+            }
+
+            return obj;
+        }
+
         template <Class T>
         auto do_deserialize(const ::YAML::Node &node) -> T
         {
             auto obj = T{};
 
-            const atuo inner_node = node[std::meta::identifier_of(^^T)];
+            const auto inner_node = node[std::meta::identifier_of(^^T)];
 
             constexpr auto ctx = std::meta::access_context::current();
             template for (constexpr auto e : std::define_static_array(std::meta::nonstatic_data_members_of(^^T, ctx)))

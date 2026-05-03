@@ -69,7 +69,7 @@ TEST(yaml_serialization, simple_struct)
     const auto result = ufps::yaml::serialize(Simple{.a = 12});
 
     const auto expected = R"(Simple:
-a:12)";
+  a: 12)";
 
     ASSERT_EQ(result, expected);
 }
@@ -86,10 +86,10 @@ TEST(yaml_serialization, multi_member_struct)
 
     const auto expected =
         R"(MultiMember:
-a: 12
-b: 3.1
-c: hello world
-d: true)";
+  a: 12
+  b: 3.1
+  c: hello world
+  d: true)";
 
     ASSERT_EQ(result, expected);
 }
