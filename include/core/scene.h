@@ -8,7 +8,6 @@
 #include "core/entity.h"
 #include "core/sparse_set.h"
 #include "graphics/color.h"
-#include "graphics/material_manager.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/point_light.h"
 #include "graphics/texture_manager.h"
@@ -73,7 +72,6 @@ namespace ufps
         };
 
         constexpr Scene(MeshManager &mesh_manager,
-                        MaterialManager &material_manager,
                         TextureManager &texture_manager,
                         Camera camera,
                         LightData lights,
@@ -83,7 +81,6 @@ namespace ufps
                         const StringUnorderedMap<Entity> &entity_cache);
 
         constexpr Scene(MeshManager &mesh_manager,
-                        MaterialManager &material_manager,
                         TextureManager &texture_manager,
                         Camera camera,
                         const Description &description,
@@ -101,7 +98,6 @@ namespace ufps
         constexpr auto &camera(this auto &&self);
         constexpr auto &lights(this auto &&self);
         constexpr auto &mesh_manager(this auto &&self);
-        constexpr auto &material_manager(this auto &&self);
 
         constexpr auto &texture_manager(this auto &&self);
         constexpr auto &tone_map_options(this auto &&self);
@@ -114,7 +110,6 @@ namespace ufps
         std::vector<Entity> _entities;
         std::vector<Entity> _entity_cache;
         MeshManager &_mesh_manager;
-        MaterialManager &_material_manager;
         TextureManager &_texture_manager;
         Camera _camera;
         LightData _lights;
@@ -170,12 +165,11 @@ namespace ufps
         return result;
     }
 
-    constexpr Scene::Scene(MeshManager &mesh_manager, MaterialManager &material_manager, TextureManager &texture_manager, Camera camera, LightData lights,
+    constexpr Scene::Scene(MeshManager &mesh_manager, TextureManager &texture_manager, Camera camera, LightData lights,
                            ToneMapOptions tone_map_options, SSAOOptions ssao_options, ExposureOptions exposure_options, const StringUnorderedMap<Entity> &entity_cache)
         : _entities{},
           _entity_cache{},
           _mesh_manager{mesh_manager},
-          _material_manager{material_manager},
           _texture_manager{texture_manager},
           _camera{std::move(camera)},
           _lights{std::move(lights)},
@@ -189,12 +183,11 @@ namespace ufps
         }
     }
 
-    constexpr Scene::Scene(MeshManager &mesh_manager, MaterialManager &material_manager, TextureManager &texture_manager, Camera camera, const Description &description,
+    constexpr Scene::Scene(MeshManager &mesh_manager, TextureManager &texture_manager, Camera camera, const Description &description,
                            const StringUnorderedMap<Entity> &entity_cache)
         : _entities{},
           _entity_cache{},
           _mesh_manager{mesh_manager},
-          _material_manager{material_manager},
           _texture_manager{texture_manager},
           _camera{std::move(camera)},
           _lights{description.lights},
@@ -260,10 +253,6 @@ namespace ufps
         return self._mesh_manager;
     }
 
-    constexpr auto &Scene::material_manager(this auto &&self)
-    {
-        return self._material_manager;
-    }
     constexpr auto &Scene::texture_manager(this auto &&self)
     {
         return self._texture_manager;
