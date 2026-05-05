@@ -5,9 +5,11 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include "core/manifest_descriptions.h"
 #include "graphics/utils.h"
 #include "log.h"
 #include "resources/file_resource_loader.h"
+#include "serialization/yaml_serializer.h"
 #include "utils/compress.h"
 #include "utils/ensure.h"
 
@@ -54,6 +56,29 @@ namespace
         return format_size(size, 1024);
     }
 
+    auto get_real_texture_file_name(ufps::ResourceLoader &resource_loader, std::string t) -> std::string
+    {
+        if (!resource_loader.has_resource(t))
+        {
+            auto pos = t.find(".png");
+            if (pos != std::string::npos)
+            {
+                return t.replace(pos, 4uz, ".dds");
+            }
+        }
+
+        return t;
+    }
+
+    auto insert_name_if_not_emtpy(std::unordered_set<std::string> &texture_names, std::string texture) -> void
+    {
+        if (texture.empty())
+        {
+            return;
+        }
+
+        texture_names.insert(texture);
+    }
 }
 
 auto main(int argc, char **argv) -> int
@@ -88,14 +113,14 @@ auto main(int argc, char **argv) -> int
         auto vertex_data = std::vector<ufps::VertexData>{};
         auto index_data = std::vector<std::uint32_t>{};
 
-        auto texture_names = std::unordered_set<std::string>{};
+        auto texture_names = std::unordered_set<std::string>{
+            // "textures/default_BaseColor.dds",
+            // "textures/default_Normal.dds",
+            // "textures/default_Metallic.dds",
+        };
 
         {
-            const auto manifest_path = output_configs_dir / "model_manifest.yaml";
-            auto manifest_file = std::ofstream{manifest_path};
-
-            auto out = ::YAML::Emitter{manifest_file};
-            out << ::YAML::BeginMap;
+            auto manifest = ufps::ModelManifestDescription{};
 
             for (const auto &m : models)
             {
@@ -108,191 +133,148 @@ auto main(int argc, char **argv) -> int
                     continue;
                 }
 
-                out << ::YAML::Key << name << ::YAML::Value << ::YAML::BeginMap;
-
-                for (const auto &[index, model] : sub_models | std::views::enumerate)
-                {
-                    const auto &mesh_data = model.mesh_data;
-                    const auto vertex_count = mesh_data.vertices.size();
-                    const auto index_count = mesh_data.indices.size();
-
-                    ufps::log::debug(
-                        "model: {}, submodel: {}, vertex count: {}, index count: {}, vertex offset: {}, index offset:{}",
-                        name,
-                        index,
-                        index,
-                        vertex_count,
-                        index_count,
-                        vertex_offset,
-                        index_offset);
-
-                    vertex_data.append_range(mesh_data.vertices);
-                    index_data.append_range(mesh_data.indices);
-
-                    out << ::YAML::Key << std::format("submodel_{}", index) << ::YAML::Value << ::YAML::BeginMap;
-                    out << ::YAML::Key << "vertex_count" << ::YAML::Value << vertex_count;
-                    out << ::YAML::Key << "vertex_offset" << ::YAML::Value << vertex_offset;
-                    out << ::YAML::Key << "index_count" << ::YAML::Value << index_count;
-                    out << ::YAML::Key << "index_offset" << ::YAML::Value << index_offset;
-
-                    if (model.albedo && !model.albedo->ends_with(".psd"))
-                    {
-                        texture_names.insert(*model.albedo);
-                        out << ::YAML::Key << "albedo_name" << ::YAML::Value << *model.albedo;
-                    }
-                    else
-                    {
-                        out << ::YAML::Key << "albedo_name" << ::YAML::Value << "";
-                    }
-
-                    if (model.normal)
-                    {
-
-                        auto compressed = !resource_loader.has_resource(*model.normal);
-
-                        texture_names.insert(*model.normal);
-                        out << ::YAML::Key << "normal_name" << ::YAML::Value << *model.normal;
-                        out << ::YAML::Key << "normal_compressed" << ::YAML::Value << compressed;
-                    }
-                    else
-                    {
-                        out << ::YAML::Key << "normal_name" << ::YAML::Value << "";
-                    }
-
-                    if (model.specular)
-                    {
-                        texture_names.insert(*model.specular);
-                        out << ::YAML::Key << "specular_name" << ::YAML::Value << *model.specular;
-                    }
-                    else
-                    {
-                        out << ::YAML::Key << "specular_name" << ::YAML::Value << "";
-                    }
-
-                    if (model.roughness)
-                    {
-                        texture_names.insert(*model.roughness);
-                        out << ::YAML::Key << "roughness_name" << ::YAML::Value << *model.roughness;
-                    }
-                    else
-                    {
-                        out << ::YAML::Key << "roughness_name" << ::YAML::Value << "";
-                    }
-
-                    if (model.ambient_occlusion)
-                    {
-                        texture_names.insert(*model.ambient_occlusion);
-                        out << ::YAML::Key << "ambient_occlusion_name" << ::YAML::Value << *model.ambient_occlusion;
-                    }
-                    else
-                    {
-                        out << ::YAML::Key << "ambient_occlusion_name" << ::YAML::Value << "";
-                    }
-
-                    if (model.emissive_color)
-                    {
-                        texture_names.insert(*model.emissive_color);
-                        out << ::YAML::Key << "emissive_color_name" << ::YAML::Value << *model.emissive_color;
-                    }
-                    else
-                    {
-                        out << ::YAML::Key << "emissive_color_name" << ::YAML::Value << "";
-                    }
-
-                    out << ::YAML::EndMap;
-
-                    vertex_offset += vertex_count;
-                    index_offset += index_count;
-                }
-
-                out << ::YAML::EndMap;
-            }
-
-            ufps::log::info("finished packing models, packing textures");
-            auto texture_blob = ufps::DataBuffer{};
-
-            {
-                const auto manifest_path = output_configs_dir / "texture_manifest.yaml";
-                auto manifest_file = std::ofstream{manifest_path};
-
-                auto out = ::YAML::Emitter{manifest_file};
-                out << ::YAML::BeginMap;
-
-                auto offset = 0zu;
-
-                for (const auto &t : texture_names)
-                {
-                    if (t.ends_with(".psd"))
-                    {
-                        ufps::log::debug("skipping Photoshop file {}", t);
-                        continue;
-                    }
-
-                    ufps::log::debug("packing texture: {}", t);
-
-                    auto real_t = t;
-                    if (!resource_loader.has_resource(t))
-                    {
-                        auto pos = t.find(".png");
-                        if (pos != std::string::npos)
+                manifest.models[name] =
+                    sub_models |
+                    std::views::transform(
+                        [&](const auto &model)
                         {
-                            real_t = real_t.replace(pos, 4uz, ".dds");
-                        }
-                    }
-                    const auto texture_data = resource_loader.load_data_buffer(real_t);
-                    const auto size = texture_data.size();
+                            const auto &mesh_data = model.mesh_data;
+                            const auto vertex_count = mesh_data.vertices.size();
+                            const auto index_count = mesh_data.indices.size();
 
-                    texture_blob.append_range(std::as_bytes(std::span{texture_data.data(), size}));
+                            const auto albedo_name = model.albedo && !model.albedo->ends_with(".psd") ? get_real_texture_file_name(resource_loader, *model.albedo) : ""; // "textures/default_BaseColor.dds";
 
-                    out << ::YAML::Key << t << ::YAML::Value << ::YAML::BeginMap;
-                    out << ::YAML::Key << "offset" << ::YAML::Value << offset;
-                    out << ::YAML::Key << "size" << ::YAML::Value << size;
-                    out << ::YAML::EndMap;
+                            auto normal_name = std::string{};
+                            auto normal_compressed = false;
+                            if (model.normal)
+                            {
+                                normal_name = get_real_texture_file_name(resource_loader, *model.normal);
+                                normal_compressed = !resource_loader.has_resource(*model.normal);
+                            }
+                            // else
+                            // {
+                            //     normal_name = "textures/default_Normal.dds";
+                            //     normal_compressed = true;
+                            // }
 
-                    offset += size;
-                }
+                            const auto specular_name = model.specular ? get_real_texture_file_name(resource_loader, *model.specular) : ""; // "textures/default_Metallic.dds";
+                            const auto roughness_name = model.roughness ? get_real_texture_file_name(resource_loader, *model.roughness) : "";
+                            const auto ao_name = model.ambient_occlusion ? get_real_texture_file_name(resource_loader, *model.ambient_occlusion) : "";
+                            const auto emissive_name = model.emissive_color ? get_real_texture_file_name(resource_loader, *model.emissive_color) : "";
 
-                out << ::YAML::EndMap;
+                            insert_name_if_not_emtpy(texture_names, albedo_name);
+                            insert_name_if_not_emtpy(texture_names, normal_name);
+                            insert_name_if_not_emtpy(texture_names, specular_name);
+                            insert_name_if_not_emtpy(texture_names, roughness_name);
+                            insert_name_if_not_emtpy(texture_names, ao_name);
+                            insert_name_if_not_emtpy(texture_names, emissive_name);
+
+                            const auto res = ufps::ModelManifest{
+                                .mesh_view =
+                                    {
+                                        .vertex_offset = static_cast<std::uint32_t>(vertex_offset),
+                                        .vertex_count = static_cast<std::uint32_t>(mesh_data.vertices.size()),
+                                        .index_offset = static_cast<std::uint32_t>(index_offset),
+                                        .index_count = static_cast<std::uint32_t>(mesh_data.indices.size()),
+                                    },
+                                .albedo_texture = albedo_name,
+                                .normal_texture = normal_name,
+                                .specular_texture = specular_name,
+                                .roughness_texture = roughness_name,
+                                .ambient_occlusion_texture = ao_name,
+                                .emissive_color_texture = emissive_name,
+                                .normal_compressed = normal_compressed};
+
+                            vertex_data.append_range(mesh_data.vertices);
+                            index_data.append_range(mesh_data.indices);
+
+                            vertex_offset += vertex_count;
+                            index_offset += index_count;
+
+                            return res;
+                        }) |
+                    std::ranges::to<std::vector>();
             }
 
-            ufps::log::info("finished packing textures, writing to disk");
-
-            const auto compressed_vertex_data = ufps::compress(std::as_bytes(std::span{vertex_data.data(), vertex_data.size()}));
-
-            const auto vertex_data_path = output_blobs_dir / "vertex_data.bin";
-            auto vertex_data_file = std::ofstream{vertex_data_path, std::ios::binary};
-            vertex_data_file.write(reinterpret_cast<const char *>(compressed_vertex_data.data()), compressed_vertex_data.size());
-
-            ufps::log::info(
-                "wrote vertex data: {} vertices, {} bytes, compression ratio: {:.2f}%",
-                format_size(vertex_data.size()),
-                format_file_size(compressed_vertex_data.size()),
-                100.f * compressed_vertex_data.size() / (vertex_data.size() * sizeof(ufps::VertexData)));
-
-            const auto compressed_index_data = ufps::compress(std::as_bytes(std::span{index_data.data(), index_data.size()}));
-
-            const auto index_data_path = output_blobs_dir / "index_data.bin";
-            auto index_data_file = std::ofstream{index_data_path, std::ios::binary};
-            index_data_file.write(reinterpret_cast<const char *>(compressed_index_data.data()), compressed_index_data.size());
-
-            ufps::log::info(
-                "wrote index data: {} indices, {} bytes, compression ratio: {:.2f}%",
-                format_size(index_data.size()),
-                format_file_size(compressed_index_data.size()),
-                100.f * compressed_index_data.size() / (index_data.size() * sizeof(std::uint32_t)));
-
-            const auto compressed_texture_blob = ufps::compress(texture_blob);
-
-            const auto texture_blob_path = output_blobs_dir / "texture_data.bin";
-            auto texture_blob_file = std::ofstream{texture_blob_path, std::ios::binary};
-            texture_blob_file.write(reinterpret_cast<const char *>(compressed_texture_blob.data()), compressed_texture_blob.size());
-
-            ufps::log::info(
-                "wrote texture blob: {} textures, {} bytes, compression ratio: {:.2f}%",
-                format_size(texture_names.size()),
-                format_file_size(compressed_texture_blob.size()),
-                100.f * compressed_texture_blob.size() / texture_blob.size());
+            const auto manifest_path = output_configs_dir / "model_manifest.yaml";
+            auto manifest_file = std::ofstream{manifest_path};
+            manifest_file << ufps::yaml::serialize(manifest);
         }
+
+        ufps::log::info("finished packing models, packing textures");
+        auto texture_blob = ufps::DataBuffer{};
+
+        {
+            auto manifest = ufps::TextureManifestDescription{};
+
+            auto offset = 0zu;
+
+            for (const auto &t : texture_names)
+            {
+                if (t.ends_with(".psd"))
+                {
+                    ufps::log::debug("skipping Photoshop file {}", t);
+                    continue;
+                }
+
+                auto real_t = get_real_texture_file_name(resource_loader, t);
+                const auto texture_data = resource_loader.load_data_buffer(real_t);
+                const auto size = texture_data.size();
+
+                texture_blob.append_range(std::as_bytes(std::span{texture_data.data(), size}));
+
+                manifest.textures[t] = {
+                    .offset = static_cast<std::uint32_t>(offset),
+                    .size = static_cast<std::uint32_t>(size),
+                    .is_srgb = t.contains("BaseColor") || t.contains("_BC"),
+                };
+
+                offset += size;
+            }
+
+            const auto manifest_path = output_configs_dir / "texture_manifest.yaml";
+            auto manifest_file = std::ofstream{manifest_path};
+
+            manifest_file << ufps::yaml::serialize(manifest);
+        }
+
+        ufps::log::info("finished packing textures, writing to disk");
+
+        const auto compressed_vertex_data = ufps::compress(std::as_bytes(std::span{vertex_data.data(), vertex_data.size()}));
+
+        const auto vertex_data_path = output_blobs_dir / "vertex_data.bin";
+        auto vertex_data_file = std::ofstream{vertex_data_path, std::ios::binary};
+        vertex_data_file.write(reinterpret_cast<const char *>(compressed_vertex_data.data()), compressed_vertex_data.size());
+
+        ufps::log::info(
+            "wrote vertex data: {} vertices, {} bytes, compression ratio: {:.2f}%",
+            format_size(vertex_data.size()),
+            format_file_size(compressed_vertex_data.size()),
+            100.f * compressed_vertex_data.size() / (vertex_data.size() * sizeof(ufps::VertexData)));
+
+        const auto compressed_index_data = ufps::compress(std::as_bytes(std::span{index_data.data(), index_data.size()}));
+
+        const auto index_data_path = output_blobs_dir / "index_data.bin";
+        auto index_data_file = std::ofstream{index_data_path, std::ios::binary};
+        index_data_file.write(reinterpret_cast<const char *>(compressed_index_data.data()), compressed_index_data.size());
+
+        ufps::log::info(
+            "wrote index data: {} indices, {} bytes, compression ratio: {:.2f}%",
+            format_size(index_data.size()),
+            format_file_size(compressed_index_data.size()),
+            100.f * compressed_index_data.size() / (index_data.size() * sizeof(std::uint32_t)));
+
+        const auto compressed_texture_blob = ufps::compress(texture_blob);
+
+        const auto texture_blob_path = output_blobs_dir / "texture_data.bin";
+        auto texture_blob_file = std::ofstream{texture_blob_path, std::ios::binary};
+        texture_blob_file.write(reinterpret_cast<const char *>(compressed_texture_blob.data()), compressed_texture_blob.size());
+
+        ufps::log::info(
+            "wrote texture blob: {} textures, {} bytes, compression ratio: {:.2f}%",
+            format_size(texture_names.size()),
+            format_file_size(compressed_texture_blob.size()),
+            100.f * compressed_texture_blob.size() / texture_blob.size());
     }
     catch (const ufps::Exception &e)
     {
