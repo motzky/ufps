@@ -282,7 +282,7 @@ namespace ufps
         resize_gpu_buffer(object_data, _object_data_buffer);
 
         _object_data_buffer.write(std::as_bytes(std::span{object_data.data(), object_data.size()}), 0zu);
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _object_data_buffer.native_handle());
+        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _object_data_buffer.native_handle(), _object_data_buffer.frame_offset_bytes(), _object_data_buffer.size());
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, scene.material_manager().native_handle());
 
@@ -333,7 +333,7 @@ namespace ufps
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _light_buffer.native_handle());
+        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _light_buffer.native_handle(), _light_buffer.frame_offset_bytes(), _light_buffer.size());
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 3, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
         ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
         ::glMultiDrawElementsIndirect(

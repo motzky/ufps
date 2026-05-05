@@ -19,6 +19,7 @@ struct PointLight
     float attenuation[3];
     float specular_power;
     float intensity;
+    float pad;
 };
 
 layout(binding = 0, std430) readonly buffer vertices {
