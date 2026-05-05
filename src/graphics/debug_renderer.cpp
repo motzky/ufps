@@ -620,15 +620,19 @@ namespace ufps
 
                 for (const auto &render_entity : entity->render_entities())
                 {
-                    const auto material_index = render_entity.material_index();
-                    const auto &material = scene.material_manager().material(material_index);
+                    const auto albedo_texture_index = render_entity.albedo_texture_index();
+                    const auto normal_texture_index = render_entity.normal_texture_index();
+                    const auto specular_texture_index = render_entity.specular_texture_index();
+                    const auto roughness_texture_index = render_entity.roughness_texture_index();
+                    const auto ao_texture_index = render_entity.ao_texture_index();
+                    const auto emissive_texture_index = render_entity.emissive_texture_index();
 
-                    debug_draw_texture(material.albedo_texture_index, true);
-                    debug_draw_texture(material.normal_texture_index, true);
-                    debug_draw_texture(material.specular_texture_index, false);
-                    debug_draw_texture(material.roughness_texture_index, true);
-                    debug_draw_texture(material.ao_texture_index, true);
-                    debug_draw_texture(material.emissive_texture_index, false);
+                    debug_draw_texture(albedo_texture_index, true);
+                    debug_draw_texture(normal_texture_index, true);
+                    debug_draw_texture(specular_texture_index, false);
+                    debug_draw_texture(roughness_texture_index, true);
+                    debug_draw_texture(ao_texture_index, true);
+                    debug_draw_texture(emissive_texture_index, false);
                 }
 
                 const auto &camera_data = scene.camera().data();

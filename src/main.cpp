@@ -265,23 +265,21 @@ namespace
                std::ranges::to<ufps::StringUnorderedMap<std::vector<ufps::MeshView>>>();
     }
 
-    auto build_materials(
+    auto build_entity_cache(
         ufps::ResourceLoader &resource_loader,
         ufps::TextureManager &texture_manager,
-        ufps::MaterialManager &material_manager) -> ufps::StringUnorderedMap<std::vector<std::uint32_t>>
+        ufps::MeshManager &mesh_manager) -> ufps::StringUnorderedMap<ufps::Entity>
     {
-        auto material_lookup = ufps::StringUnorderedMap<std::vector<std::uint32_t>>{};
+        auto entity_cache = ufps::StringUnorderedMap<ufps::Entity>{};
 
         const auto model_manifest_str = resource_loader.load_string("configs/model_manifest.yaml");
         const auto model_manifest = ufps::yaml::deserialize<ufps::ModelManifestDescription>(model_manifest_str);
 
-        const auto texture_blob = ufps::decompress(resource_loader.load_data_buffer("blobs/texture_data.bin"));
-        const auto texture_manifest_str = resource_loader.load_string("configs/texture_manifest.yaml");
-        const auto texture_manifest = ::YAML::Load(texture_manifest_str);
-
-        for (const auto &[name, manifest] : model_manifest.models)
+        for (const auto &[name, manifests] : model_manifest.models)
         {
-            for (const auto &[mesh_view, albedo_name, normal_name, specular_name, roughness_name, ao_name, emissive_name, normal_compressed] : manifest)
+            auto render_entities = std::vector<ufps::RenderEntity>{};
+
+            for (const auto &[mesh_view, albedo_name, normal_name, specular_name, roughness_name, ao_name, emissive_name, normal_compressed] : manifests)
             {
 
                 const auto albedo_index = albedo_name.empty()
@@ -307,11 +305,12 @@ namespace
                                                 ? 65567
                                                 : texture_manager.texture_index(emissive_name);
 
-                const auto material_index = material_manager.add(ufps::Color{1.0f, 0.f, 1.f}, albedo_index, normal_index, normal_compressed, specular_index, roughness_index, ao_index, emissive_index);
-                material_lookup[name].push_back(material_index);
+                render_entities.push_back({mesh_view, albedo_index, normal_index, specular_index, roughness_index, ao_index, emissive_index, normal_compressed, mesh_manager});
             }
+            entity_cache.insert({name, ufps::Entity{name, std::move(render_entities), {}}});
         }
-        return material_lookup;
+
+        return entity_cache;
     }
 
     auto pulse_light(ufps::AwaitableManager &awaitable, ufps::PointLightHandle handle, ufps::Scene &scene) -> ufps::Task
@@ -444,27 +443,6 @@ auto start(int argc, char **argv) -> int
         }
     }
 
-    const auto scene_description = ufps::yaml::deserialize<ufps::Scene::Description>(ss.str());
-
-    const auto material_lookup = build_materials(*resource_loader, texture_manager, material_manager);
-
-    auto entity_cache = ufps::StringUnorderedMap<ufps::Entity>{};
-
-    for (const auto &[name, materials] : material_lookup)
-    {
-        auto mesh_views = mesh_manager.mesh(name);
-        auto render_entities = std::views::zip(mesh_views, materials) |
-                               std::views::transform(
-                                   [&mesh_manager](const auto &e)
-                                   {
-                                       const auto &[mesh_view, material] = e;
-                                       return ufps::RenderEntity(mesh_view, material, mesh_manager);
-                                   }) |
-                               std::ranges::to<std::vector>();
-
-        entity_cache.insert({name, {std::string{name}, std::move(render_entities), {}}});
-    }
-
     auto scene = ufps::Scene{
         mesh_manager,
         material_manager,
@@ -477,23 +455,23 @@ auto start(int argc, char **argv) -> int
          static_cast<float>(window.height()),
          0.01f,
          1000.f},
-        scene_description,
-        entity_cache};
+        ufps::yaml::deserialize<ufps::Scene::Description>(ss.str()),
+        build_entity_cache(*resource_loader, texture_manager, mesh_manager)};
 
-    scene.lights().lights.emplace(ufps::PointLight{.position = {1.f, 2.5f, 0.f},
-                                                   .color = {.r = 1.f, .g = 0.f, .b = 0.f},
-                                                   .constant_attenuation = 1.f,
-                                                   .linear_attenuation = .045f,
-                                                   .quadratic_attenuation = .0075f,
-                                                   .specular_power = 32.f,
-                                                   .intensity = 1.f});
-    scene.lights().lights.emplace(ufps::PointLight{.position = {-1.f, 2.5f, 0.f},
-                                                   .color = {.r = 0.f, .g = 1.f, .b = 0.f},
-                                                   .constant_attenuation = 1.f,
-                                                   .linear_attenuation = .045f,
-                                                   .quadratic_attenuation = .0075f,
-                                                   .specular_power = 32.f,
-                                                   .intensity = 1.f});
+    // scene.lights().lights.emplace(ufps::PointLight{.position = {1.f, 2.5f, 0.f},
+    //                                                .color = {.r = 1.f, .g = 0.f, .b = 0.f},
+    //                                                .constant_attenuation = 1.f,
+    //                                                .linear_attenuation = .045f,
+    //                                                .quadratic_attenuation = .0075f,
+    //                                                .specular_power = 32.f,
+    //                                                .intensity = 1.f});
+    // scene.lights().lights.emplace(ufps::PointLight{.position = {-1.f, 2.5f, 0.f},
+    //                                                .color = {.r = 0.f, .g = 1.f, .b = 0.f},
+    //                                                .constant_attenuation = 1.f,
+    //                                                .linear_attenuation = .045f,
+    //                                                .quadratic_attenuation = .0075f,
+    //                                                .specular_power = 32.f,
+    //                                                .intensity = 1.f});
 
     const auto point_light_handles = scene.lights().lights.handles();
     pulse_light(awaitable_manager, point_light_handles[0], scene);

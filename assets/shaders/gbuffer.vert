@@ -12,20 +12,16 @@ struct VertexData
 struct ObjectData
 {
     mat4 model;
-    uint material_index;
-};
-
-struct MaterialData
-{
-    float color[3];
-    uint albedo_index;
-    uint normal_index;
+    uint albedo_tex_index;
+    uint normal_tex_index;
+    uint specular_tex_index;
+    uint roughness_tex_index;
+    uint ao_tex_index;
+    uint emissive_tex_index;
     uint normal_compressed;
-    uint specular_index;
-    uint roughness_index;
-    uint ao_index;
-    uint emissive_index;
+    uint padding;
     float opacity;
+
 };
 
 layout(binding = 0, std430) readonly buffer vertices
@@ -43,11 +39,6 @@ layout(binding = 1, std430) readonly buffer camera
 layout(binding = 2, std430) readonly buffer objects
 {
     ObjectData object_data[];
-};
-
-layout(binding = 3, std430) readonly buffer materials
-{
-    MaterialData material_data[];
 };
 
 vec3 get_position(uint index)
@@ -88,10 +79,17 @@ vec2 get_uv(uint index)
                 data[index].uv[1]);
 }
 
-layout (location = 0) out flat uint material_index;
-layout (location = 1) out vec2 uv;
-layout (location = 2) out vec4 frag_position;
-layout (location = 3) out mat3 tbn;
+layout(location = 0) out flat uint albedo_tex_index;
+layout(location = 1) out flat uint normal_tex_index;
+layout(location = 2) out flat uint specular_tex_index;
+layout(location = 3) out flat uint roughness_tex_index;
+layout(location = 4) out flat uint ao_tex_index;
+layout(location = 5) out flat uint emissive_tex_index;
+layout(location = 6) out flat uint normal_compressed;
+layout(location = 7) out flat float opacity;
+layout(location = 8) out vec2 uv;
+layout(location = 9) out vec4 frag_position;
+layout(location = 10) out mat3 tbn;
 
 void main()
 {
@@ -99,7 +97,14 @@ void main()
 
     frag_position = object_data[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
     gl_Position = projection * view * frag_position;
-    material_index = object_data[gl_DrawID].material_index;
+    albedo_tex_index = object_data[gl_DrawID].albedo_tex_index;
+    normal_tex_index = object_data[gl_DrawID].normal_tex_index;
+    specular_tex_index = object_data[gl_DrawID].specular_tex_index;
+    roughness_tex_index = object_data[gl_DrawID].roughness_tex_index;
+    ao_tex_index = object_data[gl_DrawID].ao_tex_index;
+    emissive_tex_index = object_data[gl_DrawID].emissive_tex_index;
+    normal_compressed = object_data[gl_DrawID].normal_compressed;
+    opacity = object_data[gl_DrawID].opacity;
     uv = get_uv(gl_VertexID);
 
     vec3 t = normalize(normal_mat * get_tangent(gl_VertexID));

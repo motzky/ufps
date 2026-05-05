@@ -107,12 +107,31 @@ namespace
                 .indices = std::move(indices)};
     }
 
-    auto create_sprite(ufps::MeshManager &mesh_manager) -> ufps::Entity
+    auto create_sprite(ufps::MeshManager &mesh_manager, ufps::TextureManager & /*texture_manager*/) -> ufps::Entity
     {
         const auto mesh_data = std::vector{sprite()};
         const auto mesh_views = mesh_manager.load("sprite", mesh_data);
 
-        return {"post_process_sprite", {{mesh_views.front(), 0u, mesh_manager}}, {}};
+        return {
+            "post_process_sprite",
+            {{
+                mesh_views.front(),
+                0u,
+                0u,
+                0u,
+                0u,
+                0u,
+                0u,
+                // texture_manager.texture_index("textures/default_BaseColor.dds"),
+                // texture_manager.texture_index("textures/default_Normal.dds"),
+                // texture_manager.texture_index("textures/default_Metallic.dds"),
+                // texture_manager.texture_index("textures/default_Roughness.dds"),
+                // texture_manager.texture_index("textures/default_AO.dds"),
+                // texture_manager.texture_index("textures/default_Emissive.dds"),
+                false,
+                mesh_manager,
+            }},
+            {}};
     }
 }
 
@@ -124,7 +143,7 @@ namespace ufps
                      { ::glDeleteVertexArrays(1, &e); }},
           _command_buffer{"gbuffer_command_buffer"},
           _post_processing_command_buffer{"post_processing_command_buffer"},
-          _post_process_sprite{create_sprite(mesh_manager)},
+          _post_process_sprite{create_sprite(mesh_manager, texture_manager)},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},                                                                                                                                                  //
           _light_buffer{sizeof(LightData), "light_buffer"},                                                                                                                                                     //
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                        //
@@ -275,16 +294,21 @@ namespace ufps
                     [&entity](const auto &e)
                     { return ObjectData{
                           .model = entity.transform(),
-                          .material_id_index = e.material_index(),
-                          .padding = {}}; }));
+                          .albedo_texture_index = e.albedo_texture_index(),
+                          .normal_texture_index = e.normal_texture_index(),
+                          .specular_texture_index = e.specular_texture_index(),
+                          .roughness_texture_index = e.roughness_texture_index(),
+                          .ao_texture_index = e.ao_texture_index(),
+                          .emissive_texture_index = e.emissive_texture_index(),
+                          .normal_compressed = e.normal_compressed() ? 1u : 0u,
+                          .padding = {},
+                          .opacity = 1.f}; }));
         }
 
         resize_gpu_buffer(object_data, _object_data_buffer);
 
         _object_data_buffer.write(std::as_bytes(std::span{object_data.data(), object_data.size()}), 0zu);
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _object_data_buffer.native_handle(), _object_data_buffer.frame_offset_bytes(), _object_data_buffer.size());
-
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, scene.material_manager().native_handle());
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, scene.texture_manager().native_handle());
 
