@@ -272,8 +272,6 @@ namespace ufps
 
                 logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::ERROR>{}, ::Assimp::Logger::Err);
                 logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::WARN>{}, ::Assimp::Logger::Warn);
-                // logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::INFO>{}, ::Assimp::Logger::Info);
-                // logger->attachStream(new AssimpLogStreamAdapter<ufps::log::Level::DEBUG>{}, ::Assimp::Logger::Debugging);
 
                 return logger;
             }();
@@ -302,13 +300,13 @@ namespace ufps
         {
             log::info("found mesh: {}", mesh->mName.C_Str());
 
-            if (index >= scene->mNumMaterials)
+            if (mesh->mMaterialIndex >= scene->mNumMaterials)
             {
                 log::warn("mesh {} has invalid material index: {}", mesh->mName.C_Str(), index);
                 continue;
             }
 
-            const auto *material = scene->mMaterials[index];
+            const auto *material = scene->mMaterials[mesh->mMaterialIndex];
             log::info("found material: {}", material->GetName().C_Str());
 
             const auto base_color_count = material->GetTextureCount(::aiTextureType_BASE_COLOR);
