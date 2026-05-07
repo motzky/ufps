@@ -13,7 +13,7 @@ layout(binding = 0, std430) readonly buffer vertices {
     VertexData data[];
 };
 
-layout(binding = 3, std430) readonly buffer camera
+layout(binding = 1, std430) readonly buffer camera
 {
     mat4 view;
     mat4 projection;
