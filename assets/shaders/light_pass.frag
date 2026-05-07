@@ -119,13 +119,14 @@ void main()
     vec3 normal = texture(normal_texture, uv).xyz;
     vec3 frag_pos = texture(position_texture, uv).rgb;
     vec3 metallic_tex = texture(metallic_texture, uv).rgb;
-    vec3 emissive = texture(emissive_texture, uv).rgb;
+    vec4 emissive_texel = texture(emissive_texture, uv);
+    vec3 emissive = emissive_texel.rgb;
 
     float emissiveness = length(emissive);
 
     if(emissiveness > 0.001)
     {
-        out_color = vec4(emissive, 1.0);
+        out_color = vec4(emissive, emissive_texel.a);
         return;
     }
 

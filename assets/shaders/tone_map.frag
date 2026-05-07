@@ -97,7 +97,8 @@ vec3 convertYxy2RGB(vec3 _Yxy)
 
 void main()
 {
-    vec3 col = texture(input_texture, uv).rgb;
+    vec4 input_color = texture(input_texture, uv);
+    vec3 col = input_color.rgb;
 
     vec3 Yxz = convertRGB2Yxy(col);
 
@@ -124,5 +125,5 @@ void main()
 
     vec3 gamma_corrected = pow(tone_mapped_color * occlusion, vec3(1.0 / in_gamma));
 
-    out_color = vec4(gamma_corrected, 1.0);
+    out_color = vec4(gamma_corrected, input_color.a);
 }

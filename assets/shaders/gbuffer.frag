@@ -40,7 +40,11 @@ void main()
 
     vec3 n = normalize(tbn * nm);
 
-    out_color = vec4(texture(sampler2D(albedo_bindless_handle), uv).rgb, opacity);
+    vec4 albedo = texture(sampler2D(albedo_bindless_handle), uv);
+
+    float o = min(opacity, albedo.a);
+
+    out_color = vec4(albedo.rgb, o);
 
     out_normal = vec4(n, 1.0);
     out_pos = frag_position;
