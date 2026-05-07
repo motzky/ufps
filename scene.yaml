@@ -28,6 +28,12 @@ Description:
           g: 0
           b: 0.14215684
       density: 0.054
+  chromatic_abberation_options:
+    ChromaticAbberationOptions:
+      red_offset: 0.009
+      green_offset: 0.006
+      blue_offset: -0.006
+      strength: 0.5
   lights:
     LightData:
       ambient:

@@ -65,6 +65,14 @@ namespace ufps
         float density = 0.02f;
     };
 
+    struct ChromaticAbberationOptions
+    {
+        float red_offset = .009f;
+        float green_offset = .006f;
+        float blue_offset = -.006f;
+        float strength = 0.5;
+    };
+
     class Scene
     {
     public:
@@ -74,6 +82,7 @@ namespace ufps
             SSAOOptions ssao_options;
             ExposureOptions exposure_options;
             FogOptions fog_options;
+            ChromaticAbberationOptions chromatic_abberation_options;
             LightData lights;
             std::vector<Entity::Description> entities;
         };
@@ -86,6 +95,7 @@ namespace ufps
                         SSAOOptions ssao_options,
                         ExposureOptions exposure_options,
                         FogOptions fog_options,
+                        ChromaticAbberationOptions chromatic_abberation_options,
                         const StringUnorderedMap<Entity> &entity_cache);
 
         constexpr Scene(MeshManager &mesh_manager,
@@ -112,6 +122,7 @@ namespace ufps
         constexpr auto &ssao_options(this auto &&self);
         constexpr auto &exposure_options(this auto &&self);
         constexpr auto &fog_options(this auto &&self);
+        constexpr auto &chromatic_abberation_options(this auto &&self);
 
         constexpr auto description(this auto &&self) -> Description;
 
@@ -129,6 +140,7 @@ namespace ufps
         SSAOOptions _ssao_options;
         ExposureOptions _exposure_options;
         FogOptions _fog_options;
+        ChromaticAbberationOptions _chromatic_abberation_options;
     };
 
     constexpr auto Scene::intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>
@@ -180,7 +192,7 @@ namespace ufps
 
     constexpr Scene::Scene(MeshManager &mesh_manager, TextureManager &texture_manager, Camera camera, LightData lights,
                            ToneMapOptions tone_map_options, SSAOOptions ssao_options, ExposureOptions exposure_options,
-                           FogOptions fog_options,
+                           FogOptions fog_options, ChromaticAbberationOptions chromatic_abberation_options,
                            const StringUnorderedMap<Entity> &entity_cache)
         : _entities{},
           _entity_cache{},
@@ -191,7 +203,8 @@ namespace ufps
           _tone_map_options{std::move(tone_map_options)},
           _ssao_options{std::move(ssao_options)},
           _exposure_options{std::move(exposure_options)},
-          _fog_options{std::move(fog_options)}
+          _fog_options{std::move(fog_options)},
+          _chromatic_abberation_options{std::move(chromatic_abberation_options)}
     {
         for (const auto &[name, entity] : entity_cache)
         {
@@ -210,7 +223,8 @@ namespace ufps
           _tone_map_options{description.tone_map_options},
           _ssao_options{description.ssao_options},
           _exposure_options{description.exposure_options},
-          _fog_options{description.fog_options}
+          _fog_options{description.fog_options},
+          _chromatic_abberation_options{description.chromatic_abberation_options}
     {
         for (const auto &[name, entity] : entity_cache)
         {
@@ -295,6 +309,11 @@ namespace ufps
         return self._fog_options;
     }
 
+    constexpr auto &Scene::chromatic_abberation_options(this auto &&self)
+    {
+        return self._chromatic_abberation_options;
+    }
+
     constexpr auto Scene::description(this auto &&self) -> Description
     {
         return Description{
@@ -302,6 +321,7 @@ namespace ufps
             .ssao_options = self._ssao_options,
             .exposure_options = self._exposure_options,
             .fog_options = self._fog_options,
+            .chromatic_abberation_options = self._chromatic_abberation_options,
             .lights = self._lights,
             .entities = self._entities | std::views::transform([](const auto &e)
                                                                { return e.description(); }) |

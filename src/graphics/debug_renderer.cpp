@@ -397,6 +397,32 @@ namespace ufps
             }
         }
 
+        ::ImGui::Text("chromatic abberation options");
+
+        {
+            auto value = scene.chromatic_abberation_options().red_offset;
+            if (::ImGui::SliderFloat("red offset", &value, -.1f, .1f))
+            {
+                scene.chromatic_abberation_options().red_offset = value;
+            }
+        }
+
+        {
+            auto value = scene.chromatic_abberation_options().green_offset;
+            if (::ImGui::SliderFloat("green offset", &value, -.1f, .1f))
+            {
+                scene.chromatic_abberation_options().green_offset = value;
+            }
+        }
+
+        {
+            auto value = scene.chromatic_abberation_options().blue_offset;
+            if (::ImGui::SliderFloat("blue offset", &value, -.1f, .1f))
+            {
+                scene.chromatic_abberation_options().blue_offset = value;
+            }
+        }
+
         ::ImGui::Text("exposure options");
 
         {

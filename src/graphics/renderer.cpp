@@ -205,16 +205,18 @@ namespace ufps
           _tone_map_program{create_program(resource_loader, "tone_map_program"sv, "shaders/tone_map.vert"sv, "tone_map_vertex_shader"sv, "shaders/tone_map.frag"sv, "tone_map_fragment_shader"sv)},             //
           _luminance_program{create_program(resource_loader, "luminance_histogram_program"sv, "shaders/luminance_histogram.comp"sv, "luminance_history_compute")},
           _average_luminance_program{create_program(resource_loader, "average_luminance_program"sv, "shaders/average_luminance.comp"sv, "average_luminance_compute")},
-          _ssao_program{create_program(resource_loader, "ssao_program"sv, "shaders/ssao.vert"sv, "ssao_vertex_shader"sv, "shaders/ssao.frag"sv, "ssao_fragement_shader"sv)},                          //
-          _ssao_blur_program{create_program(resource_loader, "ssao_blur_program"sv, "shaders/ssao.vert"sv, "ssao_blur_vertex_shader"sv, "shaders/ssao_blur.frag"sv, "ssao_blur_fragement_shader"sv)}, //
-          _ssao_noise_sampler{FilterType::NEAREST, FilterType::NEAREST, WrapMode::REPEAT, WrapMode::REPEAT, "ssao_noise_sampler"},                                                                    //
-          _ssao_noise_texture_bindless_handle{create_ssao_noise_texture(texture_manager, _ssao_noise_sampler)},                                                                                       //
-          _fb_sampler{FilterType::LINEAR, FilterType::LINEAR, WrapMode::CLAMP_TO_EDGE, WrapMode::CLAMP_TO_EDGE, "fb_sampler"},                                                                        //
-          _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},                                                                            //
-          _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")},                                                                      //
+          _ssao_program{create_program(resource_loader, "ssao_program"sv, "shaders/ssao.vert"sv, "ssao_vertex_shader"sv, "shaders/ssao.frag"sv, "ssao_fragement_shader"sv)},                                                                                                 //
+          _ssao_blur_program{create_program(resource_loader, "ssao_blur_program"sv, "shaders/ssao.vert"sv, "ssao_blur_vertex_shader"sv, "shaders/ssao_blur.frag"sv, "ssao_blur_fragement_shader"sv)},                                                                        //
+          _chromatic_abberation_program{create_program(resource_loader, "chromatic_abberation_program"sv, "shaders/chromatic_abberation.vert"sv, "chromatic_abberation_vertex_shader"sv, "shaders/chromatic_abberation.frag"sv, "chromatic_abberation_fragement_shader"sv)}, //
+          _ssao_noise_sampler{FilterType::NEAREST, FilterType::NEAREST, WrapMode::REPEAT, WrapMode::REPEAT, "ssao_noise_sampler"},                                                                                                                                           //
+          _ssao_noise_texture_bindless_handle{create_ssao_noise_texture(texture_manager, _ssao_noise_sampler)},                                                                                                                                                              //
+          _fb_sampler{FilterType::LINEAR, FilterType::LINEAR, WrapMode::CLAMP_TO_EDGE, WrapMode::CLAMP_TO_EDGE, "fb_sampler"},                                                                                                                                               //
+          _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},                                                                                                                                                   //
+          _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")},                                                                                                                                             //
           _tone_map_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "tone_map")},
           _ssao_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, texture_manager, "ssao", TextureFormat::RG16F)},
           _ssao_blur_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, texture_manager, "ssao", TextureFormat::RG16F)},
+          _chromatic_abberation_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "chromatic_abberation")},
           _final_fb{}
     {
 
@@ -291,7 +293,9 @@ namespace ufps
 
         execute_tone_mapping_pass(scene);
 
-        _final_fb = &_tone_map_rt.fb;
+        execute_chromatic_abberation_pass(scene);
+
+        _final_fb = &_chromatic_abberation_rt.fb;
 
         post_render(scene);
 
@@ -539,10 +543,6 @@ namespace ufps
 
         [[maybe_unused]] const auto auto_bind = AutoBind{_tone_map_program};
 
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
-        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
-
         _tone_map_program.set_uniforms(_light_pass_rt.color_texture_bindless_handle_0,
                                        scene.tone_map_options().max_brightness,
                                        scene.tone_map_options().contrast,
@@ -559,6 +559,36 @@ namespace ufps
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _average_luminance_buffer.native_handle());
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
+        ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
+
+        ::glMultiDrawElementsIndirect(
+            GL_TRIANGLES,
+            GL_UNSIGNED_INT,
+            reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
+            1u,
+            0);
+    }
+
+    auto Renderer::execute_chromatic_abberation_pass(Scene &scene) -> void
+    {
+        const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+
+        _chromatic_abberation_rt.fb.bind();
+        ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        [[maybe_unused]] const auto auto_bind = AutoBind{_chromatic_abberation_program};
+
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
+        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
+
+        _chromatic_abberation_program.set_uniforms(_tone_map_rt.color_texture_bindless_handle_0,
+                                                   scene.chromatic_abberation_options().red_offset,
+                                                   scene.chromatic_abberation_options().green_offset,
+                                                   scene.chromatic_abberation_options().blue_offset,
+                                                   scene.chromatic_abberation_options().strength);
+
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
 
         ::glMultiDrawElementsIndirect(

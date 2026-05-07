@@ -74,6 +74,7 @@ namespace ufps
         Program _average_luminance_program;
         Program _ssao_program;
         Program _ssao_blur_program;
+        Program _chromatic_abberation_program;
         Sampler _ssao_noise_sampler;
         std::uint64_t _ssao_noise_texture_bindless_handle;
         Sampler _fb_sampler;
@@ -82,6 +83,7 @@ namespace ufps
         RenderTarget _tone_map_rt;
         RenderTarget _ssao_rt;
         RenderTarget _ssao_blur_rt;
+        RenderTarget _chromatic_abberation_rt;
         FrameBuffer *_final_fb;
 
     private:
@@ -91,5 +93,6 @@ namespace ufps
         auto execute_luminance_average_pass(Scene &scene) -> void;
         auto execute_ssao_pass(Scene &scene) -> void;
         auto execute_tone_mapping_pass(Scene &scene) -> void;
+        auto execute_chromatic_abberation_pass(Scene &scene) -> void;
     };
 }
