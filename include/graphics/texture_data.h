@@ -17,6 +17,7 @@ namespace ufps
         RGBA,
         SRGBA,
         RGB16F,
+        RGBA16F,
         DEPTH24,
         BC5U,
         BC7,
@@ -51,6 +52,8 @@ namespace ufps
             return "SRGBA";
         case RGB16F:
             return "RGB16F";
+        case RGBA16F:
+            return "RGB16AF";
         case DEPTH24:
             return "DEPTH24";
         case BC5U:

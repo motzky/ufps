@@ -30,6 +30,8 @@ namespace
             return include_size ? GL_SRGB8_ALPHA8 : GL_RGBA;
         case RGB16F:
             return GL_RGB16F;
+        case RGBA16F:
+            return GL_RGBA16F;
         case DEPTH24:
             return GL_DEPTH_COMPONENT24;
         case BC5U:
@@ -47,8 +49,8 @@ namespace
 namespace ufps
 {
     Texture::Texture(const TextureData &texture, const std::string &name, const Sampler &sampler)
-        : _handle{0u, [](auto texture)
-                  { ::glDeleteTextures(1u, &texture); }},
+        : _handle{0u, [](auto t)
+                  { ::glDeleteTextures(1u, &t); }},
           _bindless_handle{},
           _name{name},
           _width{texture.width},
