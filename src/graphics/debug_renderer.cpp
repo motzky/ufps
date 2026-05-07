@@ -423,6 +423,14 @@ namespace ufps
             }
         }
 
+        {
+            auto value = scene.chromatic_abberation_options().strength;
+            if (::ImGui::SliderFloat("strength", &value, 0.f, 1.f))
+            {
+                scene.chromatic_abberation_options().strength = value;
+            }
+        }
+
         ::ImGui::Text("exposure options");
 
         {
