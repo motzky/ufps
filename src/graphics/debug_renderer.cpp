@@ -24,7 +24,7 @@
 
 namespace
 {
-    static constexpr auto debugl_light_scale = 0.25f;
+    static constexpr auto debug_light_scale = 0.25f;
 
     auto screen_ray(const ufps::MouseButtonEvent &evt, const ufps::Window &window, const ufps::Camera &camera) -> ufps::Ray
     {
@@ -70,6 +70,57 @@ namespace
         draw_line(transform * ufps::Vector4{aabb.max.x, aabb.min.y, aabb.min.z, 1.f}, transform * ufps::Vector4{aabb.max.x, aabb.min.y, aabb.max.z, 1.f}, color, lines);
 
         return lines;
+    }
+
+    auto draw_g_buffer_textures(ufps::Scene &scene, ufps::RenderTarget &rt, float width, float aspect_ratio) -> void
+    {
+        ::ImGui::Image(
+            scene.texture_manager().texture(rt.color_texture_bindless_handle_0)->native_handle(),
+            ::ImVec2(width * aspect_ratio, width),
+            ::ImVec2(0.f, 1.f),
+            ::ImVec2(1.f, 0.f));
+        ::ImGui::SameLine();
+
+        ::ImGui::Image(
+            scene.texture_manager().texture(rt.color_texture_bindless_handle_1)->native_handle(),
+            ::ImVec2(width * aspect_ratio, width),
+            ::ImVec2(0.f, 1.f),
+            ::ImVec2(1.f, 0.f));
+        ::ImGui::SameLine();
+
+        ::ImGui::Image(
+            scene.texture_manager().texture(rt.color_texture_bindless_handle_2)->native_handle(),
+            ::ImVec2(width * aspect_ratio, width),
+            ::ImVec2(0.f, 1.f),
+            ::ImVec2(1.f, 0.f));
+        ::ImGui::SameLine();
+
+        ::ImGui::Image(
+            scene.texture_manager().texture(rt.color_texture_bindless_handle_3)->native_handle(),
+            ::ImVec2(width * aspect_ratio, width),
+            ::ImVec2(0.f, 1.f),
+            ::ImVec2(1.f, 0.f));
+
+        ::ImGui::Image(
+            scene.texture_manager().texture(rt.color_texture_bindless_handle_4)->native_handle(),
+            ::ImVec2(width * aspect_ratio, width),
+            ::ImVec2(0.f, 1.f),
+            ::ImVec2(1.f, 0.f));
+        ::ImGui::SameLine();
+
+        ::ImGui::Image(
+            scene.texture_manager().texture(rt.color_texture_bindless_handle_5)->native_handle(),
+            ::ImVec2(width * aspect_ratio, width),
+            ::ImVec2(0.f, 1.f),
+            ::ImVec2(1.f, 0.f));
+        ::ImGui::SameLine();
+
+        ::ImGui::Image(
+            scene.texture_manager().texture(rt.color_texture_bindless_handle_6)->native_handle(),
+            ::ImVec2(width * aspect_ratio, width),
+            ::ImVec2(0.f, 1.f),
+            ::ImVec2(1.f, 0.f));
+        ::ImGui::SameLine();
     }
 }
 
@@ -164,7 +215,7 @@ namespace ufps
 
         for (const auto &light : scene.lights().lights.data())
         {
-            const auto light_transform = Transform{light.position, {debugl_light_scale}, {}};
+            const auto light_transform = Transform{light.position, {debug_light_scale}, {}};
             const auto light_model = Matrix4{light_transform};
 
             const auto debug_light_aabb = ufps::AABB{
@@ -555,19 +606,10 @@ namespace ufps
         static constexpr auto width = 175.f;
         const auto aspect_ratio = static_cast<float>(_window.width()) / static_cast<float>(_window.height());
 
-        for (auto i = 0u; i < _gbuffer_rt.color_attachment_count; ++i)
-        {
-            const auto tex = scene.texture_manager().texture(_gbuffer_rt.first_color_attachment_index + i);
-            ::ImGui::Image(tex->native_handle(), ::ImVec2(width * aspect_ratio, width), ::ImVec2(0.f, 1.f), ::ImVec2(1.f, 0.f));
-            if ((i + 1) % 4 == 0)
-            {
-                continue;
-            }
-            ::ImGui::SameLine();
-        }
+        draw_g_buffer_textures(scene, _gbuffer_rt, width, aspect_ratio);
 
         ::ImGui::Image(
-            scene.texture_manager().texture(_ssao_blur_rt.first_color_attachment_index)->native_handle(),
+            scene.texture_manager().texture(_ssao_blur_rt.color_texture_bindless_handle_0)->native_handle(),
             ::ImVec2(width * aspect_ratio, width),
             ::ImVec2(0.f, 1.f),
             ::ImVec2(1.f, 0.f));
@@ -726,7 +768,7 @@ namespace ufps
                 {
                     continue;
                 }
-                const auto light_transform = Transform{light->position, {debugl_light_scale}, {}};
+                const auto light_transform = Transform{light->position, {debug_light_scale}, {}};
                 const auto light_model = Matrix4{light_transform};
 
                 const auto debug_light_aabb = ufps::AABB{

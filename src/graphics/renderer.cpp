@@ -72,6 +72,14 @@ namespace
 
         const auto first_index = texture_manager.add(std::move(color_attachments));
 
+        const auto color_texture_bindless_handle_0 = texture_manager.texture(first_index)->bindless_handle();
+        const auto color_texture_bindless_handle_1 = color_attachment_count > 1 ? texture_manager.texture(first_index + 1)->bindless_handle() : 0u;
+        const auto color_texture_bindless_handle_2 = color_attachment_count > 2 ? texture_manager.texture(first_index + 2)->bindless_handle() : 0u;
+        const auto color_texture_bindless_handle_3 = color_attachment_count > 3 ? texture_manager.texture(first_index + 3)->bindless_handle() : 0u;
+        const auto color_texture_bindless_handle_4 = color_attachment_count > 4 ? texture_manager.texture(first_index + 4)->bindless_handle() : 0u;
+        const auto color_texture_bindless_handle_5 = color_attachment_count > 5 ? texture_manager.texture(first_index + 5)->bindless_handle() : 0u;
+        const auto color_texture_bindless_handle_6 = color_attachment_count > 6 ? texture_manager.texture(first_index + 6)->bindless_handle() : 0u;
+
         const auto depth_texture_data = ufps::TextureData{
             .width = width,
             .height = height,
@@ -90,9 +98,15 @@ namespace
 
         return {
             .fb = std::move(fb),
-            .first_color_attachment_index = first_index,
-            .color_attachment_count = color_attachment_count,
-            .depth_attachment_index = depth_texture_index};
+            .color_texture_bindless_handle_0 = color_texture_bindless_handle_0,
+            .color_texture_bindless_handle_1 = color_texture_bindless_handle_1,
+            .color_texture_bindless_handle_2 = color_texture_bindless_handle_2,
+            .color_texture_bindless_handle_3 = color_texture_bindless_handle_3,
+            .color_texture_bindless_handle_4 = color_texture_bindless_handle_4,
+            .color_texture_bindless_handle_5 = color_texture_bindless_handle_5,
+            .color_texture_bindless_handle_6 = color_texture_bindless_handle_6,
+            .depth_texture_bindless_handle = texture_manager.texture(depth_texture_index)->bindless_handle(),
+        };
     }
 
     auto sprite() -> ufps::MeshData
@@ -129,9 +143,45 @@ namespace
                 // texture_manager.texture_index("textures/default_AO.dds"),
                 // texture_manager.texture_index("textures/default_Emissive.dds"),
                 false,
+                1.f,
                 mesh_manager,
             }},
             {}};
+    }
+
+    auto create_ssao_noise_texture(ufps::TextureManager &texture_manager, const ufps::Sampler &sampler) -> std::uint64_t
+    {
+        auto generator = std::mt19937{std::random_device{}()};
+        auto distribution = std::uniform_real_distribution<float>{-1.f, 1.f};
+
+        auto ssao_noise_data = ufps::DataBuffer{};
+
+        for (auto i = 0u; i < 16u; ++i)
+        {
+            const auto x = distribution(generator);
+            const auto y = distribution(generator);
+            const auto z = 0.f;
+
+            ssao_noise_data.push_back(static_cast<std::byte>((x * .5f + .5f) * 255.f));
+            ssao_noise_data.push_back(static_cast<std::byte>((y * .5f + .5f) * 255.f));
+            ssao_noise_data.push_back(static_cast<std::byte>((z * .5f + .5f) * 255.f));
+        }
+
+        const auto ssao_noise_texture_data = ufps::TextureData{
+            .width = 4,
+            .height = 4,
+            .format = ufps::TextureFormat::RGB,
+            .data = ssao_noise_data,
+            .is_compressed = false,
+        };
+
+        auto tex = ufps::Texture{
+            ssao_noise_texture_data,
+            "ssao_noise_texture",
+            sampler};
+
+        const auto tex_index = texture_manager.add(std::move(tex));
+        return texture_manager.texture(tex_index)->bindless_handle();
     }
 }
 
@@ -157,7 +207,9 @@ namespace ufps
           _average_luminance_program{create_program(resource_loader, "average_luminance_program"sv, "shaders/average_luminance.comp"sv, "average_luminance_compute")},
           _ssao_program{create_program(resource_loader, "ssao_program"sv, "shaders/ssao.vert"sv, "ssao_vertex_shader"sv, "shaders/ssao.frag"sv, "ssao_fragement_shader"sv)},                          //
           _ssao_blur_program{create_program(resource_loader, "ssao_blur_program"sv, "shaders/ssao.vert"sv, "ssao_blur_vertex_shader"sv, "shaders/ssao_blur.frag"sv, "ssao_blur_fragement_shader"sv)}, //
-          _fb_sampler{FilterType::NEAREST, FilterType::LINEAR, WrapMode::CLAMP_TO_EDGE, WrapMode::CLAMP_TO_EDGE, "fb_sampler"},                                                                       //
+          _ssao_noise_sampler{FilterType::NEAREST, FilterType::NEAREST, WrapMode::REPEAT, WrapMode::REPEAT, "ssao_noise_sampler"},                                                                    //
+          _ssao_noise_texture_bindless_handle{create_ssao_noise_texture(texture_manager, _ssao_noise_sampler)},                                                                                       //
+          _fb_sampler{FilterType::LINEAR, FilterType::LINEAR, WrapMode::CLAMP_TO_EDGE, WrapMode::CLAMP_TO_EDGE, "fb_sampler"},                                                                        //
           _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},                                                                            //
           _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")},                                                                      //
           _tone_map_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "tone_map")},
@@ -300,9 +352,10 @@ namespace ufps
                           .roughness_texture_bindless_handle = e.roughness_texture_bindless_handle(),
                           .ao_texture_bindless_handle = e.ao_texture_bindless_handle(),
                           .emissive_texture_bindless_handle = e.emissive_texture_bindless_handle(),
+                          .opacity = e.opacity(),
                           .normal_compressed = e.normal_compressed() ? 1u : 0u,
                           .pad{},
-                          .opacity = 1.f}; }));
+                      }; }));
         }
 
         resize_gpu_buffer(object_data, _object_data_buffer);
@@ -345,18 +398,17 @@ namespace ufps
             writer.write(lights.lights.data());
         }
 
-        _light_pass_program.set_uniforms(_gbuffer_rt.first_color_attachment_index + 0u,
-                                         _gbuffer_rt.first_color_attachment_index + 1u,
-                                         _gbuffer_rt.first_color_attachment_index + 2u,
-                                         _gbuffer_rt.first_color_attachment_index + 3u,
-                                         _gbuffer_rt.first_color_attachment_index + 4u,
-                                         _gbuffer_rt.first_color_attachment_index + 5u,
-                                         _gbuffer_rt.first_color_attachment_index + 6u);
+        _light_pass_program.set_uniforms(_gbuffer_rt.color_texture_bindless_handle_0,
+                                         _gbuffer_rt.color_texture_bindless_handle_1,
+                                         _gbuffer_rt.color_texture_bindless_handle_2,
+                                         _gbuffer_rt.color_texture_bindless_handle_3,
+                                         _gbuffer_rt.color_texture_bindless_handle_4,
+                                         _gbuffer_rt.color_texture_bindless_handle_5,
+                                         _gbuffer_rt.color_texture_bindless_handle_6);
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
-        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _light_buffer.native_handle(), _light_buffer.frame_offset_bytes(), _light_buffer.size());
-        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 3, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
+        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _light_buffer.native_handle(), _light_buffer.frame_offset_bytes(), _light_buffer.size());
+        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
         ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
         ::glMultiDrawElementsIndirect(
             GL_TRIANGLES,
@@ -375,10 +427,9 @@ namespace ufps
         const auto zero = ::GLuint{0};
         ::glClearNamedBufferData(_luminance_histogram_buffer.native_handle(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
 
-        _luminance_program.set_uniforms(_light_pass_rt.first_color_attachment_index, scene.exposure_options().min_log_luminance, 1.f / (scene.exposure_options().max_log_luminance - scene.exposure_options().min_log_luminance));
+        _luminance_program.set_uniforms(_light_pass_rt.color_texture_bindless_handle_0, scene.exposure_options().min_log_luminance, 1.f / (scene.exposure_options().max_log_luminance - scene.exposure_options().min_log_luminance));
 
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, scene.texture_manager().native_handle());
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _luminance_histogram_buffer.native_handle());
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _luminance_histogram_buffer.native_handle());
 
         ::glDispatchCompute(
             static_cast<std::uint32_t>(_light_pass_rt.fb.width() + 15 / 16),
@@ -410,7 +461,7 @@ namespace ufps
     {
         if (!scene.ssao_options().enabled)
         {
-            ::glClearColor(1.f, 0.f, 0.f, 0.f);
+            ::glClearColor(1.f, 0.f, 0.f, 1.f);
             _ssao_blur_rt.fb.bind();
             ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             ::glClearColor(0.f, 0.f, 0.f, 1.f);
@@ -427,21 +478,21 @@ namespace ufps
 
             [[maybe_unused]] const auto auto_bind = AutoBind{_ssao_program};
 
-            _ssao_program.set_uniforms(_gbuffer_rt.first_color_attachment_index + 1u,
-                                       _gbuffer_rt.first_color_attachment_index + 2u,
-                                       _gbuffer_rt.first_color_attachment_index + 5u,
-                                       _gbuffer_rt.first_color_attachment_index + 6u,
-                                       static_cast<float>(_ssao_rt.fb.width()),
-                                       static_cast<float>(_ssao_rt.fb.height()),
+            _ssao_program.set_uniforms(_gbuffer_rt.color_texture_bindless_handle_1,
+                                       _gbuffer_rt.color_texture_bindless_handle_2,
+                                       _gbuffer_rt.color_texture_bindless_handle_5,
+                                       _gbuffer_rt.color_texture_bindless_handle_6,
+                                       static_cast<float>(_gbuffer_rt.fb.width()),
+                                       static_cast<float>(_gbuffer_rt.fb.height()),
                                        scene.ssao_options().sample_count,
                                        scene.ssao_options().radius,
                                        scene.ssao_options().bias,
-                                       scene.ssao_options().power);
+                                       scene.ssao_options().power,
+                                       _ssao_noise_texture_bindless_handle);
 
             ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
-            ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
-            ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
-            ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, _ssao_samples_buffer.native_handle());
+            ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
+            ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _ssao_samples_buffer.native_handle());
 
             ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
 
@@ -459,13 +510,12 @@ namespace ufps
 
             [[maybe_unused]] const auto auto_bind = AutoBind{_ssao_blur_program};
 
-            _ssao_blur_program.set_uniforms(_ssao_rt.first_color_attachment_index,
-                                            _gbuffer_rt.depth_attachment_index,
+            _ssao_blur_program.set_uniforms(_ssao_rt.color_texture_bindless_handle_0,
+                                            _gbuffer_rt.depth_texture_bindless_handle,
                                             static_cast<float>(_ssao_rt.fb.width()),
                                             static_cast<float>(_ssao_rt.fb.height()));
 
             ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
-            ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
 
             ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
 
@@ -493,7 +543,7 @@ namespace ufps
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
 
-        _tone_map_program.set_uniforms(_light_pass_rt.first_color_attachment_index + 0u,
+        _tone_map_program.set_uniforms(_light_pass_rt.color_texture_bindless_handle_0,
                                        scene.tone_map_options().max_brightness,
                                        scene.tone_map_options().contrast,
                                        scene.tone_map_options().linear_section_start,
@@ -501,11 +551,10 @@ namespace ufps
                                        scene.tone_map_options().black_tightness,
                                        scene.tone_map_options().pedestal,
                                        scene.tone_map_options().gamma,
-                                       _ssao_blur_rt.first_color_attachment_index);
+                                       _ssao_blur_rt.color_texture_bindless_handle_0);
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _average_luminance_buffer.native_handle());
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _average_luminance_buffer.native_handle());
 
         ::glMultiDrawElementsIndirect(
             GL_TRIANGLES,

@@ -18,9 +18,9 @@ struct ObjectData
     uvec2 roughness_tex_bindless_handle;
     uvec2 ao_tex_bindless_handle;
     uvec2 emissive_tex_bindless_handle;
+    float opacity;
     uint normal_compressed;
     uint pad;
-    float opacity;
 
 };
 

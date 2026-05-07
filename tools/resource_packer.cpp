@@ -183,7 +183,9 @@ auto main(int argc, char **argv) -> int
                                 .roughness_texture = roughness_name,
                                 .ambient_occlusion_texture = ao_name,
                                 .emissive_color_texture = emissive_name,
-                                .normal_compressed = normal_compressed};
+                                .normal_compressed = normal_compressed,
+                                .opacity = model.opacity,
+                            };
 
                             vertex_data.append_range(mesh_data.vertices);
                             index_data.append_range(mesh_data.indices);

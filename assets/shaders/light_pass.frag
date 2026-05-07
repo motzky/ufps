@@ -3,15 +3,6 @@
 
 const float PI = 3.14159265359;
 
-struct VertexData
-{
-    float position[3];
-    float normal[3];
-    float tangent[3];
-    float bitangent[3];
-    float uv[2];
-};
-
 struct PointLight
 {
     float pos[3];
@@ -22,23 +13,14 @@ struct PointLight
     float pad;
 };
 
-layout(binding = 0, std430) readonly buffer vertices {
-    VertexData data[];
-};
-
-layout(binding = 1, std430) readonly buffer texture_buffer
-{
-    sampler2D textures[];
-};
-
-layout(binding = 2, std430) readonly buffer lights
+layout(binding = 1, std430) readonly buffer lights
 {
     float ambient_color[3];
     uint num_point_lights;
     PointLight point_lights[];
 };
 
-layout(binding = 3, std430) readonly buffer camera
+layout(binding = 2, std430) readonly buffer camera
 {
     mat4 view;
     mat4 projection;
@@ -46,13 +28,13 @@ layout(binding = 3, std430) readonly buffer camera
 };
 
 
-layout(location = 0) uniform uint albedo_tex_index;
-layout(location = 1) uniform uint normal_tex_index;
-layout(location = 2) uniform uint position_tex_index;
-layout(location = 3) uniform uint metallic_tex_index;
-layout(location = 4) uniform uint roughness_tex_index;
-layout(location = 5) uniform uint ao_tex_index;
-layout(location = 6) uniform uint emissive_tex_index;
+layout(bindless_sampler, location = 0) uniform sampler2D albedo_texture;
+layout(bindless_sampler, location = 1) uniform sampler2D normal_texture;
+layout(bindless_sampler, location = 2) uniform sampler2D position_texture;
+layout(bindless_sampler, location = 3) uniform sampler2D metallic_texture;
+layout(bindless_sampler, location = 4) uniform sampler2D roughness_texture;
+layout(bindless_sampler, location = 5) uniform sampler2D ao_texture;
+layout(bindless_sampler, location = 6) uniform sampler2D emissive_texture;
 
 layout(location = 0) in vec2 uv;
 
@@ -131,13 +113,13 @@ vec3 calculate_point_light(PointLight light, vec3 view_pos, vec3 view_dir, vec3 
 
 void main()
 {
-    vec4 albedo_texel = texture(textures[albedo_tex_index], uv);
+    vec4 albedo_texel = texture(albedo_texture, uv);
     vec3 albedo = albedo_texel.rgb;
     float alpha = albedo_texel.a;    
-    vec3 normal = texture(textures[normal_tex_index], uv).xyz;
-    vec3 frag_pos = texture(textures[position_tex_index], uv).rgb;
-    vec3 metallic_tex = texture(textures[metallic_tex_index], uv).rgb;
-    vec3 emissive = texture(textures[emissive_tex_index], uv).rgb;
+    vec3 normal = texture(normal_texture, uv).xyz;
+    vec3 frag_pos = texture(position_texture, uv).rgb;
+    vec3 metallic_tex = texture(metallic_texture, uv).rgb;
+    vec3 emissive = texture(emissive_texture, uv).rgb;
 
     float emissiveness = length(emissive);
 
@@ -150,8 +132,8 @@ void main()
     vec3 ambient_color = vec3(ambient_color[0], ambient_color[1], ambient_color[2]);
 
     float metallic = metallic_tex.r;
-    float roughness = texture(textures[roughness_tex_index], uv).r;
-    float ao = texture(textures[ao_tex_index], uv).r;
+    float roughness = texture(roughness_texture, uv).r;
+    float ao = texture(ao_texture, uv).r;
 
     vec3 view_pos = vec3(camera_position[0],camera_position[1],camera_position[2]);
     vec3 view_dir = normalize(view_pos - frag_pos);

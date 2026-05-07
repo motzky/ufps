@@ -278,7 +278,7 @@ namespace
         {
             auto render_entities = std::vector<ufps::RenderEntity>{};
 
-            for (const auto &[mesh_view, albedo_name, normal_name, specular_name, roughness_name, ao_name, emissive_name, normal_compressed] : manifests)
+            for (const auto &[mesh_view, albedo_name, normal_name, specular_name, roughness_name, ao_name, emissive_name, normal_compressed, opacity] : manifests)
             {
 
                 const auto albedo_index = albedo_name.empty()
@@ -304,7 +304,12 @@ namespace
                                                 ? 65567
                                                 : texture_manager.bindless_handle(emissive_name);
 
-                render_entities.push_back({mesh_view, albedo_index, normal_index, specular_index, roughness_index, ao_index, emissive_index, normal_compressed, mesh_manager});
+                if (opacity < 1.f)
+                {
+                    ufps::log::debug("using transparent material for {}: opacity = {}", name, opacity);
+                }
+
+                render_entities.push_back({mesh_view, albedo_index, normal_index, specular_index, roughness_index, ao_index, emissive_index, normal_compressed, opacity, mesh_manager});
             }
             entity_cache.insert({name, ufps::Entity{name, std::move(render_entities), {}}});
         }

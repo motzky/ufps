@@ -96,6 +96,12 @@ namespace ufps
         ::glProgramUniform1ui(_handle, static_cast<std::uint32_t>(index), value);
     }
 
+    auto Program::set_uniform(std::size_t index, std::uint64_t value) const -> void
+    {
+        expect(_is_bound, "setting uniform on unbound program");
+        ::glProgramUniformHandleui64ARB(_handle, index, value);
+    }
+
     auto Program::set_uniform(std::size_t index, float value) const -> void
     {
         expect(_is_bound, "setting uniform on unbound program");

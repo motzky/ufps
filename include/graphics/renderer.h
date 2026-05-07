@@ -21,9 +21,14 @@ namespace ufps
     struct RenderTarget
     {
         FrameBuffer fb;
-        std::uint32_t first_color_attachment_index;
-        std::uint32_t color_attachment_count;
-        std::uint32_t depth_attachment_index;
+        std::uint64_t color_texture_bindless_handle_0;
+        std::uint64_t color_texture_bindless_handle_1;
+        std::uint64_t color_texture_bindless_handle_2;
+        std::uint64_t color_texture_bindless_handle_3;
+        std::uint64_t color_texture_bindless_handle_4;
+        std::uint64_t color_texture_bindless_handle_5;
+        std::uint64_t color_texture_bindless_handle_6;
+        std::uint64_t depth_texture_bindless_handle;
     };
 
     class Renderer
@@ -69,6 +74,8 @@ namespace ufps
         Program _average_luminance_program;
         Program _ssao_program;
         Program _ssao_blur_program;
+        Sampler _ssao_noise_sampler;
+        std::uint64_t _ssao_noise_texture_bindless_handle;
         Sampler _fb_sampler;
         RenderTarget _gbuffer_rt;
         RenderTarget _light_pass_rt;

@@ -19,6 +19,7 @@ namespace ufps
         std::string ambient_occlusion_texture;
         std::string emissive_color_texture;
         bool normal_compressed;
+        float opacity;
     };
 
     struct ModelManifestDescription

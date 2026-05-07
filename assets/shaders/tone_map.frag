@@ -3,30 +3,12 @@
 
 const float PI = 3.14159265359;
 
-struct VertexData
-{
-    float position[3];
-    float normal[3];
-    float tangent[3];
-    float bitangent[3];
-    float uv[2];
-};
-
-layout(binding = 0, std430) readonly buffer vertices {
-    VertexData data[];
-};
-
-layout(binding = 1, std430) readonly buffer texture_buffer
-{
-    sampler2D textures[];
-};
-
-layout(binding = 2, std430) readonly buffer average_buffer
+layout(binding = 1, std430) readonly buffer average_buffer
 {
     float average;
 };
 
-layout(location = 0) uniform uint input_tex_index;
+layout(bindless_sampler, location = 0) uniform sampler2D input_texture;
 layout(location = 1) uniform float in_P;
 layout(location = 2) uniform float in_a;
 layout(location = 3) uniform float in_m;
@@ -34,7 +16,7 @@ layout(location = 4) uniform float in_l;
 layout(location = 5) uniform float in_c;
 layout(location = 6) uniform float in_b;
 layout(location = 7) uniform float in_gamma;
-layout(location = 8) uniform uint ssao_tex_index;
+layout(bindless_sampler, location = 8) uniform sampler2D ssao_texture;
 
 
 layout(location = 0) in vec2 uv;
@@ -69,7 +51,7 @@ vec3 convertRGB2XYZ(vec3 _rgb)
 	// http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html
 	vec3 xyz;
 	xyz.x = dot(vec3(0.4124564, 0.3575761, 0.1804375), _rgb);
-	xyz.y = dot(vec3(0.2126729, 0.7151522, 0.0721750), _rgb);
+	xyz.y = dot(vec3(0.2126729, 0.7151522, 0.0721750), _rgb); 
 	xyz.z = dot(vec3(0.0193339, 0.1191920, 0.9503041), _rgb);
 	return xyz;
 }
@@ -115,7 +97,7 @@ vec3 convertYxy2RGB(vec3 _Yxy)
 
 void main()
 {
-    vec3 col = texture(textures[input_tex_index], uv).rgb;
+    vec3 col = texture(input_texture, uv).rgb;
 
     vec3 Yxz = convertRGB2Yxy(col);
 
@@ -125,7 +107,7 @@ void main()
 
     vec3 tone_mapped_color = uchimura(in_color, in_P, in_a, in_m, in_l, in_c, in_b);
     
-    vec2 texelSize = 1.0 / vec2(textureSize(textures[ssao_tex_index], 0));
+    vec2 texelSize = 1.0 / vec2(textureSize(ssao_texture, 0));
 
     float result = 0.0;
     for (int x = -2; x<2; ++x)
@@ -133,11 +115,11 @@ void main()
         for(int y=-2; y<2; ++y)
         {
             vec2 offset = vec2(float(x), float(y)) * texelSize;
-            result += texture(textures[ssao_tex_index], uv + offset).r;
+            result += texture(ssao_texture, uv + offset).r;
         }
     }
 
-    // vec3 occlusion = texture(textures[ssao_tex_index], uv).rgb;
+    // vec3 occlusion = texture(ssao_texture, uv).rgb;
     float occlusion = result / 16.0;
 
     vec3 gamma_corrected = pow(tone_mapped_color * occlusion, vec3(1.0 / in_gamma));

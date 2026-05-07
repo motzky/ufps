@@ -60,14 +60,14 @@ namespace ufps
         return _gpu_buffer.native_handle();
     }
 
-    auto TextureManager::texture(const std::uint32_t index) const -> const Texture *
+    auto TextureManager::texture(std::uint32_t index) const -> const Texture *
     {
         expect(index <= _textures.size(), "index out of range");
 
         return std::addressof(_textures[index]);
     }
 
-    auto TextureManager::texture(const std::uint64_t bindless_handle) const -> const Texture *
+    auto TextureManager::texture(std::uint64_t bindless_handle) const -> const Texture *
     {
         auto iter = std::ranges::find_if(_cpu_buffer, [bindless_handle](auto h)
                                          { return h == bindless_handle; });
@@ -108,9 +108,10 @@ namespace ufps
     {
 
         return indices |
-               std::views::transform([this](auto i)
-                                     { 
-                                        expect(i <= _textures.size(), "index out of range");
+               std::views::transform(
+                   [this](auto i)
+                   { 
+                                        expect(i <= _textures.size(), "index {} out of range", i);
                                         return std::addressof(_textures[i]); }) |
                std::ranges::to<std::vector>();
     }
