@@ -59,6 +59,12 @@ namespace ufps
         float tau = 1.1f;
     };
 
+    struct FogOptions
+    {
+        Color color = Color::black();
+        float density = 0.02f;
+    };
+
     class Scene
     {
     public:
@@ -67,6 +73,7 @@ namespace ufps
             ToneMapOptions tone_map_options;
             SSAOOptions ssao_options;
             ExposureOptions exposure_options;
+            FogOptions fog_options;
             LightData lights;
             std::vector<Entity::Description> entities;
         };
@@ -78,6 +85,7 @@ namespace ufps
                         ToneMapOptions tone_map_options,
                         SSAOOptions ssao_options,
                         ExposureOptions exposure_options,
+                        FogOptions fog_options,
                         const StringUnorderedMap<Entity> &entity_cache);
 
         constexpr Scene(MeshManager &mesh_manager,
@@ -103,6 +111,10 @@ namespace ufps
         constexpr auto &tone_map_options(this auto &&self);
         constexpr auto &ssao_options(this auto &&self);
         constexpr auto &exposure_options(this auto &&self);
+        constexpr auto &fog_options(this auto &&self);
+
+        constexpr auto description(this auto &&self) -> Description;
+
         constexpr auto remove(const Entity &entity) -> void;
         constexpr auto remove(PointLightHandle light) -> void;
 
@@ -116,6 +128,7 @@ namespace ufps
         ToneMapOptions _tone_map_options;
         SSAOOptions _ssao_options;
         ExposureOptions _exposure_options;
+        FogOptions _fog_options;
     };
 
     constexpr auto Scene::intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>
@@ -166,7 +179,9 @@ namespace ufps
     }
 
     constexpr Scene::Scene(MeshManager &mesh_manager, TextureManager &texture_manager, Camera camera, LightData lights,
-                           ToneMapOptions tone_map_options, SSAOOptions ssao_options, ExposureOptions exposure_options, const StringUnorderedMap<Entity> &entity_cache)
+                           ToneMapOptions tone_map_options, SSAOOptions ssao_options, ExposureOptions exposure_options,
+                           FogOptions fog_options,
+                           const StringUnorderedMap<Entity> &entity_cache)
         : _entities{},
           _entity_cache{},
           _mesh_manager{mesh_manager},
@@ -175,7 +190,8 @@ namespace ufps
           _lights{std::move(lights)},
           _tone_map_options{std::move(tone_map_options)},
           _ssao_options{std::move(ssao_options)},
-          _exposure_options{std::move(exposure_options)}
+          _exposure_options{std::move(exposure_options)},
+          _fog_options{std::move(fog_options)}
     {
         for (const auto &[name, entity] : entity_cache)
         {
@@ -193,7 +209,8 @@ namespace ufps
           _lights{description.lights},
           _tone_map_options{description.tone_map_options},
           _ssao_options{description.ssao_options},
-          _exposure_options{description.exposure_options}
+          _exposure_options{description.exposure_options},
+          _fog_options{description.fog_options}
     {
         for (const auto &[name, entity] : entity_cache)
         {
@@ -271,6 +288,24 @@ namespace ufps
     constexpr auto &Scene::exposure_options(this auto &&self)
     {
         return self._exposure_options;
+    }
+
+    constexpr auto &Scene::fog_options(this auto &&self)
+    {
+        return self._fog_options;
+    }
+
+    constexpr auto Scene::description(this auto &&self) -> Description
+    {
+        return Description{
+            .tone_map_options = self._tone_map_options,
+            .ssao_options = self._ssao_options,
+            .exposure_options = self._exposure_options,
+            .fog_options = self._fog_options,
+            .lights = self._lights,
+            .entities = self._entities | std::views::transform([](const auto &e)
+                                                               { return e.description(); }) |
+                        std::ranges::to<std::vector>()};
     }
 
     constexpr auto Scene::remove(const Entity &entity) -> void

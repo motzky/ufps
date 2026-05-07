@@ -1,11 +1,15 @@
 #version 460 core
 #extension GL_ARB_bindless_texture : require
 
-const float PI = 3.14159265359;
-
 layout(binding = 1, std430) readonly buffer average_buffer
 {
     float average;
+};
+
+layout(binding = 2, std430) readonly buffer camera {
+    mat4 view;
+    mat4 projection;
+    float camera_position[3];
 };
 
 layout(bindless_sampler, location = 0) uniform sampler2D input_texture;
@@ -17,6 +21,9 @@ layout(location = 5) uniform float in_c;
 layout(location = 6) uniform float in_b;
 layout(location = 7) uniform float in_gamma;
 layout(bindless_sampler, location = 8) uniform sampler2D ssao_texture;
+layout(bindless_sampler, location = 9) uniform sampler2D depth_texture;
+layout(location = 10) uniform vec3 fog_color;
+layout(location = 11) uniform float fog_density;
 
 
 layout(location = 0) in vec2 uv;
@@ -94,23 +101,33 @@ vec3 convertYxy2RGB(vec3 _Yxy)
 	return convertXYZ2RGB(convertYxy2XYZ(_Yxy) );
 }
 
+vec3 fog(float depth, vec3 color)
+{
+    float fog_amount = 1.0/exp((depth * fog_density) * (depth * fog_density));
+    return mix(fog_color, color, fog_amount);
+}
 
 void main()
 {
     vec4 input_color = texture(input_texture, uv);
     vec3 col = input_color.rgb;
+    
+    vec3 eye = vec3(camera_position[0],camera_position[1],camera_position[2]);
+    vec3 frag_pos = texture(depth_texture, uv).xyz;
+    float depth = length(frag_pos - eye);
 
     vec3 Yxz = convertRGB2Yxy(col);
 
     Yxz.x /= (9.6 * average + 0.0001);
+    float occlusion = texture(ssao_texture, uv).r;
 
     vec3 in_color = convertYxy2RGB(Yxz);
+    in_color = fog(depth, in_color * occlusion);
 
     vec3 tone_mapped_color = uchimura(in_color, in_P, in_a, in_m, in_l, in_c, in_b);
     
-    float occlusion = texture(ssao_texture, uv).r;
 
-    vec3 gamma_corrected = pow(tone_mapped_color * occlusion, vec3(1.0 / in_gamma));
+    vec3 gamma_corrected = pow(tone_mapped_color, vec3(1.0 / in_gamma));
 
     out_color = vec4(gamma_corrected, input_color.a);
 }

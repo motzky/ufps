@@ -551,10 +551,15 @@ namespace ufps
                                        scene.tone_map_options().black_tightness,
                                        scene.tone_map_options().pedestal,
                                        scene.tone_map_options().gamma,
-                                       _ssao_blur_rt.color_texture_bindless_handle_0);
+                                       _ssao_blur_rt.color_texture_bindless_handle_0,
+                                       _gbuffer_rt.color_texture_bindless_handle_2,
+                                       scene.fog_options().color,
+                                       scene.fog_options().density);
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _average_luminance_buffer.native_handle());
+        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
+        ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
 
         ::glMultiDrawElementsIndirect(
             GL_TRIANGLES,

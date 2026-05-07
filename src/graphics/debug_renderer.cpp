@@ -20,6 +20,7 @@
 #include "math/matrix4.h"
 #include "math/ray.h"
 #include "math/transform.h"
+#include "serialization/yaml_serializer.h"
 #include "window.h"
 
 namespace
@@ -268,6 +269,14 @@ namespace ufps
         ::ImGui::LabelText("FPS", "%0.1f", io.Framerate);
         ::ImGui::LabelText("Debug Line Count", "%zu", debug_line_count);
 
+        if (::ImGui::Button("save"))
+        {
+            const auto scene_yaml = yaml::serialize(scene.description());
+            auto out = std::ofstream("scene.yaml");
+
+            out << scene_yaml;
+        }
+
         if (::ImGui::Button("add light"))
         {
             const auto handle = scene.lights().lights.emplace(
@@ -366,6 +375,25 @@ namespace ufps
             if (::ImGui::SliderFloat("power", &value, 1.f, 4.f))
             {
                 scene.ssao_options().power = value;
+            }
+        }
+
+        ::ImGui::Text("fog options");
+
+        {
+            float value[3]{};
+            std::memcpy(value, &scene.fog_options().color, sizeof(value));
+            if (::ImGui::ColorPicker3("color", value))
+            {
+                std::memcpy(&scene.fog_options().color, value, sizeof(value));
+            }
+        }
+
+        {
+            auto value = scene.fog_options().density;
+            if (::ImGui::SliderFloat("fog_density", &value, .0005f, .2f))
+            {
+                scene.fog_options().density = value;
             }
         }
 

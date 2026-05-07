@@ -20,6 +20,14 @@ Description:
       min_log_luminance: -1.208
       max_log_luminance: 3.264
       tau: 1.1
+  fog_options:
+    FogOptions:
+      color:
+        Color:
+          r: 0.07525944
+          g: 0
+          b: 0.14215684
+      density: 0.054
   lights:
     LightData:
       ambient:
@@ -43,7 +51,7 @@ Description:
             linear_attenuation: 0.007
             quadratic_attenuation: 0.0002
             specular_power: 32
-            intensity: 5.988
+            intensity: 14.512636
         - PointLight:
             position:
               Vector3:
@@ -773,13 +781,13 @@ Description:
           AABB:
             min:
               Vector3:
-                x: -0.9403464
+                x: -0.9403466
                 y: -0.06625354
                 z: -0.9868312
             max:
               Vector3:
-                x: 0.9403464
-                y: 1.4152939
+                x: 0.9403465
+                y: 1.7851198
                 z: 0.9868312
     - Description:
         name: SM_Monitor
