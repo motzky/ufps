@@ -283,26 +283,26 @@ namespace
 
                 const auto albedo_index = albedo_name.empty()
                                               ? 65567
-                                              : texture_manager.texture_index(albedo_name);
+                                              : texture_manager.bindless_handle(albedo_name);
 
                 const auto normal_index = normal_name.empty()
                                               ? 65567
-                                              : texture_manager.texture_index(normal_name);
+                                              : texture_manager.bindless_handle(normal_name);
                 const auto specular_index = specular_name.empty()
                                                 ? 65567
-                                                : texture_manager.texture_index(specular_name);
+                                                : texture_manager.bindless_handle(specular_name);
 
                 const auto roughness_index = roughness_name.empty()
                                                  ? 65567
-                                                 : texture_manager.texture_index(roughness_name);
+                                                 : texture_manager.bindless_handle(roughness_name);
 
                 const auto ao_index = ao_name.empty()
                                           ? 65567
-                                          : texture_manager.texture_index(ao_name);
+                                          : texture_manager.bindless_handle(ao_name);
 
                 const auto emissive_index = emissive_name.empty()
                                                 ? 65567
-                                                : texture_manager.texture_index(emissive_name);
+                                                : texture_manager.bindless_handle(emissive_name);
 
                 render_entities.push_back({mesh_view, albedo_index, normal_index, specular_index, roughness_index, ao_index, emissive_index, normal_compressed, mesh_manager});
             }
@@ -454,21 +454,6 @@ auto start(int argc, char **argv) -> int
          1000.f},
         ufps::yaml::deserialize<ufps::Scene::Description>(ss.str()),
         build_entity_cache(*resource_loader, texture_manager, mesh_manager)};
-
-    // scene.lights().lights.emplace(ufps::PointLight{.position = {1.f, 2.5f, 0.f},
-    //                                                .color = {.r = 1.f, .g = 0.f, .b = 0.f},
-    //                                                .constant_attenuation = 1.f,
-    //                                                .linear_attenuation = .045f,
-    //                                                .quadratic_attenuation = .0075f,
-    //                                                .specular_power = 32.f,
-    //                                                .intensity = 1.f});
-    // scene.lights().lights.emplace(ufps::PointLight{.position = {-1.f, 2.5f, 0.f},
-    //                                                .color = {.r = 0.f, .g = 1.f, .b = 0.f},
-    //                                                .constant_attenuation = 1.f,
-    //                                                .linear_attenuation = .045f,
-    //                                                .quadratic_attenuation = .0075f,
-    //                                                .specular_power = 32.f,
-    //                                                .intensity = 1.f});
 
     const auto point_light_handles = scene.lights().lights.handles();
     pulse_light(awaitable_manager, point_light_handles[0], scene);

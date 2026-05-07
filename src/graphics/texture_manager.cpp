@@ -67,6 +67,22 @@ namespace ufps
         return std::addressof(_textures[index]);
     }
 
+    auto TextureManager::texture(const std::uint64_t bindless_handle) const -> const Texture *
+    {
+        auto iter = std::ranges::find_if(_cpu_buffer, [bindless_handle](auto h)
+                                         { return h == bindless_handle; });
+        expect(iter != std::ranges::cend(_cpu_buffer), "bindless handle {} not found", bindless_handle);
+
+        const auto index = std::distance(std::ranges::cbegin(_cpu_buffer), iter);
+        return std::addressof(_textures[index]);
+    }
+
+    auto TextureManager::bindless_handle(std::string_view name) const -> std::uint64_t
+    {
+        const auto index = texture_index(name);
+        return _cpu_buffer[index];
+    }
+
     auto TextureManager::try_get_texture_index(std::string_view name) const -> std::optional<std::uint32_t>
     {
         auto iter = std::ranges::find_if(_textures, [name](const auto &t)

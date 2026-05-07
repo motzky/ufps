@@ -1,22 +1,12 @@
 #version 460 core
 #extension GL_ARB_bindless_texture : require
 
-layout(binding = 1, std430) readonly buffer camera {
-    mat4 view;
-    mat4 projection;
-    float camera_position[3];
-};
-layout(binding = 4, std430) readonly buffer textures_buffer
-{
-    sampler2D textures[];
-};
-
-layout(location = 0) in flat uint albedo_tex_index;
-layout(location = 1) in flat uint normal_tex_index;
-layout(location = 2) in flat uint specular_tex_index;
-layout(location = 3) in flat uint roughness_tex_index;
-layout(location = 4) in flat uint ao_tex_index;
-layout(location = 5) in flat uint emissive_tex_index;
+layout(location = 0) in flat uvec2 albedo_bindless_handle;
+layout(location = 1) in flat uvec2 normal_bindless_handle;
+layout(location = 2) in flat uvec2 specular_bindless_handle;
+layout(location = 3) in flat uvec2 roughness_bindless_handle;
+layout(location = 4) in flat uvec2 ao_bindless_handle;
+layout(location = 5) in flat uvec2 emissive_bindless_handle;
 layout(location = 6) in flat uint normal_compressed;
 layout(location = 7) in flat float opacity;
 layout(location = 8) in vec2 uv;
@@ -34,47 +24,47 @@ layout(location = 6) out vec4 out_emissive_color;
 void main()
 {
     vec3 nm = vec3(0.0, 0.0, 1.0);
-    if(normal_tex_index < 65535)
+    if(normal_bindless_handle.x < 65535)
     {
         if(normal_compressed != 0)
         {
-            nm.xy = texture(textures[normal_tex_index], uv).rg * 2.0 - 1.0;
+            nm.xy = texture(sampler2D(normal_bindless_handle), uv).rg * 2.0 - 1.0;
             nm.z = sqrt(max(1.0 - dot(nm.xy, nm.xy), 0.0));
         }
         else
         {
-            nm = texture(textures[normal_tex_index], uv).xyz;
+            nm = texture(sampler2D(normal_bindless_handle), uv).xyz;
             nm = (nm*2.0) - 1.0;
         }
     }
 
     vec3 n = normalize(tbn * nm);
 
-    out_color = vec4(texture(textures[albedo_tex_index], uv).rgb, opacity);
+    out_color = vec4(texture(sampler2D(albedo_bindless_handle), uv).rgb, opacity);
 
     out_normal = vec4(n, 1.0);
     out_pos = frag_position;
-    if(specular_tex_index < 65535)
+    if(specular_bindless_handle.x < 65535)
     {
-        out_specular = texture(textures[specular_tex_index], uv);
+        out_specular = texture(sampler2D(specular_bindless_handle), uv);
     }
     else
     {
         out_specular = vec4(0.0,0.0,0.0,1.0);
     }
     out_roughness = vec4(1.0);
-    if(roughness_tex_index < 65535)
+    if(roughness_bindless_handle.x < 65535)
     {
-        out_roughness = texture(textures[roughness_tex_index], uv);
+        out_roughness = texture(sampler2D(roughness_bindless_handle), uv);
     }
     out_ao = vec4(1.0);
-    if(ao_tex_index < 65535)
+    if(ao_bindless_handle.x < 65535)
     {
-        out_ao = texture(textures[ao_tex_index], uv);
+        out_ao = texture(sampler2D(ao_bindless_handle), uv);
     }
     out_emissive_color = vec4(0.0, 0.0, 0.0, 1.0);
-    if(emissive_tex_index < 65535)
+    if(emissive_bindless_handle.x < 65535)
     {
-        out_emissive_color = texture(textures[emissive_tex_index], uv);
+        out_emissive_color = texture(sampler2D(emissive_bindless_handle), uv);
     }
 }

@@ -294,14 +294,14 @@ namespace ufps
                     [&entity](const auto &e)
                     { return ObjectData{
                           .model = entity.transform(),
-                          .albedo_texture_index = e.albedo_texture_index(),
-                          .normal_texture_index = e.normal_texture_index(),
-                          .specular_texture_index = e.specular_texture_index(),
-                          .roughness_texture_index = e.roughness_texture_index(),
-                          .ao_texture_index = e.ao_texture_index(),
-                          .emissive_texture_index = e.emissive_texture_index(),
+                          .albedo_texture_bindless_handle = e.albedo_texture_bindless_handle(),
+                          .normal_texture_bindless_handle = e.normal_texture_bindless_handle(),
+                          .specular_texture_bindless_handle = e.specular_texture_bindless_handle(),
+                          .roughness_texture_bindless_handle = e.roughness_texture_bindless_handle(),
+                          .ao_texture_bindless_handle = e.ao_texture_bindless_handle(),
+                          .emissive_texture_bindless_handle = e.emissive_texture_bindless_handle(),
                           .normal_compressed = e.normal_compressed() ? 1u : 0u,
-                          .padding = {},
+                          .pad{},
                           .opacity = 1.f}; }));
         }
 
@@ -309,8 +309,6 @@ namespace ufps
 
         _object_data_buffer.write(std::as_bytes(std::span{object_data.data(), object_data.size()}), 0zu);
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _object_data_buffer.native_handle(), _object_data_buffer.frame_offset_bytes(), _object_data_buffer.size());
-
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, scene.texture_manager().native_handle());
 
         ::glMultiDrawElementsIndirect(
             GL_TRIANGLES,

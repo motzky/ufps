@@ -12,14 +12,14 @@ struct VertexData
 struct ObjectData
 {
     mat4 model;
-    uint albedo_tex_index;
-    uint normal_tex_index;
-    uint specular_tex_index;
-    uint roughness_tex_index;
-    uint ao_tex_index;
-    uint emissive_tex_index;
+    uvec2 albedo_tex_bindless_handle;
+    uvec2 normal_tex_bindless_handle;
+    uvec2 specular_tex_bindless_handle;
+    uvec2 roughness_tex_bindless_handle;
+    uvec2 ao_tex_bindless_handle;
+    uvec2 emissive_tex_bindless_handle;
     uint normal_compressed;
-    uint padding;
+    uint pad;
     float opacity;
 
 };
@@ -79,12 +79,12 @@ vec2 get_uv(uint index)
                 data[index].uv[1]);
 }
 
-layout(location = 0) out flat uint albedo_tex_index;
-layout(location = 1) out flat uint normal_tex_index;
-layout(location = 2) out flat uint specular_tex_index;
-layout(location = 3) out flat uint roughness_tex_index;
-layout(location = 4) out flat uint ao_tex_index;
-layout(location = 5) out flat uint emissive_tex_index;
+layout(location = 0) out flat uvec2 albedo_bindless_handle;
+layout(location = 1) out flat uvec2 normal_bindless_handle;
+layout(location = 2) out flat uvec2 specular_bindless_handle;
+layout(location = 3) out flat uvec2 roughness_bindless_handle;
+layout(location = 4) out flat uvec2 ao_bindless_handle;
+layout(location = 5) out flat uvec2 emissive_bindless_handle;
 layout(location = 6) out flat uint normal_compressed;
 layout(location = 7) out flat float opacity;
 layout(location = 8) out vec2 uv;
@@ -97,12 +97,12 @@ void main()
 
     frag_position = object_data[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
     gl_Position = projection * view * frag_position;
-    albedo_tex_index = object_data[gl_DrawID].albedo_tex_index;
-    normal_tex_index = object_data[gl_DrawID].normal_tex_index;
-    specular_tex_index = object_data[gl_DrawID].specular_tex_index;
-    roughness_tex_index = object_data[gl_DrawID].roughness_tex_index;
-    ao_tex_index = object_data[gl_DrawID].ao_tex_index;
-    emissive_tex_index = object_data[gl_DrawID].emissive_tex_index;
+    albedo_bindless_handle = object_data[gl_DrawID].albedo_tex_bindless_handle;
+    normal_bindless_handle = object_data[gl_DrawID].normal_tex_bindless_handle;
+    specular_bindless_handle = object_data[gl_DrawID].specular_tex_bindless_handle;
+    roughness_bindless_handle = object_data[gl_DrawID].roughness_tex_bindless_handle;
+    ao_bindless_handle = object_data[gl_DrawID].ao_tex_bindless_handle;
+    emissive_bindless_handle = object_data[gl_DrawID].emissive_tex_bindless_handle;
     normal_compressed = object_data[gl_DrawID].normal_compressed;
     opacity = object_data[gl_DrawID].opacity;
     uv = get_uv(gl_VertexID);
