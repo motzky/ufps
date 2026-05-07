@@ -108,20 +108,7 @@ void main()
 
     vec3 tone_mapped_color = uchimura(in_color, in_P, in_a, in_m, in_l, in_c, in_b);
     
-    vec2 texelSize = 1.0 / vec2(textureSize(ssao_texture, 0));
-
-    float result = 0.0;
-    for (int x = -2; x<2; ++x)
-    {
-        for(int y=-2; y<2; ++y)
-        {
-            vec2 offset = vec2(float(x), float(y)) * texelSize;
-            result += texture(ssao_texture, uv + offset).r;
-        }
-    }
-
-    // vec3 occlusion = texture(ssao_texture, uv).rgb;
-    float occlusion = result / 16.0;
+    float occlusion = texture(ssao_texture, uv).r;
 
     vec3 gamma_corrected = pow(tone_mapped_color * occlusion, vec3(1.0 / in_gamma));
 
