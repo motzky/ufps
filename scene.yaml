@@ -124,7 +124,7 @@ Description:
             intensity: 9.383
   entities:
     - Description:
-        name: SM_Corner01_8_8_X
+        name: SM_Corner01_8_8_X.fbx
         transform:
           Transform:
             position:
@@ -156,7 +156,7 @@ Description:
                 y: 4.0000134
                 z: 8
     - Description:
-        name: SM_Corridor039_12_06_Top_B_02
+        name: SM_Corridor039_12_06_Top_B_02.fbx
         transform:
           Transform:
             position:
@@ -188,7 +188,7 @@ Description:
                 y: 6.999999
                 z: 6
     - Description:
-        name: SM_Corridor045_04_04
+        name: SM_Corridor045_04_04.fbx
         transform:
           Transform:
             position:
@@ -220,7 +220,7 @@ Description:
                 y: 2.0976985
                 z: 8.34465e-07
     - Description:
-        name: SM_Corridor042_12_06_Bottom_B
+        name: SM_Corridor042_12_06_Bottom_B.fbx
         transform:
           Transform:
             position:
@@ -252,7 +252,7 @@ Description:
                 y: 3.9999998
                 z: 6
     - Description:
-        name: SM_Corridor043_12_06_Bottom_B
+        name: SM_Corridor043_12_06_Bottom_B.fbx
         transform:
           Transform:
             position:
@@ -284,7 +284,7 @@ Description:
                 y: 3.9999998
                 z: 6
     - Description:
-        name: SM_Windows03_12_4
+        name: SM_Windows03_12_4.fbx
         transform:
           Transform:
             position:
@@ -316,7 +316,7 @@ Description:
                 y: 5
                 z: 0
     - Description:
-        name: SM_Corridor036_12_06_Top_B_02
+        name: SM_Corridor036_12_06_Top_B_02.fbx
         transform:
           Transform:
             position:
@@ -348,7 +348,7 @@ Description:
                 y: 6.999999
                 z: 6
     - Description:
-        name: SM_Corridor045_04_04
+        name: SM_Corridor045_04_04.fbx
         transform:
           Transform:
             position:
@@ -380,7 +380,7 @@ Description:
                 y: 2.0976985
                 z: 8.34465e-07
     - Description:
-        name: SM_Corridor042_12_06_Bottom_B
+        name: SM_Corridor042_12_06_Bottom_B.fbx
         transform:
           Transform:
             position:
@@ -412,7 +412,7 @@ Description:
                 y: 3.9999998
                 z: 6
     - Description:
-        name: SM_Corridor043_12_06_Bottom_B
+        name: SM_Corridor043_12_06_Bottom_B.fbx
         transform:
           Transform:
             position:
@@ -444,7 +444,7 @@ Description:
                 y: 3.9999998
                 z: 6
     - Description:
-        name: SM_Corridor039_12_06_Top_B_02
+        name: SM_Corridor039_12_06_Top_B_02.fbx
         transform:
           Transform:
             position:
@@ -476,7 +476,7 @@ Description:
                 y: 6.999999
                 z: 6
     - Description:
-        name: SM_Corridor036_12_06_Top_B_02
+        name: SM_Corridor036_12_06_Top_B_02.fbx
         transform:
           Transform:
             position:
@@ -508,7 +508,7 @@ Description:
                 y: 6.999999
                 z: 6
     - Description:
-        name: SM_Windows03_12_4
+        name: SM_Windows03_12_4.fbx
         transform:
           Transform:
             position:
@@ -540,7 +540,7 @@ Description:
                 y: 5
                 z: 0
     - Description:
-        name: SM_Corridor019_06_08_B
+        name: SM_Corridor019_06_08_B.fbx
         transform:
           Transform:
             position:
@@ -572,7 +572,7 @@ Description:
                 y: 4.4271092
                 z: 4.7683716e-07
     - Description:
-        name: SM_Corridor018_06_08_B
+        name: SM_Corridor018_06_08_B.fbx
         transform:
           Transform:
             position:
@@ -604,7 +604,7 @@ Description:
                 y: 4.279462
                 z: 3.7758843e-17
     - Description:
-        name: SM_Corridor018_06_08_B
+        name: SM_Corridor018_06_08_B.fbx
         transform:
           Transform:
             position:
@@ -636,7 +636,7 @@ Description:
                 y: 4.279462
                 z: 3.7758843e-17
     - Description:
-        name: SM_Corridor018_06_08_B
+        name: SM_Corridor018_06_08_B.fbx
         transform:
           Transform:
             position:
@@ -668,7 +668,7 @@ Description:
                 y: 4.279462
                 z: 3.7758843e-17
     - Description:
-        name: SM_Corner06_12_12_B_L
+        name: SM_Corner06_12_12_B_L.fbx
         transform:
           Transform:
             position:
@@ -700,7 +700,7 @@ Description:
                 y: 4.4271092
                 z: 12.000001
     - Description:
-        name: SM_Windows05_6_4
+        name: SM_Windows05_6_4.fbx
         transform:
           Transform:
             position:
@@ -732,7 +732,7 @@ Description:
                 y: 4.279462
                 z: 0
     - Description:
-        name: SM_Detail13
+        name: SM_Detail13.fbx
         transform:
           Transform:
             position:
@@ -764,7 +764,7 @@ Description:
                 y: 0.44238245
                 z: 0.21634865
     - Description:
-        name: SM_Generator
+        name: SM_Generator.fbx
         transform:
           Transform:
             position:
@@ -796,7 +796,7 @@ Description:
                 y: 1.7851198
                 z: 0.9868312
     - Description:
-        name: SM_Monitor
+        name: SM_Monitor.fbx
         transform:
           Transform:
             position:
@@ -828,7 +828,7 @@ Description:
                 y: 0.36726955
                 z: 0.58520603
     - Description:
-        name: SM_Fan03
+        name: SM_Fan03.fbx
         transform:
           Transform:
             position:

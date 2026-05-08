@@ -142,7 +142,7 @@ namespace
                 ufps::log::warn("   UNHANDLED Texture type: {}, count: {}", ::aiTextureTypeToString(type), cnt);
                 continue;
             }
-            // ufps::log::debug("   Texture type: {}, count: {}", ::aiTextureTypeToString(type), cnt);
+            ufps::log::debug("   Texture type: {}, count: {}", ::aiTextureTypeToString(type), cnt);
         }
     }
 
@@ -261,7 +261,7 @@ namespace ufps
         }
     }
 
-    auto load_model(DataBufferView model_data, std::string format) -> std::tuple<std::string, std::vector<ModelData>>
+    auto load_model(std::string file_name, DataBufferView model_data, std::string format) -> std::tuple<std::string, std::vector<ModelData>>
     {
         if (config::log_assimp)
         {
@@ -294,6 +294,8 @@ namespace ufps
             log::info("found {} meshes, {} materials {} lights", loaded_meshes.size(), materials.size(), scene->mNumLights);
         }
 
+        const auto model_name = file_name.empty() ? std::string{loaded_meshes.front()->mName.C_Str()} : file_name;
+
         auto models = std::vector<ModelData>{};
 
         for (const auto &[index, mesh] : loaded_meshes | std::views::enumerate)
@@ -313,6 +315,11 @@ namespace ufps
             const auto diffuse_color_count = material->GetTextureCount(::aiTextureType_DIFFUSE);
             if (base_color_count != 1 && diffuse_color_count == 0)
             {
+                if (config::log_assimp)
+                {
+                    dump_texture_types_of_material(material, false);
+                }
+
                 log::warn("unsupported base color count: {}", base_color_count);
                 continue;
             }
@@ -403,6 +410,6 @@ namespace ufps
             models.push_back(model);
         }
 
-        return {loaded_meshes.front()->mName.C_Str(), models};
+        return {model_name, models};
     }
 }

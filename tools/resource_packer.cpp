@@ -125,7 +125,9 @@ auto main(int argc, char **argv) -> int
             for (const auto &m : models)
             {
                 ufps::log::debug("found model resource: {}", m);
-                const auto &[name, sub_models] = ufps::load_model(resource_loader.load_data_buffer(m), "fbx");
+                const auto path = std::filesystem::path{m};
+
+                const auto &[name, sub_models] = ufps::load_model(path.filename().string(), resource_loader.load_data_buffer(m), "fbx");
 
                 if (sub_models.empty())
                 {
