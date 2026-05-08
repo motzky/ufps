@@ -11,12 +11,19 @@
 
 namespace ufps
 {
+    enum class EntityFilterMode
+    {
+        ALL,
+        OPAQUE,
+        TRANSPARENT
+    };
+
     class CommandBuffer
     {
     public:
         CommandBuffer(std::string_view name);
 
-        auto build(const Scene &scene) -> std::uint32_t;
+        auto build(const Scene &scene, EntityFilterMode filter_mode = EntityFilterMode::ALL) -> std::uint32_t;
         auto build(const Entity &entity) -> std::uint32_t;
 
         auto native_handle() const -> ::GLuint;

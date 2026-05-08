@@ -192,17 +192,20 @@ namespace ufps
           _dummy_vao{0u, [](auto e)
                      { ::glDeleteVertexArrays(1, &e); }},
           _command_buffer{"gbuffer_command_buffer"},
+          _forward_transparancy_command_buffer{"forward_transparancy_command_buffer"},
           _post_processing_command_buffer{"post_processing_command_buffer"},
           _post_process_sprite{create_sprite(mesh_manager, texture_manager)},
-          _camera_buffer{sizeof(CameraData), "camera_buffer"},                                                                                                                                                  //
-          _light_buffer{sizeof(LightData), "light_buffer"},                                                                                                                                                     //
-          _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                        //
-          _luminance_histogram_buffer{sizeof(std::uint32_t) * 256, "luminance_histogram_buffer"},                                                                                                               //
-          _average_luminance_buffer{sizeof(float) * 1, "average_luminance_buffer"},                                                                                                                             //
-          _ssao_samples_buffer{sizeof(Vector4) * 64, "ssao_samples_buffer"},                                                                                                                                    //
-          _gbuffer_program{create_program(resource_loader, "gbuffer_program"sv, "shaders/gbuffer.vert"sv, "gbuffer_vertex_shader"sv, "shaders/gbuffer.frag"sv, "gbuffer_fragement_shader"sv)},                  //
-          _light_pass_program{create_program(resource_loader, "light_pass_program"sv, "shaders/light_pass.vert"sv, "light_pass_vertex_shader"sv, "shaders/light_pass.frag"sv, "light_pass_fragment_shader"sv)}, //
-          _tone_map_program{create_program(resource_loader, "tone_map_program"sv, "shaders/tone_map.vert"sv, "tone_map_vertex_shader"sv, "shaders/tone_map.frag"sv, "tone_map_fragment_shader"sv)},             //
+          _camera_buffer{sizeof(CameraData), "camera_buffer"},                                                                                                                                                                      //
+          _light_buffer{sizeof(LightData), "light_buffer"},                                                                                                                                                                         //
+          _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                                            //
+          _transparent_object_data_buffer{sizeof(ObjectData), "transparent_object_data_buffer"},                                                                                                                                    //
+          _luminance_histogram_buffer{sizeof(std::uint32_t) * 256, "luminance_histogram_buffer"},                                                                                                                                   //
+          _average_luminance_buffer{sizeof(float) * 1, "average_luminance_buffer"},                                                                                                                                                 //
+          _ssao_samples_buffer{sizeof(Vector4) * 64, "ssao_samples_buffer"},                                                                                                                                                        //
+          _gbuffer_program{create_program(resource_loader, "gbuffer_program"sv, "shaders/gbuffer.vert"sv, "gbuffer_vertex_shader"sv, "shaders/gbuffer.frag"sv, "gbuffer_fragement_shader"sv)},                                      //
+          _light_pass_program{create_program(resource_loader, "light_pass_program"sv, "shaders/light_pass.vert"sv, "light_pass_vertex_shader"sv, "shaders/light_pass.frag"sv, "light_pass_fragment_shader"sv)},                     //
+          _forward_transparancy_program{create_program(resource_loader, "transparancy_program"sv, "shaders/transparancy.vert"sv, "transparancy_vertex_shader"sv, "shaders/transparancy.frag"sv, "transparancy_fragment_shader"sv)}, //
+          _tone_map_program{create_program(resource_loader, "tone_map_program"sv, "shaders/tone_map.vert"sv, "tone_map_vertex_shader"sv, "shaders/tone_map.frag"sv, "tone_map_fragment_shader"sv)},                                 //
           _luminance_program{create_program(resource_loader, "luminance_histogram_program"sv, "shaders/luminance_histogram.comp"sv, "luminance_history_compute")},
           _average_luminance_program{create_program(resource_loader, "average_luminance_program"sv, "shaders/average_luminance.comp"sv, "average_luminance_compute")},
           _ssao_program{create_program(resource_loader, "ssao_program"sv, "shaders/ssao.vert"sv, "ssao_vertex_shader"sv, "shaders/ssao.frag"sv, "ssao_fragement_shader"sv)},                                                                                                 //
@@ -213,6 +216,7 @@ namespace ufps
           _fb_sampler{FilterType::LINEAR, FilterType::LINEAR, WrapMode::CLAMP_TO_EDGE, WrapMode::CLAMP_TO_EDGE, "fb_sampler"},                                                                                                                                               //
           _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},                                                                                                                                                   //
           _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")},                                                                                                                                             //
+          _forward_transparancy_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "forward_transparancy")},                                                                                                                         //
           _tone_map_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "tone_map")},
           _ssao_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, texture_manager, "ssao", TextureFormat::RG16F)},
           _ssao_blur_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, texture_manager, "ssao", TextureFormat::RG16F)},
@@ -285,6 +289,8 @@ namespace ufps
 
         execute_lighting_pass(scene);
 
+        execute_forward_transparancy_pass(scene);
+
         execute_luminance_histogram_pass(scene);
 
         execute_luminance_average_pass(scene);
@@ -336,7 +342,7 @@ namespace ufps
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
         ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_handle);
 
-        const auto command_count = _command_buffer.build(scene);
+        const auto command_count = _command_buffer.build(scene, EntityFilterMode::OPAQUE);
 
         ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _command_buffer.native_handle());
 
@@ -346,6 +352,8 @@ namespace ufps
         {
             object_data.append_range(
                 entity.render_entities() |
+                std::views::filter([](const auto &e)
+                                   { return e.opacity() > 0.9999f; }) |
                 std::views::transform(
                     [&entity](const auto &e)
                     { return ObjectData{
@@ -384,9 +392,6 @@ namespace ufps
 
         const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
 
-        ::glEnable(GL_BLEND);
-        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
         {
             const auto &lights = scene.lights();
             const auto buffer_size_bytes = sizeof(lights.ambient) + sizeof(std::uint32_t) + sizeof(PointLight) * lights.lights.size();
@@ -420,8 +425,101 @@ namespace ufps
             reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
             1u,
             0);
+    }
+
+    auto Renderer::execute_forward_transparancy_pass(Scene &scene) -> void
+    {
+        _forward_transparancy_rt.fb.bind();
+
+        ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        ::glBlitNamedFramebuffer(
+            _gbuffer_rt.fb.native_handle(),
+            _forward_transparancy_rt.fb.native_handle(),
+            0u,
+            0u,
+            _gbuffer_rt.fb.width(),
+            _gbuffer_rt.fb.height(),
+            0u,
+            0u,
+            _forward_transparancy_rt.fb.width(),
+            _forward_transparancy_rt.fb.height(),
+            GL_DEPTH_BUFFER_BIT,
+            GL_NEAREST);
+
+        ::glBlitNamedFramebuffer(
+            _light_pass_rt.fb.native_handle(),
+            _forward_transparancy_rt.fb.native_handle(),
+            0u,
+            0u,
+            _light_pass_rt.fb.width(),
+            _light_pass_rt.fb.height(),
+            0u,
+            0u,
+            _forward_transparancy_rt.fb.width(),
+            _forward_transparancy_rt.fb.height(),
+            GL_COLOR_BUFFER_BIT,
+            GL_NEAREST);
+
+        ::glDepthMask(GL_FALSE);
+        ::glEnable(GL_BLEND);
+        ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        [[maybe_unused]] const auto auto_bind = AutoBind(_forward_transparancy_program);
+
+        const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
+        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
+        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _light_buffer.native_handle(), _light_buffer.frame_offset_bytes(), _light_buffer.size());
+        ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_handle);
+
+        const auto command_count = _forward_transparancy_command_buffer.build(scene, EntityFilterMode::TRANSPARENT);
+
+        ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _forward_transparancy_command_buffer.native_handle());
+
+        auto object_data = std::vector<ObjectData>{};
+
+        for (const auto &entity : scene.entities())
+        {
+            object_data.append_range(
+                entity.render_entities() |
+                std::views::filter([](const auto &e)
+                                   { return e.opacity() < 1.f; }) |
+                std::views::transform(
+                    [&entity](const auto &e)
+                    { return ObjectData{
+                          .model = entity.transform(),
+                          .albedo_texture_bindless_handle = e.albedo_texture_bindless_handle(),
+                          .normal_texture_bindless_handle = e.normal_texture_bindless_handle(),
+                          .specular_texture_bindless_handle = e.specular_texture_bindless_handle(),
+                          .roughness_texture_bindless_handle = e.roughness_texture_bindless_handle(),
+                          .ao_texture_bindless_handle = e.ao_texture_bindless_handle(),
+                          .emissive_texture_bindless_handle = e.emissive_texture_bindless_handle(),
+                          .opacity = e.opacity(),
+                          .normal_compressed = e.normal_compressed() ? 1u : 0u,
+                          .pad{},
+                      }; }));
+        }
+
+        resize_gpu_buffer(object_data, _transparent_object_data_buffer);
+
+        _transparent_object_data_buffer.write(std::as_bytes(std::span{object_data.data(), object_data.size()}), 0zu);
+        ::glBindBufferRange(
+            GL_SHADER_STORAGE_BUFFER,
+            2,
+            _transparent_object_data_buffer.native_handle(),
+            _transparent_object_data_buffer.frame_offset_bytes(),
+            _transparent_object_data_buffer.size());
+
+        ::glMultiDrawElementsIndirect(
+            GL_TRIANGLES,
+            GL_UNSIGNED_INT,
+            reinterpret_cast<const void *>(_forward_transparancy_command_buffer.offset_bytes()),
+            command_count,
+            0);
 
         ::glDisable(GL_BLEND);
+        ::glDepthMask(GL_TRUE);
     }
 
     auto Renderer::execute_luminance_histogram_pass(Scene &scene) -> void
@@ -431,13 +529,13 @@ namespace ufps
         const auto zero = ::GLuint{0};
         ::glClearNamedBufferData(_luminance_histogram_buffer.native_handle(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
 
-        _luminance_program.set_uniforms(_light_pass_rt.color_texture_bindless_handle_0, scene.exposure_options().min_log_luminance, 1.f / (scene.exposure_options().max_log_luminance - scene.exposure_options().min_log_luminance));
+        _luminance_program.set_uniforms(_forward_transparancy_rt.color_texture_bindless_handle_0, scene.exposure_options().min_log_luminance, 1.f / (scene.exposure_options().max_log_luminance - scene.exposure_options().min_log_luminance));
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _luminance_histogram_buffer.native_handle());
 
         ::glDispatchCompute(
-            static_cast<std::uint32_t>(_light_pass_rt.fb.width() + 15 / 16),
-            static_cast<std::uint32_t>(_light_pass_rt.fb.height() + 15 / 16),
+            static_cast<std::uint32_t>(_forward_transparancy_rt.fb.width() + 15 / 16),
+            static_cast<std::uint32_t>(_forward_transparancy_rt.fb.height() + 15 / 16),
             1);
 
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
@@ -543,7 +641,7 @@ namespace ufps
 
         [[maybe_unused]] const auto auto_bind = AutoBind{_tone_map_program};
 
-        _tone_map_program.set_uniforms(_light_pass_rt.color_texture_bindless_handle_0,
+        _tone_map_program.set_uniforms(_forward_transparancy_rt.color_texture_bindless_handle_0,
                                        scene.tone_map_options().max_brightness,
                                        scene.tone_map_options().contrast,
                                        scene.tone_map_options().linear_section_start,

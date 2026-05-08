@@ -59,16 +59,19 @@ namespace ufps
         const Window &_window;
         AutoRelease<::GLuint> _dummy_vao;
         CommandBuffer _command_buffer;
+        CommandBuffer _forward_transparancy_command_buffer;
         CommandBuffer _post_processing_command_buffer;
         Entity _post_process_sprite;
         MultiBuffer<PersistentBuffer> _camera_buffer;
         MultiBuffer<PersistentBuffer> _light_buffer;
         MultiBuffer<PersistentBuffer> _object_data_buffer;
+        MultiBuffer<PersistentBuffer> _transparent_object_data_buffer;
         Buffer _luminance_histogram_buffer;
         Buffer _average_luminance_buffer;
         Buffer _ssao_samples_buffer;
         Program _gbuffer_program;
         Program _light_pass_program;
+        Program _forward_transparancy_program;
         Program _tone_map_program;
         Program _luminance_program;
         Program _average_luminance_program;
@@ -80,6 +83,7 @@ namespace ufps
         Sampler _fb_sampler;
         RenderTarget _gbuffer_rt;
         RenderTarget _light_pass_rt;
+        RenderTarget _forward_transparancy_rt;
         RenderTarget _tone_map_rt;
         RenderTarget _ssao_rt;
         RenderTarget _ssao_blur_rt;
@@ -89,6 +93,7 @@ namespace ufps
     private:
         auto execute_gbuffer_pass(Scene &scene) -> void;
         auto execute_lighting_pass(Scene &scene) -> void;
+        auto execute_forward_transparancy_pass(Scene &scene) -> void;
         auto execute_luminance_histogram_pass(Scene &scene) -> void;
         auto execute_luminance_average_pass(Scene &scene) -> void;
         auto execute_ssao_pass(Scene &scene) -> void;

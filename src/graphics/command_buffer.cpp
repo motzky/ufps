@@ -33,13 +33,27 @@ namespace ufps
     {
     }
 
-    auto CommandBuffer::build(const Scene &scene) -> std::uint32_t
+    auto CommandBuffer::build(const Scene &scene, EntityFilterMode filter_mode) -> std::uint32_t
     {
         const auto command = scene.entities() |
                              std::views::transform(
                                  [](const auto &e)
                                  { return e.render_entities(); }) |
                              std::views::join |
+                             std::views::filter([filter_mode](const auto &e)
+                                                { 
+                                                    switch(filter_mode)
+                                                    {
+                                                        using enum EntityFilterMode;
+                                                        case ALL:
+                                                            return true;
+                                                        case OPAQUE:
+                                                            return e.opacity() > 0.9999f;
+                                                        case TRANSPARENT:
+                                                            return e.opacity() < 1.f; 
+                                                        default:
+                                                            return true;
+                                                    } }) |
                              std::views::transform(
                                  [](const auto &e)
                                  {
