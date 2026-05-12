@@ -17,6 +17,7 @@ namespace ufps
         std::optional<std::string> ambient_occlusion;
         std::optional<std::string> emissive_color;
         float opacity;
+        float emissive_intensity;
     };
 
 }

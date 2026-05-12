@@ -52,6 +52,7 @@ namespace ufps
             std::uint64_t emissive_texture_bindless_handle,
             bool normal_compressed,
             float opacity,
+            float emissive_intensity,
             const MeshManager &mesh_manager);
 
         constexpr auto mesh_view() const -> MeshView;
@@ -63,6 +64,7 @@ namespace ufps
         constexpr auto emissive_texture_bindless_handle() const -> std::uint64_t;
         constexpr auto normal_compressed() const -> bool;
         constexpr auto opacity() const -> float;
+        constexpr auto emissive_intensity() const -> float;
         constexpr auto aabb() const -> const AABB &;
 
     private:
@@ -75,6 +77,7 @@ namespace ufps
         std::uint64_t _emissive_texture_bindless_handle;
         bool _normal_compressed;
         float _opacity;
+        float _emissive_intensity;
         AABB _aabb;
     };
 
@@ -88,6 +91,7 @@ namespace ufps
         std::uint64_t emissive_texture_bindless_handle,
         bool normal_compressed,
         float opacity,
+        float emissive_intensity,
         const MeshManager &mesh_manager)
         : _mesh_view{mesh_view},
           _albedo_texture_bindless_handle{albedo_texture_bindless_handle},
@@ -98,7 +102,9 @@ namespace ufps
           _emissive_texture_bindless_handle{emissive_texture_bindless_handle},
           _normal_compressed{normal_compressed},
           _opacity{opacity},
+          _emissive_intensity{emissive_intensity},
           _aabb{impl::calculate_aabb(mesh_view, mesh_manager)}
+
     {
     }
 
@@ -145,6 +151,11 @@ namespace ufps
     constexpr auto RenderEntity::opacity() const -> float
     {
         return _opacity;
+    }
+
+    constexpr auto RenderEntity::emissive_intensity() const -> float
+    {
+        return _emissive_intensity;
     }
 
     constexpr auto RenderEntity::aabb() const -> const AABB &

@@ -16,6 +16,7 @@ namespace ufps
         std::uint64_t ao_texture_bindless_handle;
         std::uint64_t emissive_texture_bindless_handle;
         float opacity;
+        float emissive_strength;
         std::uint32_t normal_compressed;
         std::uint32_t pad;
     };

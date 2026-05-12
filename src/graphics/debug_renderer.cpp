@@ -724,6 +724,14 @@ namespace ufps
                 auto *entity = *selected_entity;
                 ::ImGui::Text("entity: %s", entity->name().c_str());
 
+                {
+                    auto value = entity->emissive_strength();
+                    if (::ImGui::SliderFloat("emissive_strength", &value, 0.f, 10.f))
+                    {
+                        entity->set_emissive_strength(value);
+                    }
+                }
+
                 auto transform = Matrix4{entity->transform()};
 
                 ::ImGui::BeginTable("transform", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit);

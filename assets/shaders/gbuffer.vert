@@ -19,6 +19,7 @@ struct ObjectData
     uvec2 ao_tex_bindless_handle;
     uvec2 emissive_tex_bindless_handle;
     float opacity;
+    float emissive_strength;
     uint normal_compressed;
     uint pad;
 
@@ -87,9 +88,10 @@ layout(location = 4) out flat uvec2 ao_bindless_handle;
 layout(location = 5) out flat uvec2 emissive_bindless_handle;
 layout(location = 6) out flat uint normal_compressed;
 layout(location = 7) out flat float opacity;
-layout(location = 8) out vec2 uv;
-layout(location = 9) out vec4 frag_position;
-layout(location = 10) out mat3 tbn;
+layout(location = 8) out flat float emissive_strength;
+layout(location = 9) out vec2 uv;
+layout(location = 10) out vec4 frag_position;
+layout(location = 11) out mat3 tbn;
 
 void main()
 {
@@ -105,6 +107,7 @@ void main()
     emissive_bindless_handle = object_data[gl_DrawID].emissive_tex_bindless_handle;
     normal_compressed = object_data[gl_DrawID].normal_compressed;
     opacity = object_data[gl_DrawID].opacity;
+    emissive_strength = object_data[gl_DrawID].emissive_strength;
     uv = get_uv(gl_VertexID);
 
     vec3 t = normalize(normal_mat * get_tangent(gl_VertexID));
@@ -112,4 +115,5 @@ void main()
     vec3 n = normalize(normal_mat * get_normal(gl_VertexID));
 
     tbn = mat3(t,b,n);
+
 }

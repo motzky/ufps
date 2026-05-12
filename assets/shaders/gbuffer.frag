@@ -9,9 +9,10 @@ layout(location = 4) in flat uvec2 ao_bindless_handle;
 layout(location = 5) in flat uvec2 emissive_bindless_handle;
 layout(location = 6) in flat uint normal_compressed;
 layout(location = 7) in flat float opacity;
-layout(location = 8) in vec2 uv;
-layout(location = 9) in vec4 frag_position;
-layout(location = 10) in mat3 tbn;
+layout(location = 8) in flat float emissive_strength;
+layout(location = 9) in vec2 uv;
+layout(location = 10) in vec4 frag_position;
+layout(location = 11) in mat3 tbn;
 
 layout(location = 0) out vec4 out_color;
 layout(location = 1) out vec4 out_normal;
@@ -69,6 +70,7 @@ void main()
     out_emissive_color = vec4(0.0, 0.0, 0.0, 1.0);
     if(emissive_bindless_handle.x < 65535)
     {
-        out_emissive_color = texture(sampler2D(emissive_bindless_handle), uv);
+        vec4 texel = texture(sampler2D(emissive_bindless_handle), uv);
+        out_emissive_color = vec4(texel.rgb * emissive_strength, texel.a);
     }
 }

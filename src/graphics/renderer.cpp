@@ -144,6 +144,7 @@ namespace
                 // texture_manager.texture_index("textures/default_Emissive.dds"),
                 false,
                 1.f,
+                0.f,
                 mesh_manager,
             }},
             {}};
@@ -365,6 +366,7 @@ namespace ufps
                           .ao_texture_bindless_handle = e.ao_texture_bindless_handle(),
                           .emissive_texture_bindless_handle = e.emissive_texture_bindless_handle(),
                           .opacity = e.opacity(),
+                          .emissive_strength = e.emissive_intensity() * entity.emissive_strength(),
                           .normal_compressed = e.normal_compressed() ? 1u : 0u,
                           .pad{},
                       }; }));
@@ -496,6 +498,7 @@ namespace ufps
                           .ao_texture_bindless_handle = e.ao_texture_bindless_handle(),
                           .emissive_texture_bindless_handle = e.emissive_texture_bindless_handle(),
                           .opacity = e.opacity(),
+                          .emissive_strength = entity.emissive_strength(),
                           .normal_compressed = e.normal_compressed() ? 1u : 0u,
                           .pad{},
                       }; }));

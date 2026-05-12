@@ -20,6 +20,7 @@ namespace ufps
         std::string emissive_color_texture;
         bool normal_compressed;
         float opacity;
+        float emissive_intensity;
     };
 
     struct ModelManifestDescription

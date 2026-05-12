@@ -354,6 +354,22 @@ namespace ufps
                 }
             }
 
+            auto glossiness = 0.0f;
+            if (specular_filename && material->Get(AI_MATKEY_GLOSSINESS_FACTOR, glossiness) == AI_SUCCESS)
+            {
+                log::warn("Material has a metallic texture, but also glossiness of {}", glossiness);
+            }
+
+            auto emissive_intensity = 0.f;
+            if (emissive_filename)
+            {
+                if (material->Get(AI_MATKEY_EMISSIVE_INTENSITY, emissive_intensity) != AI_SUCCESS || emissive_intensity < 0.0001)
+                {
+                    // use default value if value is not set
+                    emissive_intensity = 1.f;
+                }
+            }
+
             const auto positions = std::span<::aiVector3D>{mesh->mVertices, mesh->mVertices + mesh->mNumVertices} | std::views::transform(to_native);
             const auto normals = std::span<::aiVector3D>{mesh->mNormals, mesh->mNormals + mesh->mNumVertices} | std::views::transform(to_native);
             const auto tangents = std::span<::aiVector3D>{mesh->mTangents, mesh->mTangents + mesh->mNumVertices} | std::views::transform(to_native);
@@ -380,7 +396,8 @@ namespace ufps
                 .roughness = std::nullopt,
                 .ambient_occlusion = std::nullopt,
                 .emissive_color = std::nullopt,
-                .opacity = opacity};
+                .opacity = opacity,
+                .emissive_intensity = emissive_intensity};
 
             if (albedo_filename.has_value())
             {

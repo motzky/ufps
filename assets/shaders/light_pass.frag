@@ -122,13 +122,13 @@ void main()
     vec4 emissive_texel = texture(emissive_texture, uv);
     vec3 emissive = emissive_texel.rgb;
 
-    float emissiveness = length(emissive);
+    // float emissiveness = length(emissive);
 
-    if(emissiveness > 0.001)
-    {
-        out_color = vec4(emissive, emissive_texel.a);
-        return;
-    }
+    // if(emissiveness > 0.001)
+    // {
+    //     out_color = vec4(emissive, emissive_texel.a);
+    //     return;
+    // }
 
     vec3 ambient_color = vec3(ambient_color[0], ambient_color[1], ambient_color[2]);
 
@@ -150,6 +150,8 @@ void main()
 
     vec3 ambient = ambient_color * albedo * ao;
     vec3 color = ambient + Lo;
+
+    color += emissive;
 
     out_color = vec4(color, alpha);
 }

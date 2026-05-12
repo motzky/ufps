@@ -30,19 +30,23 @@ namespace ufps
         constexpr auto set_transform(const Transform &transform) -> void;
         constexpr auto aabb() const -> const AABB &;
         constexpr auto description() const -> Description;
+        constexpr auto emissive_strength() const -> float;
+        constexpr auto set_emissive_strength(float strength) -> void;
 
     private:
         std::string _name;
         std::vector<RenderEntity> _render_entities;
         Transform _transform;
         AABB _aabb;
+        float _emissive_strength;
     };
 
     constexpr Entity::Entity(std::string name, std::vector<RenderEntity> render_entities, Transform transform)
         : _name{std::move(name)},
           _render_entities{std::move(render_entities)},
           _transform{std::move(transform)},
-          _aabb{create_aabb(_render_entities)}
+          _aabb{create_aabb(_render_entities)},
+          _emissive_strength{1.f}
     {
     }
 
@@ -78,5 +82,15 @@ namespace ufps
             .transform = _transform,
             .aabb = _aabb,
         };
+    }
+
+    constexpr auto Entity::emissive_strength() const -> float
+    {
+        return _emissive_strength;
+    }
+
+    constexpr auto Entity::set_emissive_strength(float strength) -> void
+    {
+        _emissive_strength = strength;
     }
 }
