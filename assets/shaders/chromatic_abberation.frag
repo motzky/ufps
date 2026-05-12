@@ -1,6 +1,8 @@
 #version 460 core
 #extension GL_ARB_bindless_texture : require
 
+const float PI = 3.14159265359;
+
 layout(bindless_sampler, location = 0) uniform sampler2D input_texture;
 layout(location = 1) uniform float red_offset;
 layout(location = 2) uniform float green_offset;
@@ -9,6 +11,8 @@ layout(location = 4) uniform float strength;
 layout(location = 5) uniform vec3 vignette_color;
 layout(location = 6) uniform float vignette_strength;
 layout(location = 7) uniform float vignette_feather;
+layout(location = 8) uniform float film_grain_strength;
+layout(location = 9) uniform float frame_time;
 
 
 layout(location = 0) in vec2 uv;
@@ -37,10 +41,20 @@ vec3 vignette(vec3 color)
     return mix(color, vignette_color, vignette_amount);
 }
 
+vec3 film_grain(vec3 color)
+{
+    float rand = fract(10000 * sin((uv.x + uv.y * frame_time) * PI / 180.0));
+    rand *= film_grain_strength;
+
+    return color += rand;
+}
+
 void main()
 {
     vec3 color = chromatic_abberation();
     color = vignette(color);
+
+    color = film_grain(color);
 
     vec4 in_color = texture(input_texture, uv);
     out_color = vec4(color, in_color.a);

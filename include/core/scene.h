@@ -70,14 +70,19 @@ namespace ufps
         float red_offset = .009f;
         float green_offset = .006f;
         float blue_offset = -.006f;
-        float strength = 0.5;
+        float strength = .5f;
     };
 
     struct VignetteOptions
     {
         Color color = Color::black();
-        float strength = 0.5f;
-        float feather = 0.1f;
+        float strength = .5f;
+        float feather = .1f;
+    };
+
+    struct FilmGrainOptions
+    {
+        float strength = .01f;
     };
 
     class Scene
@@ -91,6 +96,7 @@ namespace ufps
             FogOptions fog_options;
             ChromaticAbberationOptions chromatic_abberation_options;
             VignetteOptions vignette_options;
+            FilmGrainOptions film_grain_options;
             LightData lights;
             std::vector<Entity::Description> entities;
         };
@@ -105,6 +111,7 @@ namespace ufps
                         FogOptions fog_options,
                         ChromaticAbberationOptions chromatic_abberation_options,
                         VignetteOptions vignette_options,
+                        FilmGrainOptions film_grain_options,
                         const StringUnorderedMap<Entity> &entity_cache);
 
         constexpr Scene(MeshManager &mesh_manager,
@@ -133,6 +140,7 @@ namespace ufps
         constexpr auto &fog_options(this auto &&self);
         constexpr auto &chromatic_abberation_options(this auto &&self);
         constexpr auto &vignette_options(this auto &&self);
+        constexpr auto &film_grain_options(this auto &&self);
 
         constexpr auto description(this auto &&self) -> Description;
 
@@ -152,6 +160,7 @@ namespace ufps
         FogOptions _fog_options;
         ChromaticAbberationOptions _chromatic_abberation_options;
         VignetteOptions _vignette_options;
+        FilmGrainOptions _film_grain_options;
     };
 
     constexpr auto Scene::intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>
@@ -204,7 +213,7 @@ namespace ufps
     constexpr Scene::Scene(MeshManager &mesh_manager, TextureManager &texture_manager, Camera camera, LightData lights,
                            ToneMapOptions tone_map_options, SSAOOptions ssao_options, ExposureOptions exposure_options,
                            FogOptions fog_options, ChromaticAbberationOptions chromatic_abberation_options,
-                           VignetteOptions vignette_options,
+                           VignetteOptions vignette_options, FilmGrainOptions film_grain_options,
                            const StringUnorderedMap<Entity> &entity_cache)
         : _entities{},
           _entity_cache{},
@@ -217,7 +226,8 @@ namespace ufps
           _exposure_options{std::move(exposure_options)},
           _fog_options{std::move(fog_options)},
           _chromatic_abberation_options{std::move(chromatic_abberation_options)},
-          _vignette_options{std::move(vignette_options)}
+          _vignette_options{std::move(vignette_options)},
+          _film_grain_options{std::move(film_grain_options)}
     {
         for (const auto &[name, entity] : entity_cache)
         {
@@ -238,7 +248,8 @@ namespace ufps
           _exposure_options{description.exposure_options},
           _fog_options{description.fog_options},
           _chromatic_abberation_options{description.chromatic_abberation_options},
-          _vignette_options{description.vignette_options}
+          _vignette_options{description.vignette_options},
+          _film_grain_options{description.film_grain_options}
     {
         for (const auto &[name, entity] : entity_cache)
         {
@@ -333,6 +344,11 @@ namespace ufps
         return self._vignette_options;
     }
 
+    constexpr auto &Scene::film_grain_options(this auto &&self)
+    {
+        return self._film_grain_options;
+    }
+
     constexpr auto Scene::description(this auto &&self) -> Description
     {
         return Description{
@@ -342,6 +358,7 @@ namespace ufps
             .fog_options = self._fog_options,
             .chromatic_abberation_options = self._chromatic_abberation_options,
             .vignette_options = self._vignette_options,
+            .film_grain_options = self._film_grain_options,
             .lights = self._lights,
             .entities = self._entities | std::views::transform([](const auto &e)
                                                                { return e.description(); }) |

@@ -669,6 +669,9 @@ namespace ufps
 
     auto Renderer::execute_chromatic_abberation_pass(Scene &scene) -> void
     {
+        static const auto start = std::chrono::steady_clock::now();
+        const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+
         const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
 
         _chromatic_abberation_rt.fb.bind();
@@ -687,7 +690,9 @@ namespace ufps
                                                    scene.chromatic_abberation_options().strength,
                                                    scene.vignette_options().color,
                                                    scene.vignette_options().strength,
-                                                   scene.vignette_options().feather);
+                                                   scene.vignette_options().feather,
+                                                   scene.film_grain_options().strength,
+                                                   static_cast<float>(elapsed.count()));
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());

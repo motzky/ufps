@@ -458,6 +458,16 @@ namespace ufps
             }
         }
 
+        ::ImGui::Text("film grain options");
+
+        {
+            auto value = scene.film_grain_options().strength;
+            if (::ImGui::SliderFloat("film_grain_strength", &value, 0.f, 1.f))
+            {
+                scene.film_grain_options().strength = value;
+            }
+        }
+
         ::ImGui::Text("exposure options");
 
         {
