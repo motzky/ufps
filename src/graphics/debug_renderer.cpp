@@ -431,6 +431,33 @@ namespace ufps
             }
         }
 
+        ::ImGui::Text("vignette options");
+
+        {
+            float value[3]{};
+            std::memcpy(value, &scene.vignette_options().color, sizeof(value));
+            if (::ImGui::ColorPicker3("vignette_color", value))
+            {
+                std::memcpy(&scene.vignette_options().color, value, sizeof(value));
+            }
+        }
+
+        {
+            auto value = scene.vignette_options().strength;
+            if (::ImGui::SliderFloat("vignette_strength", &value, 0.f, 1.f))
+            {
+                scene.vignette_options().strength = value;
+            }
+        }
+
+        {
+            auto value = scene.vignette_options().feather;
+            if (::ImGui::SliderFloat("vignette_feather", &value, 0.f, 1.f))
+            {
+                scene.vignette_options().feather = value;
+            }
+        }
+
         ::ImGui::Text("exposure options");
 
         {

@@ -33,7 +33,16 @@ Description:
       red_offset: 0.009
       green_offset: 0.006
       blue_offset: -0.006
-      strength: 0.5
+      strength: 0.352
+  vignette_options:
+    VignetteOptions:
+      color:
+        Color:
+          r: 0
+          g: 0
+          b: 0
+      strength: 0.509
+      feather: 0.223
   lights:
     LightData:
       ambient:

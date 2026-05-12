@@ -684,7 +684,10 @@ namespace ufps
                                                    scene.chromatic_abberation_options().red_offset,
                                                    scene.chromatic_abberation_options().green_offset,
                                                    scene.chromatic_abberation_options().blue_offset,
-                                                   scene.chromatic_abberation_options().strength);
+                                                   scene.chromatic_abberation_options().strength,
+                                                   scene.vignette_options().color,
+                                                   scene.vignette_options().strength,
+                                                   scene.vignette_options().feather);
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
