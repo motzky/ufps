@@ -24,6 +24,7 @@
     DO(::PFNGLPROGRAMUNIFORMHANDLEUI64ARBPROC, glProgramUniformHandleui64ARB)                 \
     DO(::PFNGLPROGRAMUNIFORM1UIPROC, glProgramUniform1ui)                                     \
     DO(::PFNGLPROGRAMUNIFORM1FPROC, glProgramUniform1f)                                       \
+    DO(::PFNGLPROGRAMUNIFORM2FPROC, glProgramUniform2f)                                       \
     DO(::PFNGLPROGRAMUNIFORM3FPROC, glProgramUniform3f)                                       \
     DO(::PFNGLPROGRAMUNIFORMMATRIX4FVPROC, glProgramUniformMatrix4fv)                         \
     DO(::PFNGLATTACHSHADERPROC, glAttachShader)                                               \
