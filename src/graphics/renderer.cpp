@@ -212,6 +212,9 @@ namespace ufps
           _ssao_program{create_program(resource_loader, "ssao_program"sv, "shaders/ssao.vert"sv, "ssao_vertex_shader"sv, "shaders/ssao.frag"sv, "ssao_fragement_shader"sv)},                                                                                                 //
           _ssao_blur_program{create_program(resource_loader, "ssao_blur_program"sv, "shaders/ssao.vert"sv, "ssao_blur_vertex_shader"sv, "shaders/ssao_blur.frag"sv, "ssao_blur_fragement_shader"sv)},                                                                        //
           _chromatic_abberation_program{create_program(resource_loader, "chromatic_abberation_program"sv, "shaders/chromatic_abberation.vert"sv, "chromatic_abberation_vertex_shader"sv, "shaders/chromatic_abberation.frag"sv, "chromatic_abberation_fragement_shader"sv)}, //
+          _bloom_downsample_program{create_program(resource_loader, "bloom_downsample_program"sv, "shaders/bloom_downsample.vert"sv, "bloom_downsample_vertex_shader"sv, "shaders/bloom_downsample.frag"sv, "bloom_downsample_fragement_shader"sv)},                         //
+          _bloom_upsample_program{create_program(resource_loader, "bloom_upsample_program"sv, "shaders/bloom_upsample.vert"sv, "bloom_upsample_vertex_shader"sv, "shaders/bloom_upsample.frag"sv, "bloom_upsample_fragement_shader"sv)},                                     //
+          _bloom_mix_program{create_program(resource_loader, "bloom_mix_program"sv, "shaders/bloom_mix.vert"sv, "bloom_mix_vertex_shader"sv, "shaders/bloom_mix.frag"sv, "bloom_mix_fragement_shader"sv)},                                                                   //
           _ssao_noise_sampler{FilterType::NEAREST, FilterType::NEAREST, WrapMode::REPEAT, WrapMode::REPEAT, "ssao_noise_sampler"},                                                                                                                                           //
           _ssao_noise_texture_bindless_handle{create_ssao_noise_texture(texture_manager, _ssao_noise_sampler)},                                                                                                                                                              //
           _fb_sampler{FilterType::LINEAR, FilterType::LINEAR, WrapMode::CLAMP_TO_EDGE, WrapMode::CLAMP_TO_EDGE, "fb_sampler"},                                                                                                                                               //
@@ -222,6 +225,8 @@ namespace ufps
           _ssao_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, texture_manager, "ssao", TextureFormat::RG16F)},
           _ssao_blur_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, texture_manager, "ssao", TextureFormat::RG16F)},
           _chromatic_abberation_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "chromatic_abberation")},
+          _bloom_mips{},
+          _bloom_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "bloom")},
           _final_fb{}
     {
 
@@ -249,6 +254,19 @@ namespace ufps
         }
 
         _ssao_samples_buffer.write(std::as_bytes(std::span{ssao_samples.data(), ssao_samples.size()}), 0u);
+
+        static constexpr auto bloom_mip_count = 5u;
+        for (auto i = 0u; i < bloom_mip_count; ++i)
+        {
+            const auto scale = std::pow(0.5, static_cast<float>((i + 1u) * 0.5f));
+            _bloom_mips.push_back(
+                create_render_target(
+                    1u,
+                    window.width() * scale,
+                    window.height() * scale,
+                    _fb_sampler, texture_manager,
+                    std::format("bloom_mip_{}", i)));
+        }
 
         _post_processing_command_buffer.build(_post_process_sprite);
 
@@ -291,6 +309,8 @@ namespace ufps
         execute_lighting_pass(scene);
 
         execute_forward_transparancy_pass(scene);
+
+        execute_bloom_pass(scene);
 
         execute_luminance_histogram_pass(scene);
 
@@ -389,7 +409,6 @@ namespace ufps
     {
         _light_pass_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         [[maybe_unused]] const auto auto_bind = AutoBind{_light_pass_program};
 
         const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
@@ -525,6 +544,100 @@ namespace ufps
         ::glDepthMask(GL_TRUE);
     }
 
+    auto Renderer::execute_bloom_pass([[maybe_unused]] Scene &scene) -> void
+    {
+        auto src_width = _forward_transparancy_rt.fb.width();
+        auto src_height = _forward_transparancy_rt.fb.height();
+        auto src_handle = _forward_transparancy_rt.color_texture_bindless_handle_0;
+
+        {
+            [[maybe_unused]] const auto auto_bind = AutoBind{_bloom_downsample_program};
+            for (const auto &mip : _bloom_mips)
+            {
+                mip.fb.bind();
+                ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                ::glViewport(0, 0, mip.fb.width(), mip.fb.height());
+
+                _bloom_downsample_program.set_uniforms(src_handle, std::make_tuple(src_width, src_height));
+
+                const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+                ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
+                ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
+                ::glMultiDrawElementsIndirect(
+                    GL_TRIANGLES,
+                    GL_UNSIGNED_INT,
+                    reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
+                    1u,
+                    0);
+
+                src_width = mip.fb.width();
+                src_height = mip.fb.height();
+                src_handle = mip.color_texture_bindless_handle_0;
+            }
+        }
+
+        {
+            [[maybe_unused]] const auto auto_bind = AutoBind{_bloom_upsample_program};
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE, GL_ONE);
+            glBlendEquation(GL_FUNC_ADD);
+
+            for (const auto &mip : std::views::reverse(_bloom_mips) | std::views::drop(1))
+            {
+                mip.fb.bind();
+                ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+                ::glViewport(0, 0, mip.fb.width(), mip.fb.height());
+
+                _bloom_upsample_program.set_uniforms(src_handle, _bloom_filter_radius);
+
+                const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+                ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
+                ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
+                ::glMultiDrawElementsIndirect(
+                    GL_TRIANGLES,
+                    GL_UNSIGNED_INT,
+                    reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
+                    1u,
+                    0);
+
+                src_width = mip.fb.width();
+                src_height = mip.fb.height();
+                src_handle = mip.color_texture_bindless_handle_0;
+            }
+
+            glDisable(GL_BLEND);
+        }
+
+        ::glViewport(0, 0, _forward_transparancy_rt.fb.width(), _forward_transparancy_rt.fb.height());
+
+        {
+            [[maybe_unused]] const auto auto_bind = AutoBind{_bloom_mix_program};
+
+            const auto &mip = _bloom_mips.front();
+
+            _bloom_rt.fb.bind();
+            ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            _bloom_mix_program.set_uniforms(
+                mip.color_texture_bindless_handle_0,
+                _forward_transparancy_rt.color_texture_bindless_handle_0,
+                _bloom_filter_radius,
+                _bloom_mix_amount);
+
+            const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+            ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
+            ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
+            ::glMultiDrawElementsIndirect(
+                GL_TRIANGLES,
+                GL_UNSIGNED_INT,
+                reinterpret_cast<const void *>(_post_processing_command_buffer.offset_bytes()),
+                1u,
+                0);
+        }
+    }
+
     auto Renderer::execute_luminance_histogram_pass(Scene &scene) -> void
     {
         [[maybe_unused]] const auto auto_bind = AutoBind{_luminance_program};
@@ -532,13 +645,13 @@ namespace ufps
         const auto zero = ::GLuint{0};
         ::glClearNamedBufferData(_luminance_histogram_buffer.native_handle(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
 
-        _luminance_program.set_uniforms(_forward_transparancy_rt.color_texture_bindless_handle_0, scene.exposure_options().min_log_luminance, 1.f / (scene.exposure_options().max_log_luminance - scene.exposure_options().min_log_luminance));
+        _luminance_program.set_uniforms(_bloom_rt.color_texture_bindless_handle_0, scene.exposure_options().min_log_luminance, 1.f / (scene.exposure_options().max_log_luminance - scene.exposure_options().min_log_luminance));
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _luminance_histogram_buffer.native_handle());
 
         ::glDispatchCompute(
-            static_cast<std::uint32_t>(_forward_transparancy_rt.fb.width() + 15 / 16),
-            static_cast<std::uint32_t>(_forward_transparancy_rt.fb.height() + 15 / 16),
+            static_cast<std::uint32_t>(_bloom_rt.fb.width() + 15 / 16),
+            static_cast<std::uint32_t>(_bloom_rt.fb.height() + 15 / 16),
             1);
 
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
@@ -556,7 +669,7 @@ namespace ufps
         _average_luminance_program.set_uniforms(scene.exposure_options().min_log_luminance,
                                                 scene.exposure_options().max_log_luminance - scene.exposure_options().min_log_luminance,
                                                 std::clamp(1.f - std::exp(-delta_time * scene.exposure_options().tau), 0.f, 1.f),
-                                                static_cast<float>(_light_pass_rt.fb.width() * _light_pass_rt.fb.height()));
+                                                static_cast<float>(_bloom_rt.fb.width() * _bloom_rt.fb.height()));
 
         ::glDispatchCompute(256, 1, 1);
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
@@ -644,7 +757,7 @@ namespace ufps
 
         [[maybe_unused]] const auto auto_bind = AutoBind{_tone_map_program};
 
-        _tone_map_program.set_uniforms(_forward_transparancy_rt.color_texture_bindless_handle_0,
+        _tone_map_program.set_uniforms(_bloom_rt.color_texture_bindless_handle_0,
                                        scene.tone_map_options().max_brightness,
                                        scene.tone_map_options().contrast,
                                        scene.tone_map_options().linear_section_start,

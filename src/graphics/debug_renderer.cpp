@@ -336,6 +336,13 @@ namespace ufps
             }
         }
 
+        ::ImGui::Text("bloom options");
+
+        {
+            ::ImGui::SliderFloat("bloom_filter_radius", &_bloom_filter_radius, 0.f, .1f);
+            ::ImGui::SliderFloat("bloom_mix_amount", &_bloom_mix_amount, 0.f, 1.f);
+        }
+
         ::ImGui::Text("SSAO options");
 
         {
@@ -701,14 +708,45 @@ namespace ufps
 
         ::ImGui::End();
 
-        ::ImGui::Begin("render_targets");
         static constexpr auto width = 175.f;
         const auto aspect_ratio = static_cast<float>(_window.width()) / static_cast<float>(_window.height());
+
+        ::ImGui::Begin("bloom_mip");
+        for (const auto &[index, mip] : std::views::enumerate(_bloom_mips))
+        {
+            ::ImGui::Image(
+                scene.texture_manager().texture(mip.color_texture_bindless_handle_0)->native_handle(),
+                ::ImVec2(width * aspect_ratio, width),
+                ::ImVec2(0.f, 1.f),
+                ::ImVec2(1.f, 0.f));
+
+            if ((index + 1) % 4 != 0)
+            {
+                ::ImGui::SameLine();
+            }
+        }
+        ::ImGui::End();
+
+        ::ImGui::Begin("render_targets");
 
         draw_g_buffer_textures(scene, _gbuffer_rt, width, aspect_ratio);
 
         ::ImGui::Image(
             scene.texture_manager().texture(_ssao_blur_rt.color_texture_bindless_handle_0)->native_handle(),
+            ::ImVec2(width * aspect_ratio, width),
+            ::ImVec2(0.f, 1.f),
+            ::ImVec2(1.f, 0.f));
+
+        ::ImGui::Image(
+            scene.texture_manager().texture(_forward_transparancy_rt.color_texture_bindless_handle_0)->native_handle(),
+            ::ImVec2(width * aspect_ratio, width),
+            ::ImVec2(0.f, 1.f),
+            ::ImVec2(1.f, 0.f));
+
+        ::ImGui::SameLine();
+
+        ::ImGui::Image(
+            scene.texture_manager().texture(_bloom_rt.color_texture_bindless_handle_0)->native_handle(),
             ::ImVec2(width * aspect_ratio, width),
             ::ImVec2(0.f, 1.f),
             ::ImVec2(1.f, 0.f));

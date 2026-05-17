@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <string>
 #include <string_view>
+#include <tuple>
 
 #include "graphics/color.h"
 #include "graphics/opengl.h"
@@ -28,6 +29,7 @@ namespace ufps
         auto set_uniform(std::size_t index, float value) const -> void;
         auto set_uniform(std::size_t index, const Matrix4 &value) const -> void;
         auto set_uniform(std::size_t index, const Color &value) const -> void;
+        auto set_uniform(std::size_t index, std::tuple<float, float> value) const -> void;
 
         template <class... Args>
         auto set_uniforms(Args &&...args) const -> void

@@ -78,6 +78,9 @@ namespace ufps
         Program _ssao_program;
         Program _ssao_blur_program;
         Program _chromatic_abberation_program;
+        Program _bloom_downsample_program;
+        Program _bloom_upsample_program;
+        Program _bloom_mix_program;
         Sampler _ssao_noise_sampler;
         std::uint64_t _ssao_noise_texture_bindless_handle;
         Sampler _fb_sampler;
@@ -88,11 +91,16 @@ namespace ufps
         RenderTarget _ssao_rt;
         RenderTarget _ssao_blur_rt;
         RenderTarget _chromatic_abberation_rt;
+        std::vector<RenderTarget> _bloom_mips;
+        RenderTarget _bloom_rt;
         FrameBuffer *_final_fb;
+        float _bloom_filter_radius = 0.005f;
+        float _bloom_mix_amount = 0.1f;
 
     private:
         auto execute_gbuffer_pass(Scene &scene) -> void;
         auto execute_lighting_pass(Scene &scene) -> void;
+        auto execute_bloom_pass(Scene &scene) -> void;
         auto execute_forward_transparancy_pass(Scene &scene) -> void;
         auto execute_luminance_histogram_pass(Scene &scene) -> void;
         auto execute_luminance_average_pass(Scene &scene) -> void;

@@ -120,4 +120,9 @@ namespace ufps
         ::glProgramUniform3f(_handle, index, value.r, value.g, value.b);
     }
 
+    auto Program::set_uniform(std::size_t index, std::tuple<float, float> value) const -> void
+    {
+        expect(_is_bound, "setting uniform on unbound program");
+        ::glProgramUniform2f(_handle, index, std::get<0>(value), std::get<1>(value));
+    }
 }
