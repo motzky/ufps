@@ -559,7 +559,10 @@ namespace ufps
 
                 ::glViewport(0, 0, mip.fb.width(), mip.fb.height());
 
-                _bloom_downsample_program.set_uniforms(src_handle, std::make_tuple(src_width, src_height));
+                _bloom_downsample_program.set_uniforms(
+                    src_handle,
+                    std::make_tuple(src_width, src_height),
+                    _bloom_threshold);
 
                 const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
                 ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);

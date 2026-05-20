@@ -96,6 +96,7 @@ namespace ufps
         FrameBuffer *_final_fb;
         float _bloom_filter_radius = 0.005f;
         float _bloom_mix_amount = 0.1f;
+        float _bloom_threshold = 1.f;
 
     private:
         auto execute_gbuffer_pass(Scene &scene) -> void;
