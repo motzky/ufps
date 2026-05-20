@@ -336,7 +336,7 @@ namespace
         {
             if (auto light = scene.lights().lights[handle]; light)
             {
-                light->intensity = 5.f + 10.f * (std::sin(fake_time) + 1.f) / 2.f;
+                light->intensity = 2.f + (5.f * ((std::sin(fake_time) + 1.f) / 2.f));
             }
             else
             {

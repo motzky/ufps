@@ -24,15 +24,10 @@ Description:
     FogOptions:
       color:
         Color:
-          r: 0.07525944
+          r: 0
           g: 0
-          b: 0.14215684
+          b: 0
       density: 0.054
-  bloom_options:
-    BloomOptions:
-      filter_radius: 0.005
-      mix_amount: 0.04
-      threshold: 1.0
   chromatic_abberation_options:
     ChromaticAbberationOptions:
       red_offset: 0.009
@@ -46,18 +41,23 @@ Description:
           r: 0
           g: 0
           b: 0
-      strength: 0.509
+      strength: 0.573
       feather: 0.223
   film_grain_options:
     FilmGrainOptions:
       strength: 0.01
+  bloom_options:
+    BloomOptions:
+      filter_radius: 0.005
+      mix_amount: 0.04
+      threshold: 1
   lights:
     LightData:
       ambient:
         Color:
-          r: 0
-          g: 0.63465965
-          b: 0.6960784
+          r: 0.3604061
+          g: 0.35857663
+          b: 0.35857663
       lights:
         - PointLight:
             position:
@@ -71,42 +71,10 @@ Description:
                 g: 0
                 b: 0
             constant_attenuation: 1
-            linear_attenuation: 0.007
-            quadratic_attenuation: 0.0002
+            linear_attenuation: 0.313
+            quadratic_attenuation: 0.157
             specular_power: 32
-            intensity: 14.512636
-        - PointLight:
-            position:
-              Vector3:
-                x: -2.5456748
-                y: 0.6949511
-                z: -6.0471888e-05
-            color:
-              Color:
-                r: 0.22621734
-                g: 0.836478
-                b: 0.3643896
-            constant_attenuation: 1
-            linear_attenuation: 0.007
-            quadratic_attenuation: 0.0002
-            specular_power: 32
-            intensity: 3.994
-        - PointLight:
-            position:
-              Vector3:
-                x: -20.215778
-                y: 5.315446
-                z: -0.76703924
-            color:
-              Color:
-                r: 1
-                g: 1
-                b: 1
-            constant_attenuation: 1
-            linear_attenuation: 0.007
-            quadratic_attenuation: 0.0002
-            specular_power: 32
-            intensity: 6.389
+            intensity: 3.0432496
         - PointLight:
             position:
               Vector3:
@@ -119,26 +87,26 @@ Description:
                 g: 1
                 b: 1
             constant_attenuation: 1
-            linear_attenuation: 0.007
-            quadratic_attenuation: 0.0002
+            linear_attenuation: 0.36
+            quadratic_attenuation: 0.275
             specular_power: 32
-            intensity: 6.389
+            intensity: 0.66
         - PointLight:
             position:
               Vector3:
-                x: -8.574192
-                y: 3.1305306
-                z: -50.860172
+                x: -6.3984504
+                y: 2.5874157
+                z: -50.03749
             color:
               Color:
                 r: 1
                 g: 1
                 b: 1
             constant_attenuation: 1
-            linear_attenuation: 0.007
-            quadratic_attenuation: 0.0002
+            linear_attenuation: 0.36
+            quadratic_attenuation: 0.392
             specular_power: 32
-            intensity: 9.383
+            intensity: 15
   entities:
     - Description:
         name: SM_Corner01_8_8_X.fbx
@@ -804,14 +772,14 @@ Description:
           AABB:
             min:
               Vector3:
-                x: -0.9403466
+                x: -1.0975153
                 y: -0.06625354
-                z: -0.9868312
+                z: -1.0975153
             max:
               Vector3:
-                x: 0.9403465
+                x: 1.0975153
                 y: 1.7851198
-                z: 0.9868312
+                z: 1.0975153
     - Description:
         name: SM_Monitor.fbx
         transform:
