@@ -339,9 +339,9 @@ namespace ufps
         ::ImGui::Text("bloom options");
 
         {
-            ::ImGui::SliderFloat("bloom_filter_radius", &_bloom_filter_radius, 0.f, .1f);
-            ::ImGui::SliderFloat("bloom_mix_amount", &_bloom_mix_amount, 0.f, 1.f);
-            ::ImGui::SliderFloat("bloom_threshold", &_bloom_threshold, 0.f, 1.f);
+            ::ImGui::SliderFloat("bloom_filter_radius", &scene.bloom_options().filter_radius, 0.f, .1f);
+            ::ImGui::SliderFloat("bloom_mix_amount", &scene.bloom_options().mix_amount, 0.f, 1.f);
+            ::ImGui::SliderFloat("bloom_threshold", &scene.bloom_options().threshold, 0.f, 1.f);
         }
 
         ::ImGui::Text("SSAO options");

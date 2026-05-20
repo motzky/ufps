@@ -85,6 +85,13 @@ namespace ufps
         float strength = .01f;
     };
 
+    struct BloomOptions
+    {
+        float filter_radius = .005f;
+        float mix_amount = .04f;
+        float threshold = 1.f;
+    };
+
     class Scene
     {
     public:
@@ -97,6 +104,7 @@ namespace ufps
             ChromaticAbberationOptions chromatic_abberation_options;
             VignetteOptions vignette_options;
             FilmGrainOptions film_grain_options;
+            BloomOptions bloom_options;
             LightData lights;
             std::vector<Entity::Description> entities;
         };
@@ -112,6 +120,7 @@ namespace ufps
                         ChromaticAbberationOptions chromatic_abberation_options,
                         VignetteOptions vignette_options,
                         FilmGrainOptions film_grain_options,
+                        BloomOptions bloom_options,
                         const StringUnorderedMap<Entity> &entity_cache);
 
         constexpr Scene(MeshManager &mesh_manager,
@@ -141,6 +150,7 @@ namespace ufps
         constexpr auto &chromatic_abberation_options(this auto &&self);
         constexpr auto &vignette_options(this auto &&self);
         constexpr auto &film_grain_options(this auto &&self);
+        constexpr auto &bloom_options(this auto &&self);
 
         constexpr auto description(this auto &&self) -> Description;
 
@@ -161,6 +171,7 @@ namespace ufps
         ChromaticAbberationOptions _chromatic_abberation_options;
         VignetteOptions _vignette_options;
         FilmGrainOptions _film_grain_options;
+        BloomOptions _bloom_options;
     };
 
     constexpr auto Scene::intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>
@@ -214,6 +225,7 @@ namespace ufps
                            ToneMapOptions tone_map_options, SSAOOptions ssao_options, ExposureOptions exposure_options,
                            FogOptions fog_options, ChromaticAbberationOptions chromatic_abberation_options,
                            VignetteOptions vignette_options, FilmGrainOptions film_grain_options,
+                           BloomOptions bloom_options,
                            const StringUnorderedMap<Entity> &entity_cache)
         : _entities{},
           _entity_cache{},
@@ -227,7 +239,8 @@ namespace ufps
           _fog_options{std::move(fog_options)},
           _chromatic_abberation_options{std::move(chromatic_abberation_options)},
           _vignette_options{std::move(vignette_options)},
-          _film_grain_options{std::move(film_grain_options)}
+          _film_grain_options{std::move(film_grain_options)},
+          _bloom_options{std::move(bloom_options)}
     {
         for (const auto &[name, entity] : entity_cache)
         {
@@ -349,6 +362,11 @@ namespace ufps
         return self._film_grain_options;
     }
 
+    constexpr auto &Scene::bloom_options(this auto &&self)
+    {
+        return self._bloom_options;
+    }
+
     constexpr auto Scene::description(this auto &&self) -> Description
     {
         return Description{
@@ -359,6 +377,7 @@ namespace ufps
             .chromatic_abberation_options = self._chromatic_abberation_options,
             .vignette_options = self._vignette_options,
             .film_grain_options = self._film_grain_options,
+            .bloom_options = self._bloom_options,
             .lights = self._lights,
             .entities = self._entities | std::views::transform([](const auto &e)
                                                                { return e.description(); }) |

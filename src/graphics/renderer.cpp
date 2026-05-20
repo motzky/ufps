@@ -562,7 +562,7 @@ namespace ufps
                 _bloom_downsample_program.set_uniforms(
                     src_handle,
                     std::make_tuple(src_width, src_height),
-                    _bloom_threshold);
+                    scene.bloom_options().threshold);
 
                 const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
                 ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
@@ -593,7 +593,7 @@ namespace ufps
 
                 ::glViewport(0, 0, mip.fb.width(), mip.fb.height());
 
-                _bloom_upsample_program.set_uniforms(src_handle, _bloom_filter_radius);
+                _bloom_upsample_program.set_uniforms(src_handle, scene.bloom_options().filter_radius);
 
                 const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
                 ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
@@ -626,8 +626,8 @@ namespace ufps
             _bloom_mix_program.set_uniforms(
                 mip.color_texture_bindless_handle_0,
                 _forward_transparancy_rt.color_texture_bindless_handle_0,
-                _bloom_filter_radius,
-                _bloom_mix_amount);
+                scene.bloom_options().filter_radius,
+                scene.bloom_options().mix_amount);
 
             const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
             ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
