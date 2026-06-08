@@ -57,7 +57,7 @@ namespace ufps
     {
         BoundedFloat<-10.f, 10.f> min_log_luminance = -8.f;
         BoundedFloat<-10.f, 10.f> max_log_luminance = 3.5f;
-        BoundedFloat<.1f, 2.f> tau = 1.1f;
+        BoundedFloat<.1f, 5.f> tau = 3.0f;
     };
 
     struct FogOptions
