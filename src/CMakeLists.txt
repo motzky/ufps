@@ -43,6 +43,7 @@ install(FILES ${PROJECT_BINARY_DIR}/resources DESTINATION bin COMPONENT applicat
 add_subdirectory(concurrency)
 add_subdirectory(graphics)
 add_subdirectory(math)
+add_subdirectory(physics)
 add_subdirectory(resources)
 add_subdirectory(serialization)
 add_subdirectory(utils)
