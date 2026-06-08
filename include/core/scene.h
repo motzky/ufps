@@ -263,7 +263,8 @@ namespace ufps
           _fog_options{description.fog_options},
           _chromatic_abberation_options{description.chromatic_abberation_options},
           _vignette_options{description.vignette_options},
-          _film_grain_options{description.film_grain_options}
+          _film_grain_options{description.film_grain_options},
+          _bloom_options{description.bloom_options}
     {
         for (const auto &[name, entity] : entity_cache)
         {
