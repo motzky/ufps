@@ -25,7 +25,7 @@ layout(bindless_sampler, location = 10) uniform sampler2D noise_texture;
 
 layout(location = 0) in vec2 in_uv;
 
-out vec4 frag_color;
+layout(location = 0) out vec4 frag_color;
 
 void main()
 {
@@ -56,7 +56,7 @@ void main()
 
     float baked_occlusion = texture(ao_texture, in_uv).r;
 
-    float occlusion = 1.0;
+    float occlusion = 0.0;
     for(int i = 0; i < sample_count; ++i)
     {
         vec3 sample_pos = tbn * samples[i].xyz;
@@ -64,9 +64,9 @@ void main()
 
         vec4 offset = projection * vec4(sample_pos, 1.0);
         offset.xyz /= offset.w;
-        offset.xzy = offset.xzy * 0.5 + 0.5;
+        offset.xyz = offset.xyz * 0.5 + 0.5;
 
-        const float sample_depth = (view * vec4(texture(position_texture, offset.xy).xyz, 1.0)).z;
+        const float sample_depth = (view * vec4(texture(position_texture, vec2(offset.x, offset.y)).xyz, 1.0)).z;
         const float range_check = smoothstep(0.0, 1.0, radius / abs(frag_pos.z - sample_depth));
         occlusion += (sample_depth >= sample_pos.z + bias ? 1.0 : 0.0) * range_check;
     }
