@@ -36,6 +36,7 @@
 #include "graphics/utils.h"
 #include "graphics/vertex_data.h"
 #include "log.h"
+#include "physics/physics_system.h"
 #include "resources/embedded_resource_loader.h"
 #include "resources/file_resource_loader.h"
 #include "resources/resource_loader.h"
@@ -441,6 +442,8 @@ auto start(int argc, char **argv) -> int
     auto renderer = ufps::DebugRenderer{window, *resource_loader, texture_manager, mesh_manager};
     auto show_debug_ui = false;
 
+    auto physics = ufps::PhysicsSystem{};
+
     auto ss = std::stringstream{};
     auto scene_description_yaml = std::ifstream{"scene.yaml"};
 
@@ -452,7 +455,7 @@ auto start(int argc, char **argv) -> int
     {
         if constexpr (ufps::config::use_embedded_resource_loader)
         {
-            auto scene_description_str = resource_loader->load_string("scene.yaml");
+            auto scene_description_str = resource_loader->load_string("configs/scene.yaml");
             ss << scene_description_str;
         }
     }
@@ -554,6 +557,8 @@ auto start(int argc, char **argv) -> int
 
             event = window.pump_event();
         }
+
+        physics.update();
 
         awaitable_manager.pump();
         pool.drain();
