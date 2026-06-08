@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <meta>
 #include <ranges>
 #include <string>
 #include <type_traits>
@@ -17,6 +18,7 @@
 #include "graphics/point_light.h"
 #include "log.h"
 #include "math/aabb.h"
+#include "math/bounded_number.h"
 #include "math/matrix4.h"
 #include "math/ray.h"
 #include "math/transform.h"
@@ -71,6 +73,33 @@ namespace
         draw_line(transform * ufps::Vector4{aabb.max.x, aabb.min.y, aabb.min.z, 1.f}, transform * ufps::Vector4{aabb.max.x, aabb.min.y, aabb.max.z, 1.f}, color, lines);
 
         return lines;
+    }
+
+    constexpr auto clean_name(std::string_view name) -> std::string
+    {
+        return std::string{name.substr(name.find_last_of(":") + 1)};
+    }
+
+    template <float Min, float Max>
+    auto create_debug_control(const std::string &label, ufps::BoundedFloat<Min, Max> &value) -> void
+    {
+        ::ImGui::SliderFloat(label.c_str(), &value, Min, Max);
+    }
+
+    template <class T>
+    auto create_debug_controls(T &data) -> void
+    {
+        const auto title = std::format("{} options", clean_name(std::meta::display_string_of(^^T)));
+
+        ::ImGui::Text(title.c_str());
+
+        constexpr auto ctx = std::meta::access_context::current();
+
+        template for (constexpr auto &member : std::define_static_array(std::meta::nonstatic_data_members_of(^^T, ctx)))
+        {
+            const auto label = clean_name(std::meta::display_string_of(member));
+            create_debug_control(label, data.[:member:]);
+        }
     }
 
     auto draw_g_buffer_textures(ufps::Scene &scene, ufps::RenderTarget &rt, float width, float aspect_ratio) -> void
@@ -466,15 +495,7 @@ namespace ufps
             }
         }
 
-        ::ImGui::Text("film grain options");
-
-        {
-            auto value = scene.film_grain_options().strength;
-            if (::ImGui::SliderFloat("film_grain_strength", &value, 0.f, 1.f))
-            {
-                scene.film_grain_options().strength = value;
-            }
-        }
+        create_debug_controls(scene.film_grain_options());
 
         ::ImGui::Text("exposure options");
 

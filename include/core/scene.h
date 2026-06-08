@@ -11,6 +11,7 @@
 #include "graphics/mesh_manager.h"
 #include "graphics/point_light.h"
 #include "graphics/texture_manager.h"
+#include "math/bounded_number.h"
 #include "math/ray.h"
 #include "math/utils.h"
 #include "math/vector4.h"
@@ -82,7 +83,7 @@ namespace ufps
 
     struct FilmGrainOptions
     {
-        float strength = .01f;
+        BoundedFloat<0.f, 1.f> strength = .01f;
     };
 
     struct BloomOptions
