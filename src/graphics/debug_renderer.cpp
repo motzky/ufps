@@ -118,6 +118,8 @@ namespace
     {
         const auto title = std::format("{} options", clean_name(std::meta::display_string_of(^^T)));
 
+        ::ImGui::PushID(title.c_str());
+
         ::ImGui::Text(title.c_str());
 
         constexpr auto ctx = std::meta::access_context::current();
@@ -127,6 +129,8 @@ namespace
             const auto label = clean_name(std::meta::display_string_of(member));
             create_debug_control(label, data.[:member:]);
         }
+
+        ::ImGui::PopID();
     }
 
     auto draw_g_buffer_textures(ufps::Scene &scene, ufps::RenderTarget &rt, float width, float aspect_ratio) -> void
