@@ -42,7 +42,8 @@ set(ENABLE_ALL_WARNINGS OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
     JoltPhysics
     GIT_REPOSITORY https://github.com/jrouwe/JoltPhysics.git
-    GIT_TAG v5.5.0
+    # GIT_TAG v5.5.0
+    GIT_TAG ae286263420d0b1a8713d1519009b5ee264296a1
     SOURCE_SUBDIR "Build"
 )
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "physics/utils.h"
+
 namespace ufps
 {
 
@@ -16,6 +18,7 @@ namespace ufps
         auto update() -> void;
 
     private:
+        // SimpleBroadPhaseLayer _broad_phase_layers;
     };
 
 }
