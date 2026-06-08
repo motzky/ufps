@@ -258,13 +258,14 @@ namespace ufps
         static constexpr auto bloom_mip_count = 5u;
         for (auto i = 0u; i < bloom_mip_count; ++i)
         {
-            const auto scale = std::pow(0.5, static_cast<float>((i + 1u) * 0.5f));
+            const auto scale = std::pow(0.5, static_cast<float>((i + 1u)));
             _bloom_mips.push_back(
                 create_render_target(
                     1u,
                     window.width() * scale,
                     window.height() * scale,
-                    _fb_sampler, texture_manager,
+                    _fb_sampler,
+                    texture_manager,
                     std::format("bloom_mip_{}", i)));
         }
 
@@ -582,11 +583,11 @@ namespace ufps
 
         {
             [[maybe_unused]] const auto auto_bind = AutoBind{_bloom_upsample_program};
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_ONE, GL_ONE);
-            glBlendEquation(GL_FUNC_ADD);
+            // glEnable(GL_BLEND);
+            // glBlendFunc(GL_ONE, GL_ONE);
+            // glBlendEquation(GL_FUNC_ADD);
 
-            for (const auto &mip : std::views::reverse(_bloom_mips) | std::views::drop(1))
+            for (const auto &mip : std::views::reverse(_bloom_mips) | std::views::drop(1zu))
             {
                 mip.fb.bind();
                 ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -610,10 +611,8 @@ namespace ufps
                 src_handle = mip.color_texture_bindless_handle_0;
             }
 
-            glDisable(GL_BLEND);
+            // glDisable(GL_BLEND);
         }
-
-        ::glViewport(0, 0, _forward_transparancy_rt.fb.width(), _forward_transparancy_rt.fb.height());
 
         {
             [[maybe_unused]] const auto auto_bind = AutoBind{_bloom_mix_program};
@@ -623,11 +622,13 @@ namespace ufps
             _bloom_rt.fb.bind();
             ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            ::glViewport(0, 0, _bloom_rt.fb.width(), _bloom_rt.fb.height());
+
             _bloom_mix_program.set_uniforms(
                 mip.color_texture_bindless_handle_0,
                 _forward_transparancy_rt.color_texture_bindless_handle_0,
-                scene.bloom_options().filter_radius,
-                scene.bloom_options().mix_amount);
+                scene.bloom_options().mix_amount,
+                scene.bloom_options().filter_radius);
 
             const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
             ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
@@ -662,7 +663,7 @@ namespace ufps
 
     auto Renderer::execute_luminance_average_pass(Scene &scene) -> void
     {
-        static auto delta_time = 1.f / 240.f;
+        static auto delta_time = 1.f / 60.f;
 
         [[maybe_unused]] const auto auto_bind = AutoBind{_average_luminance_program};
 
@@ -674,7 +675,7 @@ namespace ufps
                                                 std::clamp(1.f - std::exp(-delta_time * scene.exposure_options().tau), 0.f, 1.f),
                                                 static_cast<float>(_bloom_rt.fb.width() * _bloom_rt.fb.height()));
 
-        ::glDispatchCompute(256, 1, 1);
+        ::glDispatchCompute(1, 1, 1);
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
     }
 

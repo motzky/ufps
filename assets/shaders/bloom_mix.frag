@@ -3,8 +3,8 @@
 
 layout(bindless_sampler, location = 0) uniform sampler2D input_texture;
 layout(bindless_sampler, location = 1) uniform sampler2D light_pass_texture;
-layout(location = 2) uniform float filter_radius;
-layout(location = 3) uniform float mix_amount;
+layout(location = 2) uniform float mix_amount;
+layout(location = 3) uniform float filter_radius;
 
 layout(location = 0) in vec2 uv;
 

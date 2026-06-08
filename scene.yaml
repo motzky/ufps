@@ -17,9 +17,9 @@ Description:
       power: 2
   exposure_options:
     ExposureOptions:
-      min_log_luminance: -1.208
-      max_log_luminance: 3.264
-      tau: 1.1
+      min_log_luminance: -1.849
+      max_log_luminance: -1.576
+      tau: 3.087
   fog_options:
     FogOptions:
       color:
@@ -48,9 +48,9 @@ Description:
       strength: 0.01
   bloom_options:
     BloomOptions:
-      filter_radius: 0.014
-      mix_amount: 0.206
-      threshold: 0.488
+      filter_radius: 0.028
+      mix_amount: 0.558
+      threshold: 0.417
   lights:
     LightData:
       ambient:
@@ -74,7 +74,7 @@ Description:
             linear_attenuation: 0.313
             quadratic_attenuation: 0.157
             specular_power: 32
-            intensity: 3.0432496
+            intensity: 6.8011227
         - PointLight:
             position:
               Vector3:
