@@ -35,50 +35,50 @@ namespace ufps
 
     struct ToneMapOptions
     {
-        float max_brightness = 1.f;
-        float contrast = 1.f;
-        float linear_section_start = .22f;
-        float linear_section_length = .4f;
-        float black_tightness = 1.33f;
-        float pedestal = 0.f;
-        float gamma = 2.2f;
+        BoundedFloat<0.f, 100.f> max_brightness = 1.f;
+        BoundedFloat<0.f, 50.f> contrast = 1.f;
+        BoundedFloat<0.f, 1.f> linear_section_start = .22f;
+        BoundedFloat<0.f, 1.f> linear_section_length = .4f;
+        BoundedFloat<0.f, 3.f> black_tightness = 1.33f;
+        BoundedFloat<0.f, 1.f> pedestal = 0.f;
+        BoundedFloat<0.f, 5.f> gamma = 2.2f;
     };
 
     struct SSAOOptions
     {
         bool enabled = true;
-        std::uint32_t sample_count = 64u;
-        float radius = .75f;
-        float bias = .025f;
-        float power = 2.f;
+        BoundedUint32<1u, 64u> sample_count = 64u;
+        BoundedFloat<0.1f, 2.f> radius = .75f;
+        BoundedFloat<0.01f, 0.1f> bias = .025f;
+        BoundedFloat<1.f, 4.f> power = 2.f;
     };
 
     struct ExposureOptions
     {
-        float min_log_luminance = -8.f;
-        float max_log_luminance = 3.5f;
-        float tau = 1.1f;
+        BoundedFloat<-10.f, 10.f> min_log_luminance = -8.f;
+        BoundedFloat<-10.f, 10.f> max_log_luminance = 3.5f;
+        BoundedFloat<.1f, 2.f> tau = 1.1f;
     };
 
     struct FogOptions
     {
         Color color = Color::black();
-        float density = 0.02f;
+        BoundedFloat<0.f, 0.2f> density = 0.02f;
     };
 
     struct ChromaticAbberationOptions
     {
-        float red_offset = .009f;
-        float green_offset = .006f;
-        float blue_offset = -.006f;
-        float strength = .5f;
+        BoundedFloat<-0.1f, 0.1f> red_offset = .009f;
+        BoundedFloat<-0.1f, 0.1f> green_offset = .006f;
+        BoundedFloat<-0.1f, 0.1f> blue_offset = -.006f;
+        BoundedFloat<0.0f, 1.f> strength = .5f;
     };
 
     struct VignetteOptions
     {
         Color color = Color::black();
-        float strength = .5f;
-        float feather = .1f;
+        BoundedFloat<0.f, 1.f> strength = .5f;
+        BoundedFloat<0.f, 1.f> feather = .1f;
     };
 
     struct FilmGrainOptions
@@ -88,9 +88,9 @@ namespace ufps
 
     struct BloomOptions
     {
-        float filter_radius = .005f;
-        float mix_amount = .04f;
-        float threshold = 1.f;
+        BoundedFloat<0.f, .1f> filter_radius = .005f;
+        BoundedFloat<0.f, 1.f> mix_amount = .04f;
+        BoundedFloat<0.f, 10.f> threshold = 1.f;
     };
 
     class Scene

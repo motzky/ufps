@@ -86,6 +86,33 @@ namespace
         ::ImGui::SliderFloat(label.c_str(), &value, Min, Max);
     }
 
+    template <std::uint32_t Min, std::uint32_t Max>
+    auto create_debug_control(const std::string &label, ufps::BoundedUint32<Min, Max> &value) -> void
+    {
+        auto v = static_cast<int>(*value);
+
+        if (::ImGui::SliderInt(label.c_str(), &v, Min, Max))
+        {
+            value = static_cast<std::uint32_t>(v);
+        }
+    }
+
+    auto create_debug_control(const std::string &label, bool &value) -> void
+    {
+        ::ImGui::Checkbox(label.c_str(), &value);
+    }
+
+    auto create_debug_control(const std::string &label, ufps::Color &value) -> void
+    {
+        float v[3]{};
+        std::memcpy(v, &value, sizeof(v));
+
+        if (::ImGui::ColorPicker3(label.c_str(), v))
+        {
+            std::memcpy(&value, v, sizeof(value));
+        }
+    }
+
     template <class T>
     auto create_debug_controls(T &data) -> void
     {
@@ -320,208 +347,14 @@ namespace ufps
             _selected = handle;
         }
 
-        ::ImGui::Text("Tonemap options");
-        {
-            auto value = scene.tone_map_options().max_brightness;
-            if (::ImGui::SliderFloat("Max Brightness", &value, 0.f, 100.f))
-            {
-                scene.tone_map_options().max_brightness = value;
-            }
-
-            value = scene.tone_map_options().contrast;
-            if (::ImGui::SliderFloat("Contrast", &value, 0.f, 5.f))
-            {
-                scene.tone_map_options().contrast = value;
-            }
-
-            value = scene.tone_map_options().linear_section_start;
-            if (::ImGui::SliderFloat("Linear Section Start", &value, 0.f, 1.f))
-            {
-                scene.tone_map_options().linear_section_start = value;
-            }
-
-            value = scene.tone_map_options().linear_section_length;
-            if (::ImGui::SliderFloat("Linear Section Lenght", &value, 0.f, 1.f))
-            {
-                scene.tone_map_options().linear_section_length = value;
-            }
-
-            value = scene.tone_map_options().black_tightness;
-            if (::ImGui::SliderFloat("Black tightness", &value, 0.f, 3.f))
-            {
-                scene.tone_map_options().black_tightness = value;
-            }
-
-            value = scene.tone_map_options().pedestal;
-            if (::ImGui::SliderFloat("Pedestal", &value, 0.f, 1.f))
-            {
-                scene.tone_map_options().pedestal = value;
-            }
-
-            value = scene.tone_map_options().gamma;
-            if (::ImGui::SliderFloat("Gamma", &value, 0.f, 5.f))
-            {
-                scene.tone_map_options().gamma = value;
-            }
-        }
-
-        ::ImGui::Text("bloom options");
-
-        {
-            ::ImGui::SliderFloat("bloom_filter_radius", &scene.bloom_options().filter_radius, 0.f, .1f);
-            ::ImGui::SliderFloat("bloom_mix_amount", &scene.bloom_options().mix_amount, 0.f, 1.f);
-            ::ImGui::SliderFloat("bloom_threshold", &scene.bloom_options().threshold, 0.f, 1.f);
-        }
-
-        ::ImGui::Text("SSAO options");
-
-        {
-            auto value = scene.ssao_options().enabled;
-            if (::ImGui::Checkbox("enabled", &value))
-            {
-                scene.ssao_options().enabled = value;
-            }
-        }
-
-        {
-            auto value = static_cast<int>(scene.ssao_options().sample_count);
-            if (::ImGui::SliderInt("sample count", &value, 1, 64))
-            {
-                scene.ssao_options().sample_count = value;
-            }
-        }
-
-        {
-            auto value = scene.ssao_options().radius;
-            if (::ImGui::SliderFloat("radius", &value, .1f, 2.f))
-            {
-                scene.ssao_options().radius = value;
-            }
-        }
-
-        {
-            auto value = scene.ssao_options().bias;
-            if (::ImGui::SliderFloat("bias", &value, .01f, .1f))
-            {
-                scene.ssao_options().bias = value;
-            }
-        }
-
-        {
-            auto value = scene.ssao_options().power;
-            if (::ImGui::SliderFloat("power", &value, 1.f, 4.f))
-            {
-                scene.ssao_options().power = value;
-            }
-        }
-
-        ::ImGui::Text("fog options");
-
-        {
-            float value[3]{};
-            std::memcpy(value, &scene.fog_options().color, sizeof(value));
-            if (::ImGui::ColorPicker3("color", value))
-            {
-                std::memcpy(&scene.fog_options().color, value, sizeof(value));
-            }
-        }
-
-        {
-            auto value = scene.fog_options().density;
-            if (::ImGui::SliderFloat("fog_density", &value, .0005f, .2f))
-            {
-                scene.fog_options().density = value;
-            }
-        }
-
-        ::ImGui::Text("chromatic abberation options");
-
-        {
-            auto value = scene.chromatic_abberation_options().red_offset;
-            if (::ImGui::SliderFloat("red offset", &value, -.1f, .1f))
-            {
-                scene.chromatic_abberation_options().red_offset = value;
-            }
-        }
-
-        {
-            auto value = scene.chromatic_abberation_options().green_offset;
-            if (::ImGui::SliderFloat("green offset", &value, -.1f, .1f))
-            {
-                scene.chromatic_abberation_options().green_offset = value;
-            }
-        }
-
-        {
-            auto value = scene.chromatic_abberation_options().blue_offset;
-            if (::ImGui::SliderFloat("blue offset", &value, -.1f, .1f))
-            {
-                scene.chromatic_abberation_options().blue_offset = value;
-            }
-        }
-
-        {
-            auto value = scene.chromatic_abberation_options().strength;
-            if (::ImGui::SliderFloat("strength", &value, 0.f, 1.f))
-            {
-                scene.chromatic_abberation_options().strength = value;
-            }
-        }
-
-        ::ImGui::Text("vignette options");
-
-        {
-            float value[3]{};
-            std::memcpy(value, &scene.vignette_options().color, sizeof(value));
-            if (::ImGui::ColorPicker3("vignette_color", value))
-            {
-                std::memcpy(&scene.vignette_options().color, value, sizeof(value));
-            }
-        }
-
-        {
-            auto value = scene.vignette_options().strength;
-            if (::ImGui::SliderFloat("vignette_strength", &value, 0.f, 1.f))
-            {
-                scene.vignette_options().strength = value;
-            }
-        }
-
-        {
-            auto value = scene.vignette_options().feather;
-            if (::ImGui::SliderFloat("vignette_feather", &value, 0.f, 1.f))
-            {
-                scene.vignette_options().feather = value;
-            }
-        }
-
+        create_debug_controls(scene.tone_map_options());
+        create_debug_controls(scene.ssao_options());
+        create_debug_controls(scene.bloom_options());
+        create_debug_controls(scene.fog_options());
+        create_debug_controls(scene.chromatic_abberation_options());
+        create_debug_controls(scene.vignette_options());
         create_debug_controls(scene.film_grain_options());
-
-        ::ImGui::Text("exposure options");
-
-        {
-            auto value = scene.exposure_options().min_log_luminance;
-            if (::ImGui::SliderFloat("min log luminance", &value, -10.f, 10.f))
-            {
-                scene.exposure_options().min_log_luminance = value;
-            }
-        }
-
-        {
-            auto value = scene.exposure_options().max_log_luminance;
-            if (::ImGui::SliderFloat("max log luminance", &value, -10.f, 10.f))
-            {
-                scene.exposure_options().min_log_luminance = value;
-            }
-        }
-
-        {
-            auto value = scene.exposure_options().tau;
-            if (::ImGui::SliderFloat("tau", &value, .1f, 2.f))
-            {
-                scene.exposure_options().tau = value;
-            }
-        }
+        create_debug_controls(scene.exposure_options());
 
         ::ImGui::Text("Luminance");
 
@@ -623,10 +456,10 @@ namespace ufps
             }
         }
 
-        for (auto &entity : scene.entities())
-        {
-            ::ImGui::CollapsingHeader(entity.name().c_str());
-        }
+        // for (auto &entity : scene.entities())
+        // {
+        //     ::ImGui::CollapsingHeader(entity.name().c_str());
+        // }
 
         ::ImGui::Text("Lights");
 
