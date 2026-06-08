@@ -48,9 +48,9 @@ Description:
       strength: 0.01
   bloom_options:
     BloomOptions:
-      filter_radius: 0.005
-      mix_amount: 0.04
-      threshold: 1
+      filter_radius: 0.014
+      mix_amount: 0.206
+      threshold: 0.488
   lights:
     LightData:
       ambient:

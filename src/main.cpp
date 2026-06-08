@@ -452,7 +452,7 @@ auto start(int argc, char **argv) -> int
     {
         if constexpr (ufps::config::use_embedded_resource_loader)
         {
-            auto scene_description_str = resource_loader->load_string("configs/scene.yaml");
+            auto scene_description_str = resource_loader->load_string("scene.yaml");
             ss << scene_description_str;
         }
     }
