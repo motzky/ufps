@@ -2,6 +2,7 @@
 
 #include <concepts>
 #include <format>
+#include <meta>
 #include <string>
 
 namespace ufps
@@ -31,6 +32,20 @@ namespace ufps
             constexpr auto operator()(T &&obj) const -> std::string
             {
                 return to_string(obj);
+            }
+
+            template <class T>
+                requires(std::is_enum_v<T> && !HasToStringFree<T>)
+            auto operator()([[maybe_unused]] T obj) const -> std::string
+            {
+                template for (constexpr auto e : std::define_static_array(std::meta::enumerators_of(^^T)))
+                {
+                    if (obj == [:e:])
+                    {
+                        return std::string(std::meta::identifier_of(e));
+                    }
+                }
+                return "<unknown>";
             }
         };
 
