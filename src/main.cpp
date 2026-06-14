@@ -37,6 +37,7 @@
 #include "graphics/vertex_data.h"
 #include "log.h"
 #include "physics/physics_system.h"
+#include "physics/rigid_body.h"
 #include "resources/embedded_resource_loader.h"
 #include "resources/file_resource_loader.h"
 #include "resources/resource_loader.h"
@@ -379,6 +380,22 @@ namespace
     }
 }
 
+auto log_box(ufps::AwaitableManager &awaitable, ufps::RigidBodyHandle handle, ufps::PhysicsSystem &physics) -> ufps::Task
+{
+    for (;;)
+    {
+        if (const auto body = physics.rigid_body(handle); body)
+        {
+            ufps::log::debug("body pos: {}", body->position());
+            co_await awaitable(100ms);
+        }
+        else
+        {
+            co_return;
+        }
+    }
+}
+
 auto start(int argc, char **argv) -> int
 {
     if (ufps::version::tweak == 0)
@@ -443,6 +460,7 @@ auto start(int argc, char **argv) -> int
     auto show_debug_ui = false;
 
     auto physics = ufps::PhysicsSystem{};
+    auto body = physics.create_box({{-1.f}, {1.f}}, {0.f, 5.f, -5.f}, ufps::PhysicsLayer::DYNAMIC);
 
     auto ss = std::stringstream{};
     auto scene_description_yaml = std::ifstream{"scene.yaml"};
@@ -477,6 +495,7 @@ auto start(int argc, char **argv) -> int
     const auto point_light_handles = scene.lights().lights.handles();
     pulse_light(awaitable_manager, point_light_handles[0], scene);
     flicker_light(awaitable_manager, point_light_handles[1], scene);
+    log_box(awaitable_manager, body, physics);
 
     auto key_state = std::unordered_map<ufps::Key, bool>{
         {ufps::Key::A, false},
