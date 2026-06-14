@@ -16,7 +16,7 @@ namespace ufps
         inline Services *g_services{};
     }
 
-    inline auto set_service(Services *services)
+    inline auto set_services(Services *services)
     {
         expect(!impl::g_services, "services already set");
         impl::g_services = services;

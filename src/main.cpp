@@ -23,6 +23,7 @@
 #include "core/manifest_descriptions.h"
 #include "core/render_entity.h"
 #include "core/scene.h"
+#include "core/service_locator.h"
 #include "graphics/command_buffer.h"
 #include "graphics/debug_renderer.h"
 #include "graphics/mesh_data.h"
@@ -380,8 +381,10 @@ namespace
     }
 }
 
-auto log_box(ufps::AwaitableManager &awaitable, ufps::RigidBodyHandle handle, ufps::PhysicsSystem &physics) -> ufps::Task
+auto log_box(ufps::AwaitableManager &awaitable, ufps::RigidBodyHandle handle) -> ufps::Task
 {
+    auto &physics = ufps::service<ufps::PhysicsSystem>();
+
     for (;;)
     {
         if (const auto body = physics.rigid_body(handle); body)
@@ -459,8 +462,11 @@ auto start(int argc, char **argv) -> int
     auto renderer = ufps::DebugRenderer{window, *resource_loader, texture_manager, mesh_manager};
     auto show_debug_ui = false;
 
-    auto physics = ufps::PhysicsSystem{};
-    auto body = physics.create_box({{-1.f}, {1.f}}, {0.f, 5.f, -5.f}, ufps::PhysicsLayer::DYNAMIC);
+    auto physics = std::make_unique<ufps::PhysicsSystem>();
+    auto services = std::make_unique<ufps::Services>(std::move(physics));
+    ufps::set_services(services.get());
+
+    auto body = ufps::service<ufps::PhysicsSystem>().create_box({{-1.f}, {1.f}}, {0.f, 5.f, -5.f}, ufps::PhysicsLayer::DYNAMIC);
 
     auto ss = std::stringstream{};
     auto scene_description_yaml = std::ifstream{"scene.yaml"};
@@ -495,7 +501,7 @@ auto start(int argc, char **argv) -> int
     const auto point_light_handles = scene.lights().lights.handles();
     pulse_light(awaitable_manager, point_light_handles[0], scene);
     flicker_light(awaitable_manager, point_light_handles[1], scene);
-    log_box(awaitable_manager, body, physics);
+    log_box(awaitable_manager, body);
 
     auto key_state = std::unordered_map<ufps::Key, bool>{
         {ufps::Key::A, false},
@@ -577,6 +583,7 @@ auto start(int argc, char **argv) -> int
             event = window.pump_event();
         }
 
+        auto &physics = ufps::service<ufps::PhysicsSystem>();
         physics.update();
 
         awaitable_manager.pump();
