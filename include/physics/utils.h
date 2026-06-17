@@ -26,6 +26,7 @@ namespace ufps
             return ::JPH::BroadPhaseLayer{static_cast<::JPH::BroadPhaseLayer::Type>(layer)};
         }
 
+#if defined(JPH_EXTERNAL_PROFILE) || defined(JPH_PROFILE_ENABLED)
         auto GetBroadPhaseLayerName(::JPH::BroadPhaseLayer layer) const -> const char * override
         {
             const auto native_layer = PhysicsLayer{layer.GetValue()};
@@ -45,6 +46,7 @@ namespace ufps
             ensure(find != std::ranges::cend(lookup), "could not find layer: {}", native_layer);
             return find->second.c_str();
         }
+#endif // JPH_EXTERNAL_PROFILE || JPH_PROFILE_ENABLED
 
     private:
     };
