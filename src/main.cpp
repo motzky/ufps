@@ -331,8 +331,9 @@ namespace
         return entity_cache;
     }
 
-    auto pulse_light(ufps::AwaitableManager &awaitable, ufps::PointLightHandle handle, ufps::Scene &scene) -> ufps::Task
+    auto pulse_light(ufps::PointLightHandle handle, ufps::Scene &scene) -> ufps::Task
     {
+        auto &awaitable = ufps::service<ufps::AwaitableManager>();
         auto fake_time = 0.f;
 
         for (;;)
@@ -353,8 +354,9 @@ namespace
         }
     }
 
-    auto flicker_light(ufps::AwaitableManager &awaitable, ufps::PointLightHandle handle, ufps::Scene &scene) -> ufps::Task
+    auto flicker_light(ufps::PointLightHandle handle, ufps::Scene &scene) -> ufps::Task
     {
+        auto &awaitable = ufps::service<ufps::AwaitableManager>();
         auto light = scene.lights().lights[handle];
         if (!light)
         {
@@ -381,8 +383,9 @@ namespace
     }
 }
 
-auto log_box(ufps::AwaitableManager &awaitable, ufps::RigidBodyHandle handle) -> ufps::Task
+auto log_box(ufps::RigidBodyHandle handle) -> ufps::Task
 {
+    auto &awaitable = ufps::service<ufps::AwaitableManager>();
     auto &physics = ufps::service<ufps::PhysicsSystem>();
 
     for (;;)
@@ -450,7 +453,7 @@ auto start(int argc, char **argv) -> int
     load_all_textures(*resource_loader, texture_manager, sampler);
 
     auto pool = ufps::ThreadPool{};
-    auto awaitable_manager = ufps::AwaitableManager{pool};
+    auto awaitable_manager = std::make_unique<ufps::AwaitableManager>(pool);
 
     auto mesh_manager = ufps::MeshManager{
         ufps::decompress(resource_loader->load_data_buffer("blobs/vertex_data.bin")),
@@ -463,10 +466,8 @@ auto start(int argc, char **argv) -> int
     auto show_debug_ui = false;
 
     auto physics = std::make_unique<ufps::PhysicsSystem>();
-    auto services = std::make_unique<ufps::Services>(std::move(physics));
-    ufps::set_services(services.get());
 
-    auto body = ufps::service<ufps::PhysicsSystem>().create_box({{-1.f}, {1.f}}, {0.f, 5.f, -5.f}, ufps::PhysicsLayer::DYNAMIC);
+    auto body = physics->create_box({{-1.f}, {1.f}}, {0.f, 5.f, -5.f}, ufps::PhysicsLayer::DYNAMIC);
 
     auto ss = std::stringstream{};
     auto scene_description_yaml = std::ifstream{"scene.yaml"};
@@ -484,6 +485,9 @@ auto start(int argc, char **argv) -> int
         }
     }
 
+    auto services = std::make_unique<ufps::Services>(std::move(awaitable_manager), std::move(physics));
+    ufps::set_services(services.get());
+
     auto scene = ufps::Scene{
         mesh_manager,
         texture_manager,
@@ -499,9 +503,9 @@ auto start(int argc, char **argv) -> int
         build_entity_cache(*resource_loader, texture_manager, mesh_manager)};
 
     const auto point_light_handles = scene.lights().lights.handles();
-    pulse_light(awaitable_manager, point_light_handles[0], scene);
-    flicker_light(awaitable_manager, point_light_handles[1], scene);
-    log_box(awaitable_manager, body);
+    pulse_light(point_light_handles[0], scene);
+    flicker_light(point_light_handles[1], scene);
+    log_box(body);
 
     auto key_state = std::unordered_map<ufps::Key, bool>{
         {ufps::Key::A, false},
@@ -586,7 +590,7 @@ auto start(int argc, char **argv) -> int
         auto &physics = ufps::service<ufps::PhysicsSystem>();
         physics.update();
 
-        awaitable_manager.pump();
+        ufps::service<ufps::AwaitableManager>().pump();
         pool.drain();
 
         scene.camera().translate(walk_direction(key_state, scene.camera()));
@@ -597,7 +601,7 @@ auto start(int argc, char **argv) -> int
         window.swap();
     }
 
-    awaitable_manager.pump();
+    ufps::service<ufps::AwaitableManager>().pump();
     pool.drain();
 
     services.release();
