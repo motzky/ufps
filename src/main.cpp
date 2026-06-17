@@ -452,8 +452,8 @@ auto start(int argc, char **argv) -> int
     auto texture_manager = ufps::TextureManager{};
     load_all_textures(*resource_loader, texture_manager, sampler);
 
-    auto pool = ufps::ThreadPool{};
-    auto awaitable_manager = std::make_unique<ufps::AwaitableManager>(pool);
+    auto pool = std::make_unique<ufps::ThreadPool>();
+    auto awaitable_manager = std::make_unique<ufps::AwaitableManager>(*pool);
 
     auto mesh_manager = ufps::MeshManager{
         ufps::decompress(resource_loader->load_data_buffer("blobs/vertex_data.bin")),
@@ -485,7 +485,7 @@ auto start(int argc, char **argv) -> int
         }
     }
 
-    auto services = std::make_unique<ufps::Services>(std::move(awaitable_manager), std::move(physics));
+    auto services = std::make_unique<ufps::Services>(std::move(awaitable_manager), std::move(physics), std::move(pool));
     ufps::set_services(services.get());
 
     auto scene = ufps::Scene{
@@ -516,6 +516,10 @@ auto start(int argc, char **argv) -> int
 
     while (running)
     {
+        auto &physics = ufps::service<ufps::PhysicsSystem>();
+        auto &awaitable = ufps::service<ufps::AwaitableManager>();
+        auto &pool = ufps::service<ufps::ThreadPool>();
+
         auto event = window.pump_event();
         while (event && running)
         {
@@ -587,10 +591,8 @@ auto start(int argc, char **argv) -> int
             event = window.pump_event();
         }
 
-        auto &physics = ufps::service<ufps::PhysicsSystem>();
         physics.update();
-
-        ufps::service<ufps::AwaitableManager>().pump();
+        awaitable.pump();
         pool.drain();
 
         scene.camera().translate(walk_direction(key_state, scene.camera()));
@@ -602,7 +604,7 @@ auto start(int argc, char **argv) -> int
     }
 
     ufps::service<ufps::AwaitableManager>().pump();
-    pool.drain();
+    ufps::service<ufps::ThreadPool>().drain();
 
     services.release();
 
