@@ -465,7 +465,7 @@ auto start(int argc, char **argv) -> int
     auto renderer = ufps::DebugRenderer{window, *resource_loader, texture_manager, mesh_manager};
     auto show_debug_ui = false;
 
-    auto physics = std::make_unique<ufps::PhysicsSystem>();
+    auto physics = std::make_unique<ufps::PhysicsSystem>(ufps::DebugRenderMode::ON);
 
     auto body = physics->create_box({{-1.f}, {1.f}}, {0.f, 5.f, -5.f}, ufps::PhysicsLayer::DYNAMIC);
 
