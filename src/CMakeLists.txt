@@ -41,6 +41,7 @@ install(TARGETS ufps DESTINATION bin COMPONENT application)
 install(FILES ${PROJECT_BINARY_DIR}/resources DESTINATION bin COMPONENT application)
 
 add_subdirectory(concurrency)
+add_subdirectory(core)
 add_subdirectory(graphics)
 add_subdirectory(math)
 add_subdirectory(physics)
@@ -132,7 +133,8 @@ target_compile_options(ufps PRIVATE
     -Wunused-result
     -Wvarargs
     -Wvla
-    -Wwrite-strings)
+    -Wwrite-strings
+    -fcontract-evaluation-semantic=enforce)
 endif()
 
 # if(NOT ${Freetype_FOUND})
