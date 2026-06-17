@@ -1,22 +1,30 @@
 #pragma once
 
+#include <optional>
+
 #include "core/sparse_set.h"
 #include "math/aabb.h"
 #include "math/vector3.h"
 #include "physics/jolt.h"
+#include "physics/physics_debug_renderer.h"
 #include "physics/physics_layers.h"
 #include "physics/rigid_body.h"
 #include "physics/utils.h"
 
 namespace ufps
 {
-
     using RigidBodyHandle = SparseSet<RigidBody>::handle_type;
+
+    enum class DebugRenderMode
+    {
+        ON,
+        OFF
+    };
 
     class PhysicsSystem
     {
     public:
-        PhysicsSystem();
+        PhysicsSystem(DebugRenderMode debug_render = DebugRenderMode::OFF);
         ~PhysicsSystem() = default;
         PhysicsSystem(const PhysicsSystem &) = delete;
         auto operator=(const PhysicsSystem &) -> PhysicsSystem & = delete;
@@ -29,6 +37,8 @@ namespace ufps
 
         auto update() -> void;
 
+        auto debug_renderer() -> std::optional<PhysicsDebugRenderer &>;
+
     private:
         SimpleBroadPhaseLayer _broad_phase_layer;
         SimpleObjectVsBroadPhaseLayerFilter _object_vs_broadphase_layer_filter;
@@ -37,6 +47,7 @@ namespace ufps
         ::JPH::JobSystemThreadPool _job_system;
         ::JPH::PhysicsSystem _physics_system;
         SparseSet<RigidBody> _rigid_bodies;
+        std::optional<PhysicsDebugRenderer> _debug_renderer;
     };
 
     constexpr auto PhysicsSystem::rigid_body(this auto &&self, RigidBodyHandle handle)

@@ -2,6 +2,7 @@
 
 #include <cstdarg>
 #include <cstdio>
+#include <optional>
 #include <string_view>
 
 #include "Jolt/Math/Vec3.h"
@@ -10,6 +11,7 @@
 #include "log.h"
 #include "math/vector3.h"
 #include "physics/jolt.h"
+#include "physics/physics_debug_renderer.h"
 #include "physics/physics_layers.h"
 #include "physics/rigid_body.h"
 #include "physics/utils.h"
@@ -80,14 +82,16 @@ namespace
 
 namespace ufps
 {
-    PhysicsSystem::PhysicsSystem()
+    PhysicsSystem::PhysicsSystem(DebugRenderMode debug_render_mode)
         : _broad_phase_layer{},
           _object_vs_broadphase_layer_filter{},
           _object_layer_pair_filter{},
           _temp_allocator{10u * 1024u * 1024u},
           _job_system{::JPH::cMaxPhysicsJobs, ::JPH::cMaxPhysicsBarriers, static_cast<int>(std::thread::hardware_concurrency() - 1zu)},
           _physics_system{},
-          _rigid_bodies{}
+          _rigid_bodies{},
+          _debug_renderer{debug_render_mode == DebugRenderMode::ON ? std::make_optional<PhysicsDebugRenderer>() : std::nullopt}
+
     {
         constexpr auto max_bodies = 1024u;
         constexpr auto max_body_mutexes = 0u;
@@ -139,6 +143,17 @@ namespace ufps
     auto PhysicsSystem::update() -> void
     {
         _physics_system.Update(1.f / 30.f, 1, &_temp_allocator, &_job_system);
+
+        if (_debug_renderer)
+        {
+            static const auto settings = ::JPH::BodyManager::DrawSettings{};
+            _physics_system.DrawBodies(settings, &*_debug_renderer);
+        }
     }
 
+    auto PhysicsSystem::debug_renderer() -> std::optional<PhysicsDebugRenderer &>
+    {
+        return _debug_renderer.transform([](auto &e) -> decltype(auto)
+                                         { return e; });
+    }
 }
