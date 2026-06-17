@@ -16,6 +16,7 @@
 #include "core/scene.h"
 #include "core/service_locator.h"
 #include "events/mouse_button_event.h"
+#include "graphics/mesh_manager.h"
 #include "graphics/point_light.h"
 #include "log.h"
 #include "math/aabb.h"
@@ -232,7 +233,7 @@ namespace
     {
         auto mesh_selected_index = std::optional<std::uint32_t>{};
 
-        auto mesh_names = value.scene.mesh_manager().mesh_names();
+        auto mesh_names = ufps::service<ufps::MeshManager>().mesh_names();
         std::ranges::sort(mesh_names);
         const auto mesh_names_str = mesh_names |
                                     std::views::filter([](const auto &e)
@@ -438,9 +439,8 @@ namespace ufps
     DebugRenderer::DebugRenderer(
         const Window &window,
         ResourceLoader &resource_loader,
-        TextureManager &texture_manager,
-        MeshManager &mesh_manager)
-        : Renderer{window, resource_loader, texture_manager, mesh_manager},
+        TextureManager &texture_manager)
+        : Renderer{window, resource_loader, texture_manager},
           _enabled{false},
           _click{},
           _selected{std::monostate{}},
@@ -512,12 +512,12 @@ namespace ufps
 
         _debug_light_program.bind();
 
-        const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+        const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
         ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_handle);
 
-        const auto cube_parts = scene.mesh_manager().mesh("cube");
+        const auto cube_parts = service<MeshManager>().mesh("cube");
         ensure(cube_parts.size() == 1u, "cube mesh should have exactly 1 part");
         const auto cube_indices_offset_bytes = cube_parts.front().index_offset * sizeof(std::uint32_t);
         const auto cube_vertex_offset = cube_parts.front().vertex_offset;

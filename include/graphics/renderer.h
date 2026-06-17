@@ -34,7 +34,7 @@ namespace ufps
     class Renderer
     {
     public:
-        Renderer(const Window &window, ResourceLoader &resource_loader, TextureManager &texture_manager, MeshManager &mesh_manager);
+        Renderer(const Window &window, ResourceLoader &resource_loader, TextureManager &texture_manager);
         virtual ~Renderer() = default;
 
         auto render(Scene &scene) -> void;

@@ -269,8 +269,7 @@ namespace
 
     auto build_entity_cache(
         ufps::ResourceLoader &resource_loader,
-        ufps::TextureManager &texture_manager,
-        ufps::MeshManager &mesh_manager) -> ufps::StringUnorderedMap<ufps::Entity>
+        ufps::TextureManager &texture_manager) -> ufps::StringUnorderedMap<ufps::Entity>
     {
         auto entity_cache = ufps::StringUnorderedMap<ufps::Entity>{};
 
@@ -322,8 +321,7 @@ namespace
                      emissive_index,
                      normal_compressed,
                      opacity,
-                     emissive_intensity,
-                     mesh_manager});
+                     emissive_intensity});
             }
             entity_cache.insert({name, ufps::Entity{name, std::move(render_entities), {}}});
         }
@@ -455,15 +453,12 @@ auto start(int argc, char **argv) -> int
     auto pool = std::make_unique<ufps::ThreadPool>();
     auto awaitable_manager = std::make_unique<ufps::AwaitableManager>(*pool);
 
-    auto mesh_manager = ufps::MeshManager{
+    auto mesh_manager = std::make_unique<ufps::MeshManager>(
         ufps::decompress(resource_loader->load_data_buffer("blobs/vertex_data.bin")),
         ufps::decompress(resource_loader->load_data_buffer("blobs/index_data.bin")),
-        build_mesh_lookup(*resource_loader)};
+        build_mesh_lookup(*resource_loader));
 
-    mesh_manager.load("cube", std::vector{cube()});
-
-    auto renderer = ufps::DebugRenderer{window, *resource_loader, texture_manager, mesh_manager};
-    auto show_debug_ui = false;
+    mesh_manager->load("cube", std::vector{cube()});
 
     auto physics = std::make_unique<ufps::PhysicsSystem>(ufps::DebugRenderMode::ON);
 
@@ -485,11 +480,17 @@ auto start(int argc, char **argv) -> int
         }
     }
 
-    auto services = std::make_unique<ufps::Services>(std::move(awaitable_manager), std::move(physics), std::move(pool));
+    auto services = std::make_unique<ufps::Services>(
+        std::move(awaitable_manager),
+        std::move(mesh_manager),
+        std::move(physics),
+        std::move(pool));
     ufps::set_services(services.get());
 
+    auto renderer = ufps::DebugRenderer{window, *resource_loader, texture_manager};
+    auto show_debug_ui = false;
+
     auto scene = ufps::Scene{
-        mesh_manager,
         texture_manager,
         {{},
          {0.f, 0.f, -1.f},
@@ -500,7 +501,7 @@ auto start(int argc, char **argv) -> int
          0.01f,
          1000.f},
         ufps::yaml::deserialize<ufps::Scene::Description>(ss.str()),
-        build_entity_cache(*resource_loader, texture_manager, mesh_manager)};
+        build_entity_cache(*resource_loader, texture_manager)};
 
     const auto point_light_handles = scene.lights().lights.handles();
     pulse_light(point_light_handles[0], scene);

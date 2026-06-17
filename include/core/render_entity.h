@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 
+#include "core/service_locator.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/mesh_view.h"
 #include "math/aabb.h"
@@ -11,9 +12,9 @@ namespace ufps
 {
     namespace impl
     {
-        constexpr auto calculate_aabb(ufps::MeshView mesh_view, const ufps::MeshManager &mesh_manager) -> ufps::AABB
+        constexpr auto calculate_aabb(ufps::MeshView mesh_view) -> ufps::AABB
         {
-            const auto vertices = mesh_manager.vertex_data(mesh_view);
+            const auto vertices = ufps::service<ufps::MeshManager>().vertex_data(mesh_view);
 
             auto initial_aabb = ufps::AABB{
                 .min = {std::numeric_limits<float>::max()},
@@ -52,8 +53,7 @@ namespace ufps
             std::uint64_t emissive_texture_bindless_handle,
             bool normal_compressed,
             float opacity,
-            float emissive_intensity,
-            const MeshManager &mesh_manager);
+            float emissive_intensity);
 
         constexpr auto mesh_view() const -> MeshView;
         constexpr auto albedo_texture_bindless_handle() const -> std::uint64_t;
@@ -91,8 +91,7 @@ namespace ufps
         std::uint64_t emissive_texture_bindless_handle,
         bool normal_compressed,
         float opacity,
-        float emissive_intensity,
-        const MeshManager &mesh_manager)
+        float emissive_intensity)
         : _mesh_view{mesh_view},
           _albedo_texture_bindless_handle{albedo_texture_bindless_handle},
           _normal_texture_bindless_handle{normal_texture_bindless_handle},
@@ -103,7 +102,7 @@ namespace ufps
           _normal_compressed{normal_compressed},
           _opacity{opacity},
           _emissive_intensity{emissive_intensity},
-          _aabb{impl::calculate_aabb(mesh_view, mesh_manager)}
+          _aabb{impl::calculate_aabb(mesh_view)}
 
     {
     }

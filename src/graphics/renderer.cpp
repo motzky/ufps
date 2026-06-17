@@ -121,10 +121,10 @@ namespace
                 .indices = std::move(indices)};
     }
 
-    auto create_sprite(ufps::MeshManager &mesh_manager, ufps::TextureManager & /*texture_manager*/) -> ufps::Entity
+    auto create_sprite(ufps::TextureManager & /*texture_manager*/) -> ufps::Entity
     {
         const auto mesh_data = std::vector{sprite()};
-        const auto mesh_views = mesh_manager.load("sprite", mesh_data);
+        const auto mesh_views = ufps::service<ufps::MeshManager>().load("sprite", mesh_data);
 
         return {
             "post_process_sprite",
@@ -145,7 +145,6 @@ namespace
                 false,
                 1.f,
                 0.f,
-                mesh_manager,
             }},
             {}};
     }
@@ -188,14 +187,14 @@ namespace
 
 namespace ufps
 {
-    Renderer::Renderer(const Window &window, ResourceLoader &resource_loader, TextureManager &texture_manager, MeshManager &mesh_manager)
+    Renderer::Renderer(const Window &window, ResourceLoader &resource_loader, TextureManager &texture_manager)
         : _window{window},
           _dummy_vao{0u, [](auto e)
                      { ::glDeleteVertexArrays(1, &e); }},
           _command_buffer{"gbuffer_command_buffer"},
           _forward_transparancy_command_buffer{"forward_transparancy_command_buffer"},
           _post_processing_command_buffer{"post_processing_command_buffer"},
-          _post_process_sprite{create_sprite(mesh_manager, texture_manager)},
+          _post_process_sprite{create_sprite(texture_manager)},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},                                                                                                                                                                      //
           _light_buffer{sizeof(LightData), "light_buffer"},                                                                                                                                                                         //
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                                            //
@@ -359,7 +358,7 @@ namespace ufps
 
         [[maybe_unused]] const auto auto_bind = AutoBind(_gbuffer_program);
 
-        const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+        const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
         ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_handle);
@@ -412,7 +411,7 @@ namespace ufps
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         [[maybe_unused]] const auto auto_bind = AutoBind{_light_pass_program};
 
-        const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+        const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
 
         {
             const auto &lights = scene.lights();
@@ -489,7 +488,7 @@ namespace ufps
 
         [[maybe_unused]] const auto auto_bind = AutoBind(_forward_transparancy_program);
 
-        const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+        const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _light_buffer.native_handle(), _light_buffer.frame_offset_bytes(), _light_buffer.size());
@@ -565,7 +564,7 @@ namespace ufps
                     std::make_tuple(src_width, src_height),
                     scene.bloom_options().threshold);
 
-                const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+                const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
                 ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
                 ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
                 ::glMultiDrawElementsIndirect(
@@ -596,7 +595,7 @@ namespace ufps
 
                 _bloom_upsample_program.set_uniforms(src_handle, scene.bloom_options().filter_radius);
 
-                const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+                const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
                 ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
                 ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
                 ::glMultiDrawElementsIndirect(
@@ -630,7 +629,7 @@ namespace ufps
                 scene.bloom_options().mix_amount,
                 scene.bloom_options().filter_radius);
 
-            const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+            const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
             ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
             ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
             ::glMultiDrawElementsIndirect(
@@ -692,7 +691,7 @@ namespace ufps
         }
 
         ::glViewport(0, 0, _ssao_rt.fb.width(), _ssao_rt.fb.height());
-        const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+        const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
 
         {
             _ssao_rt.fb.bind();
@@ -754,7 +753,7 @@ namespace ufps
 
     auto Renderer::execute_tone_mapping_pass(Scene &scene) -> void
     {
-        const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+        const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
 
         _tone_map_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -792,7 +791,7 @@ namespace ufps
         static const auto start = std::chrono::steady_clock::now();
         const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
 
-        const auto [vertex_buffer_handle, index_buffer_handle] = scene.mesh_manager().native_handle();
+        const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
 
         _chromatic_abberation_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
