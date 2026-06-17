@@ -600,6 +600,8 @@ auto start(int argc, char **argv) -> int
     awaitable_manager.pump();
     pool.drain();
 
+    services.release();
+
     return 0;
 }
 

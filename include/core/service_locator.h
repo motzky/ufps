@@ -25,6 +25,7 @@ namespace ufps
     template <class T>
     auto service() -> T &
     {
+        expect(!!impl::g_services, "services not set");
         return *std::get<std::unique_ptr<T>>(*impl::g_services);
     }
 }
