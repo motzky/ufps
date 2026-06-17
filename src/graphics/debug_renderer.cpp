@@ -14,6 +14,7 @@
 #include <backends/imgui_impl_opengl3.h>
 
 #include "core/scene.h"
+#include "core/service_locator.h"
 #include "events/mouse_button_event.h"
 #include "graphics/point_light.h"
 #include "log.h"
@@ -22,7 +23,10 @@
 #include "math/matrix4.h"
 #include "math/ray.h"
 #include "math/transform.h"
+#include "physics/physics_debug_renderer.h"
+#include "physics/physics_system.h"
 #include "serialization/yaml_serializer.h"
+
 #include "window.h"
 
 namespace
@@ -534,6 +538,12 @@ namespace ufps
             ::glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, reinterpret_cast<const void *>(cube_indices_offset_bytes), cube_vertex_offset);
         }
         _debug_light_program.unbind();
+
+        auto &&physics_debug_renderer = service<PhysicsSystem>().debug_renderer();
+        if (physics_debug_renderer)
+        {
+            _debug_lines.append_range(physics_debug_renderer->yield_lines());
+        }
 
         auto debug_line_count = 0zu;
 
