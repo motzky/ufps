@@ -9,9 +9,7 @@
 #include "core/service_locator.h"
 #include "core/sparse_set.h"
 #include "graphics/color.h"
-#include "graphics/mesh_manager.h"
 #include "graphics/point_light.h"
-#include "graphics/texture_manager.h"
 #include "math/bounded_number.h"
 #include "math/ray.h"
 #include "math/utils.h"
@@ -111,8 +109,7 @@ namespace ufps
             std::vector<Entity::Description> entities;
         };
 
-        constexpr Scene(TextureManager &texture_manager,
-                        Camera camera,
+        constexpr Scene(Camera camera,
                         LightData lights,
                         ToneMapOptions tone_map_options,
                         SSAOOptions ssao_options,
@@ -124,8 +121,7 @@ namespace ufps
                         BloomOptions bloom_options,
                         const StringUnorderedMap<Entity> &entity_cache);
 
-        constexpr Scene(TextureManager &texture_manager,
-                        Camera camera,
+        constexpr Scene(Camera camera,
                         const Description &description,
                         const StringUnorderedMap<Entity> &entity_cache);
 
@@ -141,7 +137,6 @@ namespace ufps
         constexpr auto &camera(this auto &&self);
         constexpr auto &lights(this auto &&self);
 
-        constexpr auto &texture_manager(this auto &&self);
         constexpr auto &tone_map_options(this auto &&self);
         constexpr auto &ssao_options(this auto &&self);
         constexpr auto &exposure_options(this auto &&self);
@@ -159,7 +154,6 @@ namespace ufps
     private:
         std::vector<Entity> _entities;
         std::vector<Entity> _entity_cache;
-        TextureManager &_texture_manager;
         Camera _camera;
         LightData _lights;
         ToneMapOptions _tone_map_options;
@@ -221,7 +215,7 @@ namespace ufps
         return result;
     }
 
-    constexpr Scene::Scene(TextureManager &texture_manager, Camera camera, LightData lights,
+    constexpr Scene::Scene(Camera camera, LightData lights,
                            ToneMapOptions tone_map_options, SSAOOptions ssao_options, ExposureOptions exposure_options,
                            FogOptions fog_options, ChromaticAbberationOptions chromatic_abberation_options,
                            VignetteOptions vignette_options, FilmGrainOptions film_grain_options,
@@ -229,7 +223,6 @@ namespace ufps
                            const StringUnorderedMap<Entity> &entity_cache)
         : _entities{},
           _entity_cache{},
-          _texture_manager{texture_manager},
           _camera{std::move(camera)},
           _lights{std::move(lights)},
           _tone_map_options{std::move(tone_map_options)},
@@ -247,11 +240,9 @@ namespace ufps
         }
     }
 
-    constexpr Scene::Scene(TextureManager &texture_manager, Camera camera, const Description &description,
-                           const StringUnorderedMap<Entity> &entity_cache)
+    constexpr Scene::Scene(Camera camera, const Description &description, const StringUnorderedMap<Entity> &entity_cache)
         : _entities{},
           _entity_cache{},
-          _texture_manager{texture_manager},
           _camera{std::move(camera)},
           _lights{description.lights},
           _tone_map_options{description.tone_map_options},
@@ -314,11 +305,6 @@ namespace ufps
     constexpr auto &Scene::lights(this auto &&self)
     {
         return self._lights;
-    }
-
-    constexpr auto &Scene::texture_manager(this auto &&self)
-    {
-        return self._texture_manager;
     }
 
     constexpr auto &Scene::tone_map_options(this auto &&self)

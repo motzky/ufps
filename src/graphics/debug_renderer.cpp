@@ -18,6 +18,7 @@
 #include "events/mouse_button_event.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/point_light.h"
+#include "graphics/texture_manager.h"
 #include "log.h"
 #include "math/aabb.h"
 #include "math/bounded_number.h"
@@ -436,11 +437,8 @@ namespace
 
 namespace ufps
 {
-    DebugRenderer::DebugRenderer(
-        const Window &window,
-        ResourceLoader &resource_loader,
-        TextureManager &texture_manager)
-        : Renderer{window, resource_loader, texture_manager},
+    DebugRenderer::DebugRenderer(const Window &window, ResourceLoader &resource_loader)
+        : Renderer{window, resource_loader},
           _enabled{false},
           _click{},
           _selected{std::monostate{}},
@@ -494,6 +492,8 @@ namespace ufps
         {
             return;
         }
+
+        auto &texture_manager = service<TextureManager>();
 
         _light_pass_rt.fb.unbind();
         ::glBlitNamedFramebuffer(
@@ -684,26 +684,26 @@ namespace ufps
             "render_targets",
             RenderTargets{
                 .gbuffer_color = {
-                    scene.texture_manager().texture(_gbuffer_rt.color_texture_bindless_handle_0)->native_handle(),
+                    texture_manager.texture(_gbuffer_rt.color_texture_bindless_handle_0)->native_handle(),
                     width * aspect_ratio,
                     width},
                 .same_line0{},
-                .gbuffer_normals = {scene.texture_manager().texture(_gbuffer_rt.color_texture_bindless_handle_1)->native_handle(), width * aspect_ratio, width},
+                .gbuffer_normals = {texture_manager.texture(_gbuffer_rt.color_texture_bindless_handle_1)->native_handle(), width * aspect_ratio, width},
                 .same_line1{},
-                .gbuffer_position = {scene.texture_manager().texture(_gbuffer_rt.color_texture_bindless_handle_2)->native_handle(), width * aspect_ratio, width},
+                .gbuffer_position = {texture_manager.texture(_gbuffer_rt.color_texture_bindless_handle_2)->native_handle(), width * aspect_ratio, width},
                 .same_line2{},
-                .gbuffer_specular = {scene.texture_manager().texture(_gbuffer_rt.color_texture_bindless_handle_3)->native_handle(), width * aspect_ratio, width},
+                .gbuffer_specular = {texture_manager.texture(_gbuffer_rt.color_texture_bindless_handle_3)->native_handle(), width * aspect_ratio, width},
                 .same_line3{},
-                .gbuffer_roughness = {scene.texture_manager().texture(_gbuffer_rt.color_texture_bindless_handle_4)->native_handle(), width * aspect_ratio, width},
-                .gbuffer_ao = {scene.texture_manager().texture(_gbuffer_rt.color_texture_bindless_handle_5)->native_handle(), width * aspect_ratio, width},
+                .gbuffer_roughness = {texture_manager.texture(_gbuffer_rt.color_texture_bindless_handle_4)->native_handle(), width * aspect_ratio, width},
+                .gbuffer_ao = {texture_manager.texture(_gbuffer_rt.color_texture_bindless_handle_5)->native_handle(), width * aspect_ratio, width},
                 .same_line4{},
-                .gbuffer_emissive = {scene.texture_manager().texture(_gbuffer_rt.color_texture_bindless_handle_6)->native_handle(), width * aspect_ratio, width},
+                .gbuffer_emissive = {texture_manager.texture(_gbuffer_rt.color_texture_bindless_handle_6)->native_handle(), width * aspect_ratio, width},
                 .same_line5{},
-                .ssao = {scene.texture_manager().texture(_ssao_blur_rt.color_texture_bindless_handle_0)->native_handle(), width * aspect_ratio, width},
+                .ssao = {texture_manager.texture(_ssao_blur_rt.color_texture_bindless_handle_0)->native_handle(), width * aspect_ratio, width},
                 .same_line6{},
-                .transparancy = {scene.texture_manager().texture(_forward_transparancy_rt.color_texture_bindless_handle_0)->native_handle(), width * aspect_ratio, width},
+                .transparancy = {texture_manager.texture(_forward_transparancy_rt.color_texture_bindless_handle_0)->native_handle(), width * aspect_ratio, width},
                 .same_line7{},
-                .bloom = {scene.texture_manager().texture(_bloom_rt.color_texture_bindless_handle_0)->native_handle(), width * aspect_ratio, width},
+                .bloom = {texture_manager.texture(_bloom_rt.color_texture_bindless_handle_0)->native_handle(), width * aspect_ratio, width},
 
             });
 
@@ -711,7 +711,7 @@ namespace ufps
         for (const auto &[index, mip] : std::views::enumerate(_bloom_mips))
         {
             ::ImGui::Image(
-                scene.texture_manager().texture(mip.color_texture_bindless_handle_0)->native_handle(),
+                texture_manager.texture(mip.color_texture_bindless_handle_0)->native_handle(),
                 ::ImVec2(width * aspect_ratio, width),
                 ::ImVec2(0.f, 1.f),
                 ::ImVec2(1.f, 0.f));
@@ -755,11 +755,11 @@ namespace ufps
                 }
                 ::ImGui::EndTable();
 
-                auto debug_draw_texture = [scene](auto idx, auto should_same_line) -> void
+                auto debug_draw_texture = [scene, &texture_manager](auto idx, auto should_same_line) -> void
                 {
                     if (idx < 65537)
                     {
-                        const auto *texture = scene.texture_manager().texture(idx);
+                        const auto *texture = texture_manager.texture(idx);
                         if (texture)
                         {
                             ::ImGui::Image(

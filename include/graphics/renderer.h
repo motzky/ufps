@@ -5,13 +5,11 @@
 #include "core/scene.h"
 #include "graphics/command_buffer.h"
 #include "graphics/frame_buffer.h"
-#include "graphics/mesh_manager.h"
 #include "graphics/multi_buffer.h"
 #include "graphics/opengl.h"
 #include "graphics/persistent_buffer.h"
 #include "graphics/program.h"
 #include "graphics/sampler.h"
-#include "graphics/texture_manager.h"
 #include "resources/resource_loader.h"
 #include "utils/auto_release.h"
 #include "window.h"
@@ -34,7 +32,7 @@ namespace ufps
     class Renderer
     {
     public:
-        Renderer(const Window &window, ResourceLoader &resource_loader, TextureManager &texture_manager);
+        Renderer(const Window &window, ResourceLoader &resource_loader);
         virtual ~Renderer() = default;
 
         auto render(Scene &scene) -> void;

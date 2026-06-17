@@ -10,7 +10,6 @@
 #include "graphics/line_data.h"
 #include "graphics/point_light.h"
 #include "graphics/renderer.h"
-#include "graphics/texture_manager.h"
 #include "resources/resource_loader.h"
 #include "window.h"
 
@@ -19,10 +18,7 @@ namespace ufps
     class DebugRenderer : public Renderer
     {
     public:
-        DebugRenderer(
-            const Window &window,
-            ResourceLoader &resource_loader,
-            TextureManager &texture_manager);
+        DebugRenderer(const Window &window, ResourceLoader &resource_loader);
         ~DebugRenderer();
 
         auto add_mouse_event(const MouseButtonEvent &evt) -> void;

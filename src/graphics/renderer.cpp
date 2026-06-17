@@ -49,10 +49,11 @@ namespace
         std::uint32_t width,
         std::uint32_t height,
         ufps::Sampler &sampler,
-        ufps::TextureManager &texture_manager,
         std::string_view name,
         ufps::TextureFormat format = ufps::TextureFormat::RGB16F) -> ufps::RenderTarget
     {
+        auto &texture_manager = ufps::service<ufps::TextureManager>();
+
         const auto color_attachment_texture_data = ufps::TextureData{
             .width = width,
             .height = height,
@@ -121,7 +122,7 @@ namespace
                 .indices = std::move(indices)};
     }
 
-    auto create_sprite(ufps::TextureManager & /*texture_manager*/) -> ufps::Entity
+    auto create_sprite() -> ufps::Entity
     {
         const auto mesh_data = std::vector{sprite()};
         const auto mesh_views = ufps::service<ufps::MeshManager>().load("sprite", mesh_data);
@@ -149,8 +150,10 @@ namespace
             {}};
     }
 
-    auto create_ssao_noise_texture(ufps::TextureManager &texture_manager, const ufps::Sampler &sampler) -> std::uint64_t
+    auto create_ssao_noise_texture(const ufps::Sampler &sampler) -> std::uint64_t
     {
+        auto &texture_manager = ufps::service<ufps::TextureManager>();
+
         auto generator = std::mt19937{std::random_device{}()};
         auto distribution = std::uniform_real_distribution<float>{-1.f, 1.f};
 
@@ -187,14 +190,14 @@ namespace
 
 namespace ufps
 {
-    Renderer::Renderer(const Window &window, ResourceLoader &resource_loader, TextureManager &texture_manager)
+    Renderer::Renderer(const Window &window, ResourceLoader &resource_loader)
         : _window{window},
           _dummy_vao{0u, [](auto e)
                      { ::glDeleteVertexArrays(1, &e); }},
           _command_buffer{"gbuffer_command_buffer"},
           _forward_transparancy_command_buffer{"forward_transparancy_command_buffer"},
           _post_processing_command_buffer{"post_processing_command_buffer"},
-          _post_process_sprite{create_sprite(texture_manager)},
+          _post_process_sprite{create_sprite()},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},                                                                                                                                                                      //
           _light_buffer{sizeof(LightData), "light_buffer"},                                                                                                                                                                         //
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                                            //
@@ -215,17 +218,17 @@ namespace ufps
           _bloom_upsample_program{create_program(resource_loader, "bloom_upsample_program"sv, "shaders/bloom_upsample.vert"sv, "bloom_upsample_vertex_shader"sv, "shaders/bloom_upsample.frag"sv, "bloom_upsample_fragement_shader"sv)},                                     //
           _bloom_mix_program{create_program(resource_loader, "bloom_mix_program"sv, "shaders/bloom_mix.vert"sv, "bloom_mix_vertex_shader"sv, "shaders/bloom_mix.frag"sv, "bloom_mix_fragement_shader"sv)},                                                                   //
           _ssao_noise_sampler{FilterType::NEAREST, FilterType::NEAREST, WrapMode::REPEAT, WrapMode::REPEAT, "ssao_noise_sampler"},                                                                                                                                           //
-          _ssao_noise_texture_bindless_handle{create_ssao_noise_texture(texture_manager, _ssao_noise_sampler)},                                                                                                                                                              //
+          _ssao_noise_texture_bindless_handle{create_ssao_noise_texture(_ssao_noise_sampler)},                                                                                                                                                                               //
           _fb_sampler{FilterType::LINEAR, FilterType::LINEAR, WrapMode::CLAMP_TO_EDGE, WrapMode::CLAMP_TO_EDGE, "fb_sampler"},                                                                                                                                               //
-          _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, texture_manager, "gbuffer")},                                                                                                                                                   //
-          _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "light_pass")},                                                                                                                                             //
-          _forward_transparancy_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "forward_transparancy")},                                                                                                                         //
-          _tone_map_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "tone_map")},
-          _ssao_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, texture_manager, "ssao", TextureFormat::RG16F)},
-          _ssao_blur_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, texture_manager, "ssao", TextureFormat::RG16F)},
-          _chromatic_abberation_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "chromatic_abberation")},
+          _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, "gbuffer")},                                                                                                                                                                    //
+          _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "light_pass")},                                                                                                                                                              //
+          _forward_transparancy_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "forward_transparancy")},                                                                                                                                          //
+          _tone_map_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "tone_map")},
+          _ssao_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, "ssao", TextureFormat::RG16F)},
+          _ssao_blur_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, "ssao", TextureFormat::RG16F)},
+          _chromatic_abberation_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "chromatic_abberation")},
           _bloom_mips{},
-          _bloom_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, texture_manager, "bloom")},
+          _bloom_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "bloom")},
           _final_fb{}
     {
 
@@ -264,7 +267,6 @@ namespace ufps
                     window.width() * scale,
                     window.height() * scale,
                     _fb_sampler,
-                    texture_manager,
                     std::format("bloom_mip_{}", i)));
         }
 
@@ -799,7 +801,7 @@ namespace ufps
         [[maybe_unused]] const auto auto_bind = AutoBind{_chromatic_abberation_program};
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.texture_manager().native_handle());
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, service<TextureManager>().native_handle());
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
 
         _chromatic_abberation_program.set_uniforms(_tone_map_rt.color_texture_bindless_handle_0,

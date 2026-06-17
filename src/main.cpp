@@ -267,14 +267,14 @@ namespace
                std::ranges::to<ufps::StringUnorderedMap<std::vector<ufps::MeshView>>>();
     }
 
-    auto build_entity_cache(
-        ufps::ResourceLoader &resource_loader,
-        ufps::TextureManager &texture_manager) -> ufps::StringUnorderedMap<ufps::Entity>
+    auto build_entity_cache(ufps::ResourceLoader &resource_loader) -> ufps::StringUnorderedMap<ufps::Entity>
     {
         auto entity_cache = ufps::StringUnorderedMap<ufps::Entity>{};
 
         const auto model_manifest_str = resource_loader.load_string("configs/model_manifest.yaml");
         const auto model_manifest = ufps::yaml::deserialize<ufps::ModelManifestDescription>(model_manifest_str);
+
+        auto &texture_manager = ufps::service<ufps::TextureManager>();
 
         for (const auto &[name, manifests] : model_manifest.models)
         {
@@ -447,8 +447,8 @@ auto start(int argc, char **argv) -> int
         resource_loader = std::make_unique<ufps::FileResourceLoader>(std::vector<std::filesystem::path>{"assets", "build/build_assets"});
     }
 
-    auto texture_manager = ufps::TextureManager{};
-    load_all_textures(*resource_loader, texture_manager, sampler);
+    auto texture_manager = std::make_unique<ufps::TextureManager>();
+    load_all_textures(*resource_loader, *texture_manager, sampler);
 
     auto pool = std::make_unique<ufps::ThreadPool>();
     auto awaitable_manager = std::make_unique<ufps::AwaitableManager>(*pool);
@@ -484,14 +484,14 @@ auto start(int argc, char **argv) -> int
         std::move(awaitable_manager),
         std::move(mesh_manager),
         std::move(physics),
+        std::move(texture_manager),
         std::move(pool));
     ufps::set_services(services.get());
 
-    auto renderer = ufps::DebugRenderer{window, *resource_loader, texture_manager};
+    auto renderer = ufps::DebugRenderer{window, *resource_loader};
     auto show_debug_ui = false;
 
     auto scene = ufps::Scene{
-        texture_manager,
         {{},
          {0.f, 0.f, -1.f},
          {0.f, 1.f, 0.f},
@@ -501,7 +501,7 @@ auto start(int argc, char **argv) -> int
          0.01f,
          1000.f},
         ufps::yaml::deserialize<ufps::Scene::Description>(ss.str()),
-        build_entity_cache(*resource_loader, texture_manager)};
+        build_entity_cache(*resource_loader)};
 
     const auto point_light_handles = scene.lights().lights.handles();
     pulse_light(point_light_handles[0], scene);
