@@ -1,5 +1,9 @@
 #pragma once
 
+#if !defined(JPH_DEBUG_RENDERER)
+#define JPH_DEBUG_RENDERER
+#endif
+
 #include <Jolt/Jolt.h>
 
 #include <Jolt/Core/Core.h>
@@ -24,7 +28,10 @@
 #include <Jolt/Physics/PhysicsSettings.h>
 #include <Jolt/Physics/PhysicsSystem.h>
 #include <Jolt/RegisterTypes.h>
+#include <Jolt/Renderer/DebugRenderer.h>
+#include <Jolt/Renderer/DebugRendererSimple.h>
 
+#include "graphics/color.h"
 #include "math/vector3.h"
 
 namespace ufps
@@ -37,5 +44,15 @@ namespace ufps
     inline auto to_jolt(const Vector3 vec) -> ::JPH::Vec3
     {
         return {vec.x, vec.y, vec.z};
+    }
+
+    inline auto to_native(const ::JPH::Color &c) -> Color
+    {
+        return {c.r / 255.f, c.g / 255.f, c.b / 255.f};
+    }
+
+    inline auto to_jolt(const Color color) -> ::JPH::Vec3
+    {
+        return {color.r, color.g, color.b};
     }
 }
