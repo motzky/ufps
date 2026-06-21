@@ -12,6 +12,7 @@
 #include <Jolt/Core/JobSystemThreadPool.h>
 #include <Jolt/Core/Memory.h>
 #include <Jolt/Core/TempAllocator.h>
+#include <Jolt/Math/Quat.h>
 #include <Jolt/Math/Real.h>
 #include <Jolt/Physics/Body/Body.h>
 #include <Jolt/Physics/Body/BodyCreationSettings.h>
@@ -32,6 +33,7 @@
 #include <Jolt/Renderer/DebugRendererSimple.h>
 
 #include "graphics/color.h"
+#include "math/quaternion.h"
 #include "math/vector3.h"
 
 namespace ufps
@@ -54,5 +56,10 @@ namespace ufps
     inline auto to_jolt(const Color color) -> ::JPH::Vec3
     {
         return {color.r, color.g, color.b};
+    }
+
+    inline auto to_jolt(const Quaternion q) -> ::JPH::Quat
+    {
+        return {q.x, q.y, q.z, q.w};
     }
 }
