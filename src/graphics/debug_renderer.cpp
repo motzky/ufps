@@ -734,7 +734,7 @@ namespace ufps
 
                 if (::ImGui::Button("add rigid body"))
                 {
-                    const auto body = service<PhysicsSystem>().create_box({{-1.f}, {1.f}}, entity->position(), ufps::PhysicsLayer::DYNAMIC);
+                    const auto body = service<PhysicsSystem>().create_box({{-1.f}, {1.f}}, entity->transform().position, ufps::PhysicsLayer::DYNAMIC);
                     entity->add_rigid_body(body);
                 }
 
