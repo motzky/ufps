@@ -381,7 +381,7 @@ namespace
     }
 }
 
-auto log_box(ufps::RigidBodyHandle handle) -> ufps::Task
+[[maybe_unused]] auto log_box(ufps::RigidBodyHandle handle) -> ufps::Task
 {
     auto &awaitable = ufps::service<ufps::AwaitableManager>();
     auto &physics = ufps::service<ufps::PhysicsSystem>();
@@ -462,8 +462,6 @@ auto start(int argc, char **argv) -> int
 
     auto physics = std::make_unique<ufps::PhysicsSystem>(ufps::DebugRenderMode::ON);
 
-    auto body = physics->create_box({{-1.f}, {1.f}}, {0.f, 5.f, -5.f}, ufps::PhysicsLayer::DYNAMIC);
-
     auto ss = std::stringstream{};
     auto scene_description_yaml = std::ifstream{"scene.yaml"};
 
@@ -506,7 +504,6 @@ auto start(int argc, char **argv) -> int
     const auto point_light_handles = scene.lights().lights.handles();
     pulse_light(point_light_handles[0], scene);
     flicker_light(point_light_handles[1], scene);
-    log_box(body);
 
     auto key_state = std::unordered_map<ufps::Key, bool>{
         {ufps::Key::A, false},
