@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "core/render_entity.h"
+#include "core/service_locator.h"
 #include "core/utils.h"
 #include "math/aabb.h"
 #include "math/transform.h"
@@ -72,6 +73,15 @@ namespace ufps
     constexpr auto Entity::set_transform(const Transform &transform) -> void
     {
         _transform = transform;
+
+        for (const auto handle : _rigid_bodies)
+        {
+            auto body = service<PhysicsSystem>().rigid_body(handle);
+            if (body)
+            {
+                body->set_parent_transform(transform);
+            }
+        }
     }
 
     constexpr auto Entity::aabb() const -> const AABB &

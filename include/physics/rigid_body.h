@@ -1,5 +1,6 @@
 #pragma once
 
+#include "math/transform.h"
 #include "math/vector3.h"
 #include "physics/jolt.h"
 
@@ -18,8 +19,12 @@ namespace ufps
 
         auto position() const -> Vector3;
 
+        auto set_parent_transform(const Transform &transform) -> void;
+
     private:
         ::JPH::BodyID _body_id;
         ::JPH::BodyInterface *_body_interface;
+        Transform _local_transform;
+        Transform _parent_transform;
     };
 }
