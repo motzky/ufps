@@ -732,6 +732,12 @@ namespace ufps
                 auto *entity = *selected_entity;
                 ::ImGui::Text("entity: %s", entity->name().c_str());
 
+                if (::ImGui::Button("add rigid body"))
+                {
+                    const auto body = service<PhysicsSystem>().create_box({{-1.f}, {1.f}}, entity->position(), ufps::PhysicsLayer::DYNAMIC);
+                    entity->add_rigid_body(body);
+                }
+
                 {
                     auto value = entity->emissive_strength();
                     if (::ImGui::SliderFloat("emissive_strength", &value, 0.f, 10.f))
