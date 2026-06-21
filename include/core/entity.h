@@ -9,6 +9,7 @@
 #include "core/utils.h"
 #include "math/aabb.h"
 #include "math/transform.h"
+#include "physics/physics_system.h"
 
 namespace ufps
 {
@@ -32,10 +33,12 @@ namespace ufps
         constexpr auto description() const -> Description;
         constexpr auto emissive_strength() const -> float;
         constexpr auto set_emissive_strength(float strength) -> void;
+        constexpr auto add_rigid_body(RigidBodyHandle handle) -> void;
 
     private:
         std::string _name;
         std::vector<RenderEntity> _render_entities;
+        std::vector<RigidBodyHandle> _rigid_bodies;
         Transform _transform;
         AABB _aabb;
         float _emissive_strength;
@@ -44,6 +47,7 @@ namespace ufps
     constexpr Entity::Entity(std::string name, std::vector<RenderEntity> render_entities, Transform transform)
         : _name{std::move(name)},
           _render_entities{std::move(render_entities)},
+          _rigid_bodies{},
           _transform{std::move(transform)},
           _aabb{create_aabb(_render_entities)},
           _emissive_strength{1.f}
@@ -92,5 +96,10 @@ namespace ufps
     constexpr auto Entity::set_emissive_strength(float strength) -> void
     {
         _emissive_strength = strength;
+    }
+
+    constexpr auto Entity::add_rigid_body(RigidBodyHandle handle) -> void
+    {
+        _rigid_bodies.push_back(handle);
     }
 }
