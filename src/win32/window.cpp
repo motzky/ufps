@@ -37,18 +37,18 @@ namespace
 
     auto g_event_queue = std::queue<ufps::Event>{};
 
-    void APIENTRY opengl_debug_callback(
+    auto APIENTRY opengl_debug_callback(
         GLenum source,
         GLenum type,
         GLuint id,
         GLenum severity,
         GLsizei,
         const GLchar *message,
-        const void *)
+        const void *) -> void
     {
         if (type == GL_DEBUG_TYPE_ERROR)
         {
-            ufps::ensure(false, "{} {} {} {} {}", source, type, id, severity, message);
+            ufps::die("{} {} {} {} {}", source, type, id, severity, message);
         }
         switch (severity)
         {

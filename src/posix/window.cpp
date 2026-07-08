@@ -79,15 +79,19 @@ namespace
         }
     }
 
-    void APIENTRY opengl_debug_callback(
+    auto APIENTRY opengl_debug_callback(
         GLenum source,
         GLenum type,
         GLuint id,
         GLenum severity,
         GLsizei,
         const GLchar *message,
-        const void *)
+        const void *) -> void
     {
+        if (type == GL_DEBUG_TYPE_ERROR)
+        {
+            ufps::die("{} {} {} {} {}", source, type, id, severity, message);
+        }
         switch (severity)
         {
         case GL_DEBUG_SEVERITY_HIGH:
@@ -110,7 +114,7 @@ namespace
         }
     }
 
-    void APIENTRY glfw_error_callback(int, const char *description)
+    auto APIENTRY glfw_error_callback(int, const char *description) -> void
     {
         ufps::log::error("{}", description);
     }
