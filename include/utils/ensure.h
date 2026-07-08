@@ -34,16 +34,22 @@ namespace ufps
 #pragma warning(disable : 4702)
 #endif
     template <class... Args>
+    [[noreturn]] constexpr auto die(std::format_string<Args...> msg, Args &&...args) -> void
+    {
+        log::error("{}", std::format(msg, std::forward<Args>(args)...));
+        log::error("{}", std::stacktrace::current(2));
+        std::terminate();
+        std::unreachable();
+    }
+    template <class... Args>
     constexpr auto expect(bool predicate, std::format_string<Args...> msg, Args &&...args) -> void
     {
         if (!predicate)
         {
-            log::error("{}", std::format(msg, std::forward<Args>(args)...));
-            log::error("{}", std::stacktrace::current(2));
-            std::terminate();
-            std::unreachable();
+            die(msg, std::forward<Args>(args)...);
         }
     }
+
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
