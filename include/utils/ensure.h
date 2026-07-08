@@ -1,6 +1,7 @@
 #pragma once
 
 #include <exception>
+#include <expected>
 #include <format>
 #include <memory>
 #include <string_view>
@@ -73,5 +74,14 @@ namespace ufps
     constexpr auto ensure(std::unique_ptr<T, D> &obj, std::format_string<Args...> msg, Args &&...args) -> void
     {
         ensure(obj != nullptr, msg, std::forward<Args>(args)...);
+    }
+
+    template <class T, class E, class... Args>
+    constexpr auto ensure(const std::expected<T, E> &obj) -> void
+    {
+        if (!obj)
+        {
+            throw Exception("{}", obj.error());
+        }
     }
 }
