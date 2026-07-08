@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <debugging>
 #include <format>
 #include <stacktrace>
 #include <stdexcept>
@@ -17,6 +18,7 @@ namespace ufps
             : _trace(std::stacktrace::current(1)),
               _what(std::format(what, std::forward<Args>(args)...))
         {
+            std::breakpoint_if_debugging();
         }
 
         template <class... Args>
@@ -24,6 +26,7 @@ namespace ufps
             : _trace(std::stacktrace::current(skip)),
               _what(std::format(what, std::forward<Args>(args)...))
         {
+            std::breakpoint_if_debugging();
         }
 
         constexpr auto stacktrace() const -> std::string;
