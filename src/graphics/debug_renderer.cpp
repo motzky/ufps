@@ -195,8 +195,12 @@ namespace
         if (::ImGui::Button("save"))
         {
             const auto scene_yaml = ufps::yaml::serialize(value.scene.description());
+            // if (!scene_yaml)
+            // {
+            //     throw ufps::Exception(std::format("{}", scene_yaml.error()));
+            // }
             auto out = std::ofstream("scene.yaml");
-            out << scene_yaml;
+            out << *scene_yaml;
         }
     }
 

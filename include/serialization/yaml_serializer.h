@@ -1,6 +1,7 @@
 #pragma once
 
 #include <concepts>
+#include <expected>
 #include <meta>
 #include <sstream>
 #include <string>
@@ -50,7 +51,7 @@ namespace ufps::yaml
         auto do_serialize(const Map auto &obj) -> ::YAML::Node;
 
         template <Class T>
-        auto do_deserialize(const ::YAML::Node &node) -> T;
+        auto do_deserialize(const ::YAML::Node &node) -> std::expected<T, std::string>;
 
         auto do_serialize(const BaseType auto &obj) -> ::YAML::Node
         {
@@ -135,19 +136,19 @@ namespace ufps::yaml
         }
 
         template <BaseType T>
-        auto do_deserialize(const ::YAML::Node &node) -> T
+        auto do_deserialize(const ::YAML::Node &node) -> std::expected<T, std::string>
         {
             return node.as<T>();
         }
 
         template <Bounded T>
-        auto do_deserialize(const ::YAML::Node &node) -> T::type
+        auto do_deserialize(const ::YAML::Node &node) -> std::expected<typename T::type, std::string>
         {
             return node.as<typename T::type>();
         }
 
         template <Enum T>
-        auto do_deserialize(const ::YAML::Node &node) -> T
+        auto do_deserialize(const ::YAML::Node &node) -> std::expected<T, std::string>
         {
             const auto enum_value = node.as<std::string>();
 
@@ -159,24 +160,29 @@ namespace ufps::yaml
                 }
             }
 
-            throw Exception("unknown enum value {} for {}", enum_value, std::meta::identifier_of(^^T));
+            return std::unexpected(std::format("unknown enum value {} for {}", enum_value, std::meta::identifier_of(^^T)));
         }
 
         template <Array T>
-        auto do_deserialize(const ::YAML::Node &node) -> T
+        auto do_deserialize(const ::YAML::Node &node) -> std::expected<T, std::string>
         {
             auto obj = T{};
 
             for (const auto &e : node)
             {
-                obj.push_back(do_deserialize<std::ranges::range_value_t<T>>(e));
+                auto inner_element = do_deserialize<std::ranges::range_value_t<T>>(e);
+                if (!inner_element)
+                {
+                    return std::unexpected(inner_element.error());
+                }
+                obj.push_back(std::move(*inner_element));
             }
 
             return obj;
         }
 
         template <Map T>
-        auto do_deserialize(const ::YAML::Node &node) -> T
+        auto do_deserialize(const ::YAML::Node &node) -> std::expected<T, std::string>
         {
             auto obj = T{};
 
@@ -185,27 +191,44 @@ namespace ufps::yaml
                 const auto &key = p.first;
                 const auto &value = p.second;
 
-                obj[do_deserialize<typename T::key_type>(key)] = do_deserialize<typename T::mapped_type>(value);
+                auto deserialized_key = do_deserialize<typename T::key_type>(key);
+                if (!deserialized_key)
+                {
+                    return std::unexpected(deserialized_key.error());
+                }
+
+                auto deserialized_value = do_deserialize<typename T::mapped_type>(value);
+                if (!deserialized_value)
+                {
+                    return std::unexpected(deserialized_value.error());
+                }
+
+                obj[std::move(*deserialized_key)] = std::move(*deserialized_value);
             }
 
             return obj;
         }
 
         template <Sparse T>
-        auto do_deserialize(const ::YAML::Node &node) -> T
+        auto do_deserialize(const ::YAML::Node &node) -> std::expected<T, std::string>
         {
             auto obj = T{};
 
             for (const auto &e : node)
             {
-                obj.emplace(do_deserialize<typename T::value_type>(e));
+                auto inner_element = do_deserialize<typename T::value_type>(e);
+                if (!inner_element)
+                {
+                    return std::unexpected(inner_element.error());
+                }
+                obj.emplace(std::move(*inner_element));
             }
 
             return obj;
         }
 
         template <Class T>
-        auto do_deserialize(const ::YAML::Node &node) -> T
+        auto do_deserialize(const ::YAML::Node &node) -> std::expected<T, std::string>
         {
             auto obj = T{};
 
@@ -215,27 +238,62 @@ namespace ufps::yaml
             template for (constexpr auto e : std::define_static_array(std::meta::nonstatic_data_members_of(^^T, ctx)))
             {
                 using ElementType = typename[:std::meta::type_of(e):];
-                obj.[:e:] = do_deserialize<ElementType>(inner_node[std::meta::identifier_of(e)]);
+                auto inner_element = do_deserialize<ElementType>(inner_node[std::meta::identifier_of(e)]);
+                if (!inner_element)
+                {
+                    return std::unexpected(inner_element.error());
+                }
+                obj.[:e:] = std::move(*inner_element);
             }
 
             return obj;
         }
     }
 
-    auto serialize(const impl::Class auto &obj) -> std::string
+    auto serialize(const impl::Class auto &obj) -> std::expected<std::string, std::string>
     {
-        auto node = impl::do_serialize(obj);
+        try
+        {
+            auto node = impl::do_serialize(obj);
 
-        auto ss = std::stringstream{};
-        ss << node;
+            auto ss = std::stringstream{};
+            ss << node;
 
-        return ss.str();
+            return ss.str();
+        }
+        catch (const ::YAML::Exception &e)
+        {
+            return std::unexpected(std::format("{} [{} {} {}]", e.msg, e.mark.pos, e.mark.line, e.mark.column));
+        }
+        catch (const std::exception &e)
+        {
+            return std::unexpected(e.what());
+        }
+        catch (...)
+        {
+            return std::unexpected<std::string>("unknown exception");
+        }
     }
 
     template <impl::Class T>
-    auto deserialize(const std::string &yaml) -> T
+    auto deserialize(const std::string &yaml) -> std::expected<T, std::string>
     {
-        const auto node = ::YAML::Load(yaml);
-        return impl::do_deserialize<T>(node);
+        try
+        {
+            const auto node = ::YAML::Load(yaml);
+            return impl::do_deserialize<T>(node);
+        }
+        catch (const ::YAML::Exception &e)
+        {
+            return std::unexpected(std::format("{} [{} {} {}]", e.msg, e.mark.pos, e.mark.line, e.mark.column));
+        }
+        catch (const std::exception &e)
+        {
+            return std::unexpected(e.what());
+        }
+        catch (...)
+        {
+            return std::unexpected<std::string>("unknown exception");
+        }
     }
 }

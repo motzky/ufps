@@ -235,10 +235,11 @@ namespace
     {
         const auto texture_manifest_str = resource_loader.load_string("configs/texture_manifest.yaml");
         const auto texture_manifest = ufps::yaml::deserialize<ufps::TextureManifestDescription>(texture_manifest_str);
+        ensure(texture_manifest);
 
         const auto texture_blob = ufps::decompress(resource_loader.load_data_buffer("blobs/texture_data.bin"));
 
-        for (const auto &[name, manifest] : texture_manifest.textures)
+        for (const auto &[name, manifest] : texture_manifest->textures)
         {
             const auto raw_texture_data = std::span{texture_blob.data() + manifest.offset, manifest.size};
             const auto texture_data = ufps::load_texture(raw_texture_data, manifest.is_srgb);
@@ -253,8 +254,9 @@ namespace
 
         const auto manifest_str = resource_loader.load_string("configs/model_manifest.yaml");
         const auto manifest = ufps::yaml::deserialize<ufps::ModelManifestDescription>(manifest_str);
+        ensure(manifest);
 
-        return manifest.models |
+        return manifest->models |
                std::views::transform([](const auto &e)
                                      {
             const auto &[name, manifests] = e;
@@ -273,10 +275,11 @@ namespace
 
         const auto model_manifest_str = resource_loader.load_string("configs/model_manifest.yaml");
         const auto model_manifest = ufps::yaml::deserialize<ufps::ModelManifestDescription>(model_manifest_str);
+        ensure(model_manifest);
 
         auto &texture_manager = ufps::service<ufps::TextureManager>();
 
-        for (const auto &[name, manifests] : model_manifest.models)
+        for (const auto &[name, manifests] : model_manifest->models)
         {
             auto render_entities = std::vector<ufps::RenderEntity>{};
 
@@ -489,6 +492,9 @@ auto start(int argc, char **argv) -> int
     auto renderer = ufps::DebugRenderer{window, *resource_loader};
     auto show_debug_ui = false;
 
+    auto scene_desc = ufps::yaml::deserialize<ufps::Scene::Description>(ss.str());
+    ufps::ensure(scene_desc);
+
     auto scene = ufps::Scene{
         {{},
          {0.f, 0.f, -1.f},
@@ -498,7 +504,7 @@ auto start(int argc, char **argv) -> int
          static_cast<float>(window.height()),
          0.01f,
          1000.f},
-        ufps::yaml::deserialize<ufps::Scene::Description>(ss.str()),
+        std::move(*scene_desc),
         build_entity_cache(*resource_loader)};
 
     const auto point_light_handles = scene.lights().lights.handles();

@@ -71,7 +71,7 @@ TEST(yaml_serialization, simple_struct)
     const auto expected = R"(Simple:
   a: 12)";
 
-    ASSERT_EQ(result, expected);
+    ASSERT_EQ(*result, expected);
 }
 
 TEST(yaml_serialization, multi_member_struct)
@@ -322,4 +322,13 @@ TEST(yaml_deserialization, enum_struct_second_value)
     const auto expected = FruitStruct{.f = Fruit::BANANA};
 
     ASSERT_EQ(result, expected);
+}
+
+TEST(yaml_deserialization, invalid_yaml)
+{
+    const auto yaml =
+        R"(FruitStruct:::klasdjhf
+   f: APPLE)";
+    const auto result = ufps::yaml::deserialize<FruitStruct>(yaml);
+    ASSERT_FALSE(!!result);
 }
