@@ -50,8 +50,8 @@ namespace
 
     auto jolt_trace(const char *fmt, ...) -> void
     {
-        auto list = ::va_list{};
-        va_start(list, fmt);
+        ::va_list list;
+        va_start(list);
 
         auto buffer = std::array<char, 1024zu>{};
         const auto write_count = ::vsnprintf(buffer.data(), sizeof(buffer), fmt, list);
