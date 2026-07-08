@@ -11,7 +11,6 @@ namespace ufps
           _body_interface{body_interface},
           _original_shape{body_interface->GetShape(_body_id)},
           _local_transform{{}, {1.f}, {}},
-          _parent_transform{{}, {1.f}, {}},
           _applied_scale{1.f}
     {
     }
