@@ -24,7 +24,9 @@ namespace ufps
     private:
         ::JPH::BodyID _body_id;
         ::JPH::BodyInterface *_body_interface;
+        ::JPH::RefConst<::JPH::Shape> _original_shape;
         Transform _local_transform;
         Transform _parent_transform;
+        Vector3 _applied_scale;
     };
 }
