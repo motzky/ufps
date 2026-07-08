@@ -16,23 +16,46 @@ namespace ufps
     class Program
     {
     public:
-        Program(const Shader &vertex_shader, const Shader &fragment_shader, std::string_view name);
-        Program(const Shader &compute_shader, std::string_view name);
+        Program(const Shader &vertex_shader, const Shader &fragment_shader, std::string_view name)
+            pre(vertex_shader.type() == ShaderType::VERTEX)      //
+            pre(fragment_shader.type() == ShaderType::FRAGMENT); //
 
-        auto bind() -> void;
-        auto unbind() -> void;
+        Program(const Shader &compute_shader, std::string_view name)
+            pre(compute_shader.type() == ShaderType::COMPUTE);
+
+        auto bind() -> void  //
+            pre(!is_bound()) //
+            post(is_bound());
+
+        auto unbind() -> void //
+            pre(is_bound())   //
+            post(!is_bound());
+
+        auto is_bound() const -> bool;
 
         auto native_handle() const -> ::GLuint;
 
-        auto set_uniform(std::size_t index, std::uint32_t value) const -> void;
-        auto set_uniform(std::size_t index, std::uint64_t value) const -> void;
-        auto set_uniform(std::size_t index, float value) const -> void;
-        auto set_uniform(std::size_t index, const Matrix4 &value) const -> void;
-        auto set_uniform(std::size_t index, const Color &value) const -> void;
-        auto set_uniform(std::size_t index, std::tuple<float, float> value) const -> void;
+        auto set_uniform(std::size_t index, std::uint32_t value) const -> void //
+            pre(is_bound());
+
+        auto set_uniform(std::size_t index, std::uint64_t value) const -> void //
+            pre(is_bound());
+
+        auto set_uniform(std::size_t index, float value) const -> void //
+            pre(is_bound());
+
+        auto set_uniform(std::size_t index, const Matrix4 &value) const -> void //
+            pre(is_bound());
+
+        auto set_uniform(std::size_t index, const Color &value) const -> void //
+            pre(is_bound());
+
+        auto set_uniform(std::size_t index, std::tuple<float, float> value) const -> void //
+            pre(is_bound());
 
         template <class... Args>
-        auto set_uniforms(Args &&...args) const -> void
+        auto set_uniforms(Args &&...args) const -> void //
+            pre(is_bound())
         {
             [&]<std::size_t... Index>(std::index_sequence<Index...>)
             {

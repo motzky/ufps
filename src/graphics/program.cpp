@@ -34,9 +34,6 @@ namespace ufps
         : _handle{},
           _is_bound{}
     {
-        expect(vertex_shader.type() == ShaderType::VERTEX, "vertex_shader must be a vertex shader");
-        expect(fragment_shader.type() == ShaderType::FRAGMENT, "fragment_shader must be a fragment shader");
-
         _handle = {::glCreateProgram(), ::glDeleteProgram};
         ensure(_handle, "failed to create OpenGL program");
 
@@ -56,7 +53,6 @@ namespace ufps
         : _handle{},
           _is_bound{}
     {
-        expect(compute_shader.type() == ShaderType::COMPUTE, "shader must be a compute shader");
         _handle = {::glCreateProgram(), ::glDeleteProgram};
         ensure(_handle, "failed to create OpenGL program");
 
@@ -71,6 +67,11 @@ namespace ufps
         check_state(_handle, GL_VALIDATE_STATUS, name, "failed to validate program");
     }
 
+    auto Program::is_bound() const -> bool
+    {
+        return _is_bound;
+    }
+
     auto Program::native_handle() const -> ::GLuint
     {
         return _handle;
@@ -78,51 +79,43 @@ namespace ufps
 
     auto Program::bind() -> void
     {
-        expect(!_is_bound, "binding already bound program");
         ::glUseProgram(_handle);
         _is_bound = true;
     }
 
     auto Program::unbind() -> void
     {
-        expect(_is_bound, "unbinding already unbound program");
         ::glUseProgram(0);
         _is_bound = false;
     }
 
     auto Program::set_uniform(std::size_t index, std::uint32_t value) const -> void
     {
-        expect(_is_bound, "setting uniform on unbound program");
         ::glProgramUniform1ui(_handle, static_cast<std::uint32_t>(index), value);
     }
 
     auto Program::set_uniform(std::size_t index, std::uint64_t value) const -> void
     {
-        expect(_is_bound, "setting uniform on unbound program");
         ::glProgramUniformHandleui64ARB(_handle, index, value);
     }
 
     auto Program::set_uniform(std::size_t index, float value) const -> void
     {
-        expect(_is_bound, "setting uniform on unbound program");
         ::glProgramUniform1f(_handle, static_cast<std::uint32_t>(index), value);
     }
 
     auto Program::set_uniform(std::size_t index, const Matrix4 &value) const -> void
     {
-        expect(_is_bound, "setting uniform on unbound program");
         ::glProgramUniformMatrix4fv(_handle, index, 1u, GL_FALSE, value.data().data());
     }
 
     auto Program::set_uniform(std::size_t index, const Color &value) const -> void
     {
-        expect(_is_bound, "setting uniform on unbound program");
         ::glProgramUniform3f(_handle, index, value.r, value.g, value.b);
     }
 
     auto Program::set_uniform(std::size_t index, std::tuple<float, float> value) const -> void
     {
-        expect(_is_bound, "setting uniform on unbound program");
         ::glProgramUniform2f(_handle, index, std::get<0>(value), std::get<1>(value));
     }
 }
