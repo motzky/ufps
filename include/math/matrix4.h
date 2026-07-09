@@ -166,9 +166,11 @@ namespace ufps
 
         static constexpr auto invert(const Matrix4 &matrix) -> Matrix4;
 
-        constexpr auto data() const -> std::span<const float>
+        template <class Self>
+        constexpr auto data(this Self &&self)
         {
-            return _elements;
+            using SpanType = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, std::span<const float>, std::span<float>>;
+            return SpanType(self._elements.data(), std::ranges::size(self._elements));
         }
 
         auto operator[](this auto &&self, std::size_t index) -> auto
