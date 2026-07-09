@@ -75,4 +75,11 @@ namespace ufps
         _local_transform = local;
         _parent_transform = parent;
     }
+
+    auto RigidBody::description() const -> Description
+    {
+        return {
+            .local_transform = _local_transform,
+            .applied_scale = _applied_scale};
+    }
 }

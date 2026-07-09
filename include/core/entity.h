@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <ranges>
 #include <span>
 #include <string>
 #include <vector>
@@ -22,6 +23,7 @@ namespace ufps
             std::string name;
             Transform transform;
             AABB aabb;
+            std::vector<RigidBody::Description> rigid_bodies;
         };
 
         constexpr Entity(std::string name, std::vector<RenderEntity> render_entities, Transform transform);
@@ -80,7 +82,7 @@ namespace ufps
             auto body = service<PhysicsSystem>().rigid_body(handle);
             if (body)
             {
-                body->set_parent_transform(transform);
+                body->set_parent_transform(_transform);
             }
         }
     }
@@ -96,7 +98,18 @@ namespace ufps
             .name = _name,
             .transform = _transform,
             .aabb = _aabb,
-        };
+            .rigid_bodies = _rigid_bodies |
+                            std::views::transform(
+                                [](auto e)
+                                {
+                                    auto &physics = service<PhysicsSystem>();
+                                    return physics.rigid_body(e);
+                                }) |
+                            std::views::filter([](const auto &e)
+                                               { return !!e; }) |
+                            std::views::transform([](const auto &e)
+                                                  { return e->description(); }) |
+                            std::ranges::to<std::vector>()};
     }
 
     constexpr auto Entity::emissive_strength() const -> float
@@ -112,6 +125,11 @@ namespace ufps
     constexpr auto Entity::add_rigid_body(RigidBodyHandle handle) -> void
     {
         _rigid_bodies.push_back(handle);
+        auto body = service<PhysicsSystem>().rigid_body(handle);
+        if (body)
+        {
+            body->set_parent_transform(_transform);
+        }
     }
 
     constexpr auto Entity::rigid_bodies() const -> std::span<const RigidBodyHandle>

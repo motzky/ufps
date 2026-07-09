@@ -267,6 +267,12 @@ namespace ufps
 
             auto &new_entity = _entities.emplace_back(*cached);
             new_entity.set_transform(entity_description.transform);
+
+            for (const auto &rb_desc : entity_description.rigid_bodies)
+            {
+                const auto rb = service<PhysicsSystem>().create_rigid_body(rb_desc);
+                new_entity.add_rigid_body(rb);
+            }
         }
     }
 

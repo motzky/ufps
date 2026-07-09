@@ -10,6 +10,12 @@ namespace ufps
     class RigidBody
     {
     public:
+        struct Description
+        {
+            Matrix4 local_transform;
+            Vector3 applied_scale;
+        };
+
         RigidBody(::JPH::BodyID body_id, ::JPH::BodyInterface *body_interface);
 
         RigidBody(const RigidBody &) = delete;
@@ -24,6 +30,8 @@ namespace ufps
 
         auto set_local_transform(const Transform &transform) -> void;
         auto set_parent_transform(const Transform &transform) -> void;
+
+        auto description() const -> Description;
 
     private:
         auto update_transforms(const Transform &local, const Transform &parent) -> void;
