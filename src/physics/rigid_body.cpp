@@ -38,36 +38,17 @@ namespace ufps
 
     auto RigidBody::set_local_transform(const Transform &transform) -> void
     {
-        const auto world_transform = Transform{Matrix4{_parent_transform} * Matrix4{transform}};
-
-        if (world_transform.scale != _applied_scale)
-        {
-            const auto jolt_scale = to_jolt(world_transform.scale);
-
-            auto scaled_result = _original_shape->ScaleShape(jolt_scale);
-
-            if (scaled_result.HasError())
-            {
-                throw Exception("scale error: {}", scaled_result.GetError());
-            }
-
-            _body_interface->SetShape(_body_id, scaled_result.Get(), false, ::JPH::EActivation::Activate);
-
-            _applied_scale = world_transform.scale;
-        }
-
-        _body_interface->SetPositionAndRotation(
-            _body_id,
-            to_jolt(world_transform.position),
-            to_jolt(world_transform.rotation),
-            ::JPH::EActivation::Activate);
-
-        _local_transform = transform;
+        update_transforms(transform, _parent_transform);
     }
 
     auto RigidBody::set_parent_transform(const Transform &transform) -> void
     {
-        const auto world_transform = Transform{Matrix4{transform} * Matrix4{_local_transform}};
+        update_transforms(_local_transform, transform);
+    }
+
+    auto RigidBody::update_transforms(const Transform &local, const Transform &parent) -> void
+    {
+        const auto world_transform = Transform{Matrix4{parent} * Matrix4{local}};
 
         if (world_transform.scale != _applied_scale)
         {
@@ -91,6 +72,7 @@ namespace ufps
             to_jolt(world_transform.rotation),
             ::JPH::EActivation::Activate);
 
-        _parent_transform = transform;
+        _local_transform = local;
+        _parent_transform = parent;
     }
 }

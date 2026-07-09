@@ -26,6 +26,8 @@ namespace ufps
         auto set_parent_transform(const Transform &transform) -> void;
 
     private:
+        auto update_transforms(const Transform &local, const Transform &parent) -> void;
+
         ::JPH::BodyID _body_id;
         ::JPH::BodyInterface *_body_interface;
         ::JPH::RefConst<::JPH::Shape> _original_shape;
