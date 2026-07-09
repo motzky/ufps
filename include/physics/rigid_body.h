@@ -18,7 +18,11 @@ namespace ufps
         auto operator=(RigidBody &&) -> RigidBody & = default;
 
         auto position() const -> Vector3;
+        auto transform() const -> Transform;
+        auto local_transform() const -> Transform;
+        auto parent_transform() const -> Transform;
 
+        auto set_local_transform(const Transform &transform) -> void;
         auto set_parent_transform(const Transform &transform) -> void;
 
     private:
@@ -26,6 +30,7 @@ namespace ufps
         ::JPH::BodyInterface *_body_interface;
         ::JPH::RefConst<::JPH::Shape> _original_shape;
         Transform _local_transform;
+        Transform _parent_transform;
         Vector3 _applied_scale;
     };
 }

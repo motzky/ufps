@@ -89,7 +89,7 @@ namespace
     struct AddLightButton
     {
         ufps::Scene &scene;
-        std::variant<std::monostate, ufps::Entity *, ufps::PointLightHandle> *selected;
+        std::variant<std::monostate, ufps::Entity *, ufps::PointLightHandle, ufps::RigidBodyHandle> *selected;
     };
 
     struct Histogram
@@ -100,19 +100,19 @@ namespace
     struct AddEntity
     {
         ufps::Scene &scene;
-        std::variant<std::monostate, ufps::Entity *, ufps::PointLightHandle> *selected;
+        std::variant<std::monostate, ufps::Entity *, ufps::PointLightHandle, ufps::RigidBodyHandle> *selected;
     };
 
     struct DuplicateEntity
     {
         ufps::Scene &scene;
-        std::variant<std::monostate, ufps::Entity *, ufps::PointLightHandle> *selected;
+        std::variant<std::monostate, ufps::Entity *, ufps::PointLightHandle, ufps::RigidBodyHandle> *selected;
     };
 
     struct DeleteEntity
     {
         ufps::Scene &scene;
-        std::variant<std::monostate, ufps::Entity *, ufps::PointLightHandle> *selected;
+        std::variant<std::monostate, ufps::Entity *, ufps::PointLightHandle, ufps::RigidBodyHandle> *selected;
     };
 
     struct Plot
@@ -742,6 +742,16 @@ namespace ufps
                     entity->add_rigid_body(body);
                 }
 
+                for (const auto &[index, handle] : std::views::enumerate(entity->rigid_bodies()))
+                {
+                    const auto button_text = std::format("rigid body {}", index);
+                    if (::ImGui::Button(button_text.c_str()))
+                    {
+                        _selected = handle;
+                        break;
+                    }
+                }
+
                 {
                     auto value = entity->emissive_strength();
                     if (::ImGui::SliderFloat("emissive_strength", &value, 0.f, 10.f))
@@ -803,7 +813,7 @@ namespace ufps
                         camera_data.projection.data().data(),
                         ::ImGuizmo::TRANSLATE | ::ImGuizmo::SCALE | ::ImGuizmo::ROTATE,
                         ::ImGuizmo::WORLD,
-                        const_cast<float *>(transform.data().data()),
+                        transform.data().data(),
                         nullptr,
                         snap_translation,
                         nullptr,
@@ -859,7 +869,7 @@ namespace ufps
                     camera_data.projection.data().data(),
                     ::ImGuizmo::TRANSLATE,
                     ::ImGuizmo::WORLD,
-                    const_cast<float *>(transform.data().data()),
+                    transform.data().data(),
                     nullptr,
                     nullptr,
                     nullptr,
@@ -867,6 +877,35 @@ namespace ufps
 
                 const auto new_transform = Transform{transform};
                 light->position = new_transform.position;
+            }
+            else if (auto *selected_rigid_body = std::get_if<RigidBodyHandle>(&_selected))
+            {
+                if (const auto rigid_body = service<PhysicsSystem>().rigid_body(*selected_rigid_body); rigid_body)
+                {
+                    auto &rb = *rigid_body;
+
+                    auto world_matrix = Matrix4{rb.transform()};
+                    const auto &camera_data = scene.camera().data();
+
+                    ::ImGuizmo::Manipulate(
+                        camera_data.view.data().data(),
+                        camera_data.projection.data().data(),
+                        ::ImGuizmo::TRANSLATE | ::ImGuizmo::SCALE | ::ImGuizmo::ROTATE,
+                        ::ImGuizmo::WORLD,
+                        world_matrix.data().data(),
+                        nullptr,
+                        nullptr,
+                        nullptr,
+                        nullptr);
+
+                    if (::ImGuizmo::IsUsing())
+                    {
+                        const auto parent = Matrix4{rb.parent_transform()};
+                        const auto inverse_parent = Matrix4::invert(parent);
+                        const auto local = inverse_parent * world_matrix;
+                        rb.set_local_transform(local);
+                    }
+                }
             }
 
             ::ImGui::End();
