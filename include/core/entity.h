@@ -35,6 +35,7 @@ namespace ufps
         constexpr auto emissive_strength() const -> float;
         constexpr auto set_emissive_strength(float strength) -> void;
         constexpr auto add_rigid_body(RigidBodyHandle handle) -> void;
+        constexpr auto rigid_bodies() const -> std::span<const RigidBodyHandle>;
 
     private:
         std::string _name;
@@ -111,5 +112,10 @@ namespace ufps
     constexpr auto Entity::add_rigid_body(RigidBodyHandle handle) -> void
     {
         _rigid_bodies.push_back(handle);
+    }
+
+    constexpr auto Entity::rigid_bodies() const -> std::span<const RigidBodyHandle>
+    {
+        return _rigid_bodies;
     }
 }
