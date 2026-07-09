@@ -140,6 +140,15 @@ namespace ufps
         return _rigid_bodies.emplace(body_id, std::addressof(interface));
     }
 
+    auto PhysicsSystem::create_rigid_body(const RigidBody::Description &description) -> RigidBodyHandle
+    {
+        const auto transform = Transform{description.local_transform};
+        const auto handle = create_box({{-1.f}, {1.f}}, transform.position, ufps::PhysicsLayer::STATIC);
+        _rigid_bodies[handle]->set_local_transform(transform);
+
+        return handle;
+    }
+
     auto PhysicsSystem::update() -> void
     {
         _physics_system.Update(1.f / 30.f, 1, &_temp_allocator, &_job_system);
