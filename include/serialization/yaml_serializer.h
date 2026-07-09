@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <concepts>
 #include <expected>
 #include <meta>
@@ -11,6 +12,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "math/bounded_number.h"
+#include "math/matrix4.h"
 #include "utils/exception.h"
 
 namespace ufps::yaml
@@ -49,6 +51,7 @@ namespace ufps::yaml
         template <Class T>
         auto do_serialize(const T &obj) -> ::YAML::Node;
         auto do_serialize(const Map auto &obj) -> ::YAML::Node;
+        auto do_serialize(const Matrix4 &obj) -> ::YAML::Node;
 
         template <Class T>
         auto do_deserialize(const ::YAML::Node &node) -> std::expected<T, std::string>;
@@ -115,6 +118,14 @@ namespace ufps::yaml
                 node.push_back(do_serialize(e));
             }
 
+            return node;
+        }
+
+        inline auto do_serialize(const Matrix4 &obj) -> ::YAML::Node
+        {
+            auto node = ::YAML::Node{};
+            std::ranges::for_each(obj.data(), [&node](auto e)
+                                  { node.push_back(e); });
             return node;
         }
 
@@ -225,6 +236,28 @@ namespace ufps::yaml
             }
 
             return obj;
+        }
+
+        template <>
+        inline auto do_deserialize(const ::YAML::Node &node) -> std::expected<Matrix4, std::string>
+        {
+            auto values = std::array<float, 16u>{};
+            auto *iter = std::begin(values);
+            for (const auto e : node)
+            {
+                if (iter == std::ranges::end(values))
+                {
+                    return std::unexpected{"too many values in matrix"};
+                }
+                *iter = e.as<float>();
+                ++iter;
+            }
+            if (iter != std::ranges::end(values))
+            {
+                return std::unexpected{"too few values in matrix"};
+            }
+
+            return Matrix4{values};
         }
 
         template <Class T>

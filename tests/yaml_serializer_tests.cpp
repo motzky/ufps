@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "math/matrix4.h"
 #include "serialization/yaml_serializer.h"
 
 struct Simple
@@ -187,6 +188,30 @@ TEST(yaml_serialization, enum_struct)
     ASSERT_EQ(result, expected);
 }
 
+TEST(yaml_serialization, matrix4)
+{
+    const auto result = ufps::yaml::serialize(ufps::Matrix4{});
+    const auto expected =
+        R"(- 1
+- 0
+- 0
+- 0
+- 0
+- 1
+- 0
+- 0
+- 0
+- 0
+- 1
+- 0
+- 0
+- 0
+- 0
+- 1)";
+
+    ASSERT_EQ(result, expected);
+}
+
 TEST(yaml_deserialization, simple_struct)
 {
     const auto yaml =
@@ -321,6 +346,31 @@ TEST(yaml_deserialization, enum_struct_second_value)
     const auto result = ufps::yaml::deserialize<FruitStruct>(yaml);
     const auto expected = FruitStruct{.f = Fruit::BANANA};
 
+    ASSERT_EQ(result, expected);
+}
+
+TEST(yaml_deserialization, matrix4)
+{
+    const auto expected = ufps::Matrix4{ufps::Vector3{2.f, 3.f, 4.f}};
+    const auto yaml =
+        R"(- 1
+- 0
+- 0
+- 0
+- 0
+- 1
+- 0
+- 0
+- 0
+- 0
+- 1
+- 0
+- 2
+- 3
+- 4
+- 1)";
+
+    const auto result = ufps::yaml::deserialize<ufps::Matrix4>(yaml);
     ASSERT_EQ(result, expected);
 }
 
