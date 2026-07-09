@@ -113,7 +113,8 @@ target_compile_options(ufpslib PRIVATE
     -Wunused-result
     -Wvarargs
     -Wvla
-    -Wwrite-strings)
+    -Wwrite-strings
+    -fcontract-evaluation-semantic=enforce)
 
 target_compile_options(ufpslib PUBLIC
     -freflection
