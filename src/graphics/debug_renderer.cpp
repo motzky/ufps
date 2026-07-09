@@ -808,16 +808,18 @@ namespace ufps
                 const auto &camera_data = scene.camera().data();
                 static float snap_translation[3] = {1.f, 1.f, 1.f};
 
-                if (::ImGuizmo::Manipulate(
-                        camera_data.view.data().data(),
-                        camera_data.projection.data().data(),
-                        ::ImGuizmo::TRANSLATE | ::ImGuizmo::SCALE | ::ImGuizmo::ROTATE,
-                        ::ImGuizmo::WORLD,
-                        transform.data().data(),
-                        nullptr,
-                        snap_translation,
-                        nullptr,
-                        nullptr))
+                ::ImGuizmo::Manipulate(
+                    camera_data.view.data().data(),
+                    camera_data.projection.data().data(),
+                    ::ImGuizmo::TRANSLATE | ::ImGuizmo::SCALE | ::ImGuizmo::ROTATE,
+                    ::ImGuizmo::WORLD,
+                    transform.data().data(),
+                    nullptr,
+                    snap_translation,
+                    nullptr,
+                    nullptr);
+
+                if (::ImGuizmo::IsUsing())
                 {
                     entity->set_transform(transform);
                 }
@@ -875,8 +877,11 @@ namespace ufps
                     nullptr,
                     nullptr);
 
-                const auto new_transform = Transform{transform};
-                light->position = new_transform.position;
+                if (::ImGuizmo::IsUsing())
+                {
+                    const auto new_transform = Transform{transform};
+                    light->position = new_transform.position;
+                }
             }
             else if (auto *selected_rigid_body = std::get_if<RigidBodyHandle>(&_selected))
             {
