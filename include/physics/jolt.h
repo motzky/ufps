@@ -33,33 +33,40 @@
 #include <Jolt/Renderer/DebugRendererSimple.h>
 
 #include "graphics/color.h"
+#include "math/matrix4.h"
 #include "math/quaternion.h"
 #include "math/vector3.h"
 
 namespace ufps
 {
-    inline auto to_native(const ::JPH::Vec3 &vec) -> Vector3
+    constexpr auto to_native(const ::JPH::Vec3 &vec) -> Vector3
     {
-        return {vec.GetX(), vec.GetY(), vec.GetZ()};
+        return std::bit_cast<Vector4>(vec);
     }
 
-    inline auto to_jolt(const Vector3 vec) -> ::JPH::Vec3
+    constexpr auto to_jolt(const Vector3 vec) -> ::JPH::Vec3
     {
         return {vec.x, vec.y, vec.z};
     }
 
-    inline auto to_native(const ::JPH::Color &c) -> Color
+    constexpr auto to_native(const ::JPH::Color &c) -> Color
     {
         return {c.r / 255.f, c.g / 255.f, c.b / 255.f};
     }
 
-    inline auto to_jolt(const Color color) -> ::JPH::Vec3
+    constexpr auto to_native(const ::JPH::Mat44 &m) -> Matrix4
+    {
+        return std::bit_cast<Matrix4>(m);
+    }
+
+    constexpr auto to_jolt(const Color color) -> ::JPH::Vec3
     {
         return {color.r, color.g, color.b};
     }
 
-    inline auto to_jolt(const Quaternion q) -> ::JPH::Quat
+    constexpr auto to_jolt(const Quaternion q) -> ::JPH::Quat
     {
-        return {q.x, q.y, q.z, q.w};
+        return std::bit_cast<::JPH::Quat>(q);
     }
+
 }
