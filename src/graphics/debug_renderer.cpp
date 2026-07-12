@@ -740,16 +740,38 @@ namespace ufps
                 {
                     const auto body = service<PhysicsSystem>().create_box({{-1.f}, {1.f}}, entity->transform().position, ufps::PhysicsLayer::DYNAMIC);
                     entity->add_rigid_body(body);
+                    _selected = body;
                 }
+
+                auto to_delete = RigidBodyHandle{};
 
                 for (const auto &[index, handle] : std::views::enumerate(entity->rigid_bodies()))
                 {
-                    const auto button_text = std::format("rigid body {}", index);
-                    if (::ImGui::Button(button_text.c_str()))
                     {
-                        _selected = handle;
-                        break;
+                        const auto button_text = std::format("rigid body {}", index);
+                        if (::ImGui::Button(button_text.c_str()))
+                        {
+                            _selected = handle;
+                            break;
+                        }
                     }
+
+                    ::ImGui::SameLine();
+
+                    {
+                        const auto button_text = std::format("remove rigid body {}", index);
+
+                        if (::ImGui::Button(button_text.c_str()))
+                        {
+                            to_delete = handle;
+                            break;
+                        }
+                    }
+                }
+
+                if (to_delete)
+                {
+                    service<PhysicsSystem>().remove_rigid_body(to_delete);
                 }
 
                 {
