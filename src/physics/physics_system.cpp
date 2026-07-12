@@ -150,6 +150,14 @@ namespace ufps
         return handle;
     }
 
+    auto PhysicsSystem::duplicate_rigid_body(RigidBodyHandle handle) -> RigidBodyHandle
+    {
+        const auto &rb = rigid_body(handle);
+        contract_assert(rb);
+
+        return create_rigid_body(rb->description());
+    }
+
     auto PhysicsSystem::remove_rigid_body(RigidBodyHandle handle) -> void
     {
         const auto &rb = rigid_body(handle);

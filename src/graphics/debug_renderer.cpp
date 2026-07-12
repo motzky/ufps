@@ -744,6 +744,7 @@ namespace ufps
                 }
 
                 auto to_delete = RigidBodyHandle{};
+                auto to_duplicate = RigidBodyHandle{};
 
                 for (const auto &[index, handle] : std::views::enumerate(entity->rigid_bodies()))
                 {
@@ -752,6 +753,16 @@ namespace ufps
                         if (::ImGui::Button(button_text.c_str()))
                         {
                             _selected = handle;
+                            break;
+                        }
+                    }
+
+                    ::ImGui::SameLine();
+                    {
+                        const auto button_text = std::format("duplicate body {}", index);
+                        if (::ImGui::Button(button_text.c_str()))
+                        {
+                            to_duplicate = handle;
                             break;
                         }
                     }
@@ -767,6 +778,13 @@ namespace ufps
                             break;
                         }
                     }
+                }
+
+                if (to_duplicate)
+                {
+                    const auto handle = service<PhysicsSystem>().duplicate_rigid_body(to_duplicate);
+                    entity->add_rigid_body(handle);
+                    _selected = handle;
                 }
 
                 if (to_delete)
