@@ -18,11 +18,18 @@ namespace ufps
         {
             inline static constexpr auto Invalid = std::numeric_limits<std::uint32_t>::max();
 
+        public:
             constexpr Handle()
-                : Handle(Invalid)
+                : Handle(Invalid, Invalid)
             {
             }
 
+            constexpr operator bool() const
+            {
+                return *this != Handle{};
+            }
+
+        private:
             constexpr explicit Handle(std::uint32_t index, std::uint32_t version)
                 : _index{index},
                   _version{version}
