@@ -77,13 +77,14 @@ namespace ufps
     {
         _transform = transform;
 
+        _rigid_bodies = _rigid_bodies |
+                        std::views::filter([](auto e)
+                                           { return !!service<PhysicsSystem>().rigid_body(e); }) |
+                        std::ranges::to<std::vector>();
+
         for (const auto handle : _rigid_bodies)
         {
-            auto body = service<PhysicsSystem>().rigid_body(handle);
-            if (body)
-            {
-                body->set_parent_transform(_transform);
-            }
+            service<PhysicsSystem>().rigid_body(handle)->set_parent_transform(_transform);
         }
     }
 
