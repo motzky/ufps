@@ -1,5 +1,6 @@
 #include "physics/physics_system.h"
 
+#include <contracts>
 #include <cstdarg>
 #include <cstdio>
 #include <optional>
@@ -147,6 +148,16 @@ namespace ufps
         _rigid_bodies[handle]->set_local_transform(transform);
 
         return handle;
+    }
+
+    auto PhysicsSystem::remove_rigid_body(RigidBodyHandle handle) -> void
+    {
+        const auto &rb = rigid_body(handle);
+        contract_assert(rb);
+
+        _physics_system.GetBodyInterface().RemoveBody(rb->native_handle());
+
+        _rigid_bodies.remove(handle);
     }
 
     auto PhysicsSystem::update() -> void

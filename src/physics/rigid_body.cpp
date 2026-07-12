@@ -16,6 +16,11 @@ namespace ufps
     {
     }
 
+    auto RigidBody::native_handle() const -> ::JPH::BodyID
+    {
+        return _body_id;
+    }
+
     auto RigidBody::position() const -> Vector3
     {
         return to_native(_body_interface->GetPosition(_body_id));

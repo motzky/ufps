@@ -23,6 +23,8 @@ namespace ufps
         RigidBody(RigidBody &&) = default;
         auto operator=(RigidBody &&) -> RigidBody & = default;
 
+        auto native_handle() const -> ::JPH::BodyID;
+
         auto position() const -> Vector3;
         auto transform() const -> Transform;
         auto local_transform() const -> Transform;

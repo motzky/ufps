@@ -34,6 +34,7 @@ namespace ufps
         auto create_box(const AABB &aabb, const Vector3 &position, PhysicsLayer layer) -> RigidBodyHandle;
 
         auto create_rigid_body(const RigidBody::Description &description) -> RigidBodyHandle;
+        auto remove_rigid_body(RigidBodyHandle handle) -> void;
 
         constexpr auto rigid_body(this auto &&self, RigidBodyHandle handle);
 
