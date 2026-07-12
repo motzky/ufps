@@ -8,7 +8,7 @@ add_library(imguilib STATIC
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_win32.cpp
 
-    ${imguizmo_SOURCE_DIR}/ImGuizmo.cpp
+    ${imguizmo_SOURCE_DIR}/src/ImGuizmo.cpp
 )
 else()
 add_library(imguilib STATIC
@@ -20,12 +20,13 @@ add_library(imguilib STATIC
     ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 
-    ${imguizmo_SOURCE_DIR}/ImGuizmo.cpp
+    ${imguizmo_SOURCE_DIR}/src/ImGuizmo.cpp
 )
 
 target_compile_definitions(imguilib PUBLIC -D IMGUI_IMPL_GLFW_DISABLE_X11)
 endif()
 
+target_include_directories(imguizmo PUBLIC ${imgui_SOURCE_DIR} ${imguizmo_SOURCE_DIR})
 target_include_directories(imguilib PUBLIC ${imgui_SOURCE_DIR} ${imguizmo_SOURCE_DIR})
 
 add_library(
@@ -72,7 +73,7 @@ elseif(UNIX)
 endif()
 
 # target_include_directories(ufpslib PUBLIC ${stb_lib_SOURCE_DIR} ${imgui_SOURCE_DIR} ${imguizmo_SOURCE_DIR} ${JoltPhysics_SOURCE_DIR} ${lua_SOURCE_DIR})
-target_include_directories(ufpslib PUBLIC ${stb_lib_SOURCE_DIR} ${JoltPhysics_SOURCE_DIR} ${assimp_SOURCE_DIR}/include ${assimp_BINARY_DIR}/include)
+target_include_directories(ufpslib PUBLIC ${stb_lib_SOURCE_DIR} ${imgui_SOURCE_DIR} ${imguizmo_SOURCE_DIR}/src ${JoltPhysics_SOURCE_DIR} ${assimp_SOURCE_DIR}/include ${assimp_BINARY_DIR}/include)
 
 if(WIN32)
 target_include_directories(resource_packer PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/tools PRIVATE ${zstd_SOURCE_DIR}/lib)
