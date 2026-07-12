@@ -23,7 +23,7 @@ namespace ufps
 
     auto RigidBody::transform() const -> Transform
     {
-        return {to_native(_body_interface->GetWorldTransform(_body_id))};
+        return {to_native(_body_interface->GetWorldTransform(_body_id)) * Matrix4{_applied_scale, Matrix4::Scale{}}};
     }
 
     auto RigidBody::local_transform() const -> Transform
