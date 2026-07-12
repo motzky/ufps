@@ -229,7 +229,8 @@ namespace ufps
           _chromatic_abberation_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "chromatic_abberation")},
           _bloom_mips{},
           _bloom_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "bloom")},
-          _final_fb{}
+          _final_fb{},
+          _enable_post_processing{true}
     {
 
         ::glGenVertexArrays(1u, &_dummy_vao);
@@ -312,19 +313,26 @@ namespace ufps
 
         execute_forward_transparancy_pass(scene);
 
-        execute_bloom_pass(scene);
+        if (_enable_post_processing)
+        {
+            execute_bloom_pass(scene);
 
-        execute_luminance_histogram_pass(scene);
+            execute_luminance_histogram_pass(scene);
 
-        execute_luminance_average_pass(scene);
+            execute_luminance_average_pass(scene);
 
-        execute_ssao_pass(scene);
+            execute_ssao_pass(scene);
 
-        execute_tone_mapping_pass(scene);
+            execute_tone_mapping_pass(scene);
 
-        execute_chromatic_abberation_pass(scene);
+            execute_chromatic_abberation_pass(scene);
 
-        _final_fb = &_chromatic_abberation_rt.fb;
+            _final_fb = &_chromatic_abberation_rt.fb;
+        }
+        else
+        {
+            _final_fb = &_light_pass_rt.fb;
+        }
 
         post_render(scene);
 

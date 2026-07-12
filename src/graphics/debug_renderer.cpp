@@ -594,6 +594,7 @@ namespace ufps
             float debug_lines;
             SaveSceneButton save_scene;
             AddLightButton add_light;
+            bool &enable_post_processing;
         };
 
         auto average_luminance = 0.0f;
@@ -633,7 +634,7 @@ namespace ufps
                 .debug_lines = static_cast<float>(debug_line_count),
                 .save_scene = {.scene = scene},
                 .add_light = {.scene = scene, .selected = &_selected},
-            },
+                .enable_post_processing = _enable_post_processing},
             scene.tone_map_options(),
             scene.ssao_options(),
             scene.bloom_options(),
@@ -1019,5 +1020,6 @@ namespace ufps
     auto DebugRenderer::set_enabled(bool enabled) -> void
     {
         _enabled = enabled;
+        _enable_post_processing = !enabled;
     }
 }

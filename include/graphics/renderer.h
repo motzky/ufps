@@ -92,6 +92,7 @@ namespace ufps
         std::vector<RenderTarget> _bloom_mips;
         RenderTarget _bloom_rt;
         FrameBuffer *_final_fb;
+        bool _enable_post_processing;
 
     private:
         auto execute_gbuffer_pass(Scene &scene) -> void;
