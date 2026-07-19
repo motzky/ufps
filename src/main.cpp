@@ -309,11 +309,6 @@ namespace
                                                 ? 65567
                                                 : texture_manager.bindless_handle(emissive_name);
 
-                if (opacity < 1.f)
-                {
-                    ufps::log::debug("using transparent material for {}: opacity = {}", name, opacity);
-                }
-
                 render_entities.push_back(
                     {mesh_view,
                      albedo_index,
