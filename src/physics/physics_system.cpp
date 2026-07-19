@@ -16,8 +16,11 @@
 #include "physics/physics_layers.h"
 #include "physics/rigid_body.h"
 #include "physics/utils.h"
+#include "physics/virtual_character_controller.h"
 #include "utils/ensure.h"
 #include "utils/formatter.h"
+
+using namespace std::literals;
 
 namespace
 {
@@ -91,8 +94,8 @@ namespace ufps
           _job_system{::JPH::cMaxPhysicsJobs, ::JPH::cMaxPhysicsBarriers, static_cast<int>(std::thread::hardware_concurrency() - 1zu)},
           _physics_system{},
           _rigid_bodies{},
-          _debug_renderer{debug_render_mode == DebugRenderMode::ON ? std::make_optional<PhysicsDebugRenderer>() : std::nullopt}
-
+          _debug_renderer{debug_render_mode == DebugRenderMode::ON ? std::make_optional<PhysicsDebugRenderer>() : std::nullopt},
+          _player_controller{}
     {
         constexpr auto max_bodies = 1024u;
         constexpr auto max_body_mutexes = 0u;
@@ -109,6 +112,8 @@ namespace ufps
             _object_layer_pair_filter);
 
         _physics_system.SetGravity({0.f, -9.81f, 0.f});
+
+        _player_controller = std::make_unique<VirtualCharacterController>(_physics_system);
     }
 
     auto PhysicsSystem::create_box(const AABB &aabb, const Vector3 &position, PhysicsLayer layer) -> RigidBodyHandle
@@ -170,12 +175,14 @@ namespace ufps
 
     auto PhysicsSystem::update() -> void
     {
+        _player_controller->update(33ms);
         _physics_system.Update(1.f / 30.f, 1, &_temp_allocator, &_job_system);
 
         if (_debug_renderer)
         {
             static const auto settings = ::JPH::BodyManager::DrawSettings{};
-            _physics_system.DrawBodies(settings, &*_debug_renderer);
+            _physics_system.DrawBodies(settings, std::addressof(*_debug_renderer));
+            _player_controller->debug_draw(*_debug_renderer);
         }
     }
 

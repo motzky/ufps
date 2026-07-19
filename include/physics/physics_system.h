@@ -10,6 +10,7 @@
 #include "physics/physics_layers.h"
 #include "physics/rigid_body.h"
 #include "physics/utils.h"
+#include "physics/virtual_character_controller.h"
 
 namespace ufps
 {
@@ -52,6 +53,7 @@ namespace ufps
         ::JPH::PhysicsSystem _physics_system;
         SparseSet<RigidBody> _rigid_bodies;
         std::optional<PhysicsDebugRenderer> _debug_renderer;
+        std::unique_ptr<VirtualCharacterController> _player_controller;
     };
 
     constexpr auto PhysicsSystem::rigid_body(this auto &&self, RigidBodyHandle handle)
