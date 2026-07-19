@@ -19,11 +19,14 @@
 #include <Jolt/Physics/Body/BodyID.h>
 #include <Jolt/Physics/Body/BodyInterface.h>
 #include <Jolt/Physics/Body/MotionType.h>
+#include <Jolt/Physics/Character/CharacterVirtual.h>
 #include <Jolt/Physics/Collision/BroadPhase/BroadPhaseLayer.h>
 #include <Jolt/Physics/Collision/BroadPhase/ObjectVsBroadPhaseLayerFilterMask.h>
 #include <Jolt/Physics/Collision/ObjectLayer.h>
 #include <Jolt/Physics/Collision/ObjectLayerPairFilterMask.h>
 #include <Jolt/Physics/Collision/Shape/BoxShape.h>
+#include <Jolt/Physics/Collision/Shape/CapsuleShape.h>
+#include <Jolt/Physics/Collision/Shape/RotatedTranslatedShape.h>
 #include <Jolt/Physics/Collision/Shape/SphereShape.h>
 #include <Jolt/Physics/EActivation.h>
 #include <Jolt/Physics/PhysicsSettings.h>
@@ -57,6 +60,11 @@ namespace ufps
     constexpr auto to_native(const ::JPH::Mat44 &m) -> Matrix4
     {
         return std::bit_cast<Matrix4>(m);
+    }
+
+    constexpr auto to_native(const ::JPH::Quat &q) -> Quaternion
+    {
+        return std::bit_cast<Quaternion>(q);
     }
 
     constexpr auto to_jolt(const Color color) -> ::JPH::Vec3
