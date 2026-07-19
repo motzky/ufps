@@ -565,6 +565,7 @@ auto start(int argc, char **argv) -> int
                             }
                             show_debug_ui = !show_debug_ui;
                             renderer.set_enabled(show_debug_ui);
+                            scene.next_camera();
                         }
                         else
                         {
