@@ -112,6 +112,7 @@ namespace ufps
             _object_layer_pair_filter);
 
         _physics_system.SetGravity({0.f, -9.81f, 0.f});
+        _physics_system.SetContactListener(this);
 
         _player_controller = std::make_unique<VirtualCharacterController>(_physics_system);
     }

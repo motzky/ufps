@@ -9,7 +9,7 @@
 
 namespace ufps
 {
-    class VirtualCharacterController
+    class VirtualCharacterController : public ::JPH::CharacterContactListener
     {
     public:
         VirtualCharacterController(::JPH::PhysicsSystem &ps);
@@ -26,9 +26,16 @@ namespace ufps
         auto position() const -> Vector3;
         auto rotation() const -> Quaternion;
 
+    protected:
+        auto OnContactAdded(
+            const ::JPH::CharacterVirtual *inCharacter,
+            const ::JPH::CharacterContact &inContact,
+            ::JPH::CharacterContactSettings &ioSettings) -> void override;
+
     private:
         ::JPH::PhysicsSystem &_ps;
         ::JPH::RefConst<::JPH::Shape> _shape;
+        ::JPH::RefConst<::JPH::Shape> _inner_shape;
         ::JPH::Ref<::JPH::CharacterVirtual> _character;
     };
 }

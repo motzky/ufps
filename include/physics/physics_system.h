@@ -22,7 +22,7 @@ namespace ufps
         OFF
     };
 
-    class PhysicsSystem
+    class PhysicsSystem : public ::JPH::ContactListener
     {
     public:
         PhysicsSystem(DebugRenderMode debug_render = DebugRenderMode::OFF);
