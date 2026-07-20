@@ -38,6 +38,8 @@ namespace ufps
         auto duplicate_rigid_body(RigidBodyHandle handle) -> RigidBodyHandle;
         auto remove_rigid_body(RigidBodyHandle handle) -> void;
 
+        auto player_controller() -> VirtualCharacterController &;
+
         constexpr auto rigid_body(this auto &&self, RigidBodyHandle handle);
 
         auto update() -> void;

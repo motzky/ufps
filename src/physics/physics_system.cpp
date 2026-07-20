@@ -174,6 +174,11 @@ namespace ufps
         _rigid_bodies.remove(handle);
     }
 
+    auto PhysicsSystem::player_controller() -> VirtualCharacterController &
+    {
+        return *_player_controller;
+    }
+
     auto PhysicsSystem::update() -> void
     {
         _player_controller->update(33ms);
