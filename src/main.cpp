@@ -24,6 +24,7 @@
 #include "core/render_entity.h"
 #include "core/scene.h"
 #include "core/service_locator.h"
+#include "events/key_map.h"
 #include "graphics/command_buffer.h"
 #include "graphics/debug_renderer.h"
 #include "graphics/mesh_data.h"
@@ -379,25 +380,6 @@ namespace
     }
 }
 
-[[maybe_unused]] auto log_box(ufps::RigidBodyHandle handle) -> ufps::Task
-{
-    auto &awaitable = ufps::service<ufps::AwaitableManager>();
-    auto &physics = ufps::service<ufps::PhysicsSystem>();
-
-    for (;;)
-    {
-        if (const auto body = physics.rigid_body(handle); body)
-        {
-            ufps::log::debug("body pos: {}", body->position());
-            co_await awaitable(100ms);
-        }
-        else
-        {
-            co_return;
-        }
-    }
-}
-
 auto start(int argc, char **argv) -> int
 {
     if (ufps::version::tweak == 0)
@@ -459,6 +441,7 @@ auto start(int argc, char **argv) -> int
     mesh_manager->load("cube", std::vector{cube()});
 
     auto physics = std::make_unique<ufps::PhysicsSystem>(ufps::DebugRenderMode::ON);
+    [[maybe_unused]] auto &player_controller = physics->player_controller();
 
     auto ss = std::stringstream{};
     auto scene_description_yaml = std::ifstream{"scene.yaml"};
@@ -513,6 +496,8 @@ auto start(int argc, char **argv) -> int
         {ufps::Key::W, false},
     };
 
+    auto key_map = ufps::KeyMap{};
+
     while (running)
     {
         auto &physics = ufps::service<ufps::PhysicsSystem>();
@@ -566,6 +551,8 @@ auto start(int argc, char **argv) -> int
                         {
                             key_state[arg.key()] = arg.state() == ufps::KeyState::DOWN;
                         }
+
+                        key_map.set(arg);
                     }
                     else if constexpr (std::same_as<T, ufps::MouseEvent>)
                     {
