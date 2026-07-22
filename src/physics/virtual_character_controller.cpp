@@ -1,5 +1,6 @@
 #include "physics/virtual_character_controller.h"
 
+#include "log.h"
 #include "math/vector3.h"
 #include "physics/jolt.h"
 #include "physics/physics_layers.h"
@@ -10,7 +11,8 @@ namespace ufps
         : _ps{ps},
           _shape{},
           _inner_shape{},
-          _character{}
+          _character{},
+          _walk_direction{}
     {
         _shape = ::JPH::RotatedTranslatedShapeSettings(
                      ::JPH::Vec3(0.f, .5f * 1.35f + 0.3f, 0.f),
@@ -42,7 +44,8 @@ namespace ufps
 
         const auto jolt_delta = 1.f / delta.count();
 
-        auto new_velocity = Vector3{0.f, 0.f, -.5f};
+        constexpr auto speed = 1.2f;
+        auto new_velocity = _walk_direction * speed;
 
         new_velocity += to_native(_ps.GetGravity()) * jolt_delta;
 
@@ -56,6 +59,11 @@ namespace ufps
             {},
             {},
             temp_allocator);
+    }
+
+    auto VirtualCharacterController::set_walk_direction(const Vector3 &walk_direction) -> void
+    {
+        _walk_direction = walk_direction;
     }
 
     auto VirtualCharacterController::debug_draw(PhysicsDebugRenderer &renderer) -> void

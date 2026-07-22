@@ -21,6 +21,8 @@ namespace ufps
 
         auto update(std::chrono::milliseconds delta) -> void;
 
+        auto set_walk_direction(const Vector3 &walk_direction) -> void;
+
         auto debug_draw(PhysicsDebugRenderer &renderer) -> void;
 
         auto position() const -> Vector3;
@@ -37,5 +39,6 @@ namespace ufps
         ::JPH::RefConst<::JPH::Shape> _shape;
         ::JPH::RefConst<::JPH::Shape> _inner_shape;
         ::JPH::Ref<::JPH::CharacterVirtual> _character;
+        Vector3 _walk_direction;
     };
 }
