@@ -21,6 +21,7 @@
 #include "concurrency/thread_pool.h"
 #include "config.h"
 #include "core/actor.h"
+#include "core/flycam_actor.h"
 #include "core/manifest_descriptions.h"
 #include "core/player_actor.h"
 #include "core/render_entity.h"
@@ -405,6 +406,17 @@ auto start(int argc, char **argv) -> int
         key_map,
         player_controller};
 
+    auto flycam_actor = ufps::FlyCamActor{
+        {{0.f, 2.f, 0.f},
+         {0.f, 0.f, -1.f},
+         {0.f, 1.f, 0.f},
+         std::numbers::pi_v<float> / 4.f,
+         static_cast<float>(window.width()),
+         static_cast<float>(window.height()),
+         0.01f,
+         1000.f},
+        key_map};
+
     ufps::Actor *current_actor = std::addressof(player_actor);
 
     auto ss = std::stringstream{};
@@ -497,6 +509,7 @@ auto start(int argc, char **argv) -> int
                             }
                             show_debug_ui = !show_debug_ui;
                             renderer.set_enabled(show_debug_ui);
+                            current_actor = show_debug_ui ? static_cast<ufps::Actor *>(std::addressof(flycam_actor)) : std::addressof(player_actor);
                         }
 
                         key_map.set(arg);
