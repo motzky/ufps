@@ -303,9 +303,9 @@ namespace ufps
         return ufps::Program{comp_shader, program_name};
     }
 
-    auto Renderer::render(Scene &scene) -> void
+    auto Renderer::render(Scene &scene, const Camera &camera) -> void
     {
-        _camera_buffer.write(scene.camera().data_view(), 0zu);
+        _camera_buffer.write(camera.data_view(), 0zu);
 
         execute_gbuffer_pass(scene);
 
@@ -334,7 +334,7 @@ namespace ufps
             _final_fb = &_light_pass_rt.fb;
         }
 
-        post_render(scene);
+        post_render(scene, camera);
 
         _command_buffer.advance();
         _camera_buffer.advance();
@@ -342,7 +342,7 @@ namespace ufps
         _object_data_buffer.advance();
     }
 
-    auto Renderer::post_render(Scene &) -> void
+    auto Renderer::post_render(Scene &, const Camera &) -> void
     {
         _final_fb->unbind();
 

@@ -26,7 +26,7 @@ namespace ufps
         auto set_enabled(bool enabled) -> void;
 
     protected:
-        auto post_render(Scene &scene) -> void override;
+        auto post_render(Scene &scene, const Camera &camera) -> void override;
 
     private:
         bool _enabled;

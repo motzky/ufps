@@ -20,7 +20,9 @@
 #include "concurrency/task.h"
 #include "concurrency/thread_pool.h"
 #include "config.h"
+#include "core/actor.h"
 #include "core/manifest_descriptions.h"
+#include "core/player_actor.h"
 #include "core/render_entity.h"
 #include "core/scene.h"
 #include "core/service_locator.h"
@@ -188,50 +190,7 @@ namespace
         return vs;
     }
 
-    auto walk_direction(const ufps::KeyMap &key_map, const ufps::Camera &camera) -> ufps::Vector3
-    {
-        auto direction = ufps::Vector3{};
-
-        auto is_key_pressed = [&key_map](ufps::Key k) -> bool
-        {
-            return key_map[k];
-        };
-
-        if (is_key_pressed(ufps::Key::W))
-        {
-            direction += camera.direction();
-        }
-        if (is_key_pressed(ufps::Key::S))
-        {
-            direction -= camera.direction();
-        }
-        if (is_key_pressed(ufps::Key::D))
-        {
-            direction += camera.right();
-        }
-        if (is_key_pressed(ufps::Key::A))
-        {
-            direction -= camera.right();
-        }
-        if (is_key_pressed(ufps::Key::SPACE))
-        {
-            direction += camera.up();
-        }
-        if (is_key_pressed(ufps::Key::LCTRL))
-        {
-            direction -= camera.up();
-        }
-
-        auto factor = 96.f;
-        if (is_key_pressed(ufps::Key::LSHIFT))
-        {
-            factor /= 4.f;
-        }
-
-        return direction / factor;
-    }
-
-    auto load_all_textures(ufps::ResourceLoader &resource_loader, ufps::TextureManager &texture_manager, const ufps::Sampler &sampler) -> void
+    [[maybe_unused]] auto load_all_textures(ufps::ResourceLoader &resource_loader, ufps::TextureManager &texture_manager, const ufps::Sampler &sampler) -> void
     {
         const auto texture_manifest_str = resource_loader.load_string("configs/texture_manifest.yaml");
         const auto texture_manifest = ufps::yaml::deserialize<ufps::TextureManifestDescription>(texture_manifest_str);
@@ -392,20 +351,10 @@ auto start(int argc, char **argv) -> int
 
     const auto args = std::vector<std::string_view>(argv + 1u, argv + argc);
 
-#if defined(_MSC_VER) || defined(__GNUC__) && (__GNUC__ >= 15)
-    // only msvc and GCC >=15 support automatic formatting of std::vector
     ufps::log::info("args: {}", args);
-#else
-    std::print("args: [");
-    for (const auto &s : args)
-    {
-        std::print("\"{}\", ", s);
-    }
-    std::println("]");
-#endif
 
     auto window = ufps::Window{1920u, 1080u, 0u, 0u};
-    auto running = true;
+    [[maybe_unused]] auto running = true;
 
     const auto sampler = ufps::Sampler{
         ufps::FilterType::LINEAR,
@@ -442,6 +391,20 @@ auto start(int argc, char **argv) -> int
     auto physics = std::make_unique<ufps::PhysicsSystem>(ufps::DebugRenderMode::ON);
     [[maybe_unused]] auto &player_controller = physics->player_controller();
 
+    auto key_map = ufps::KeyMap{};
+
+    auto player_actor = ufps::PlayerActor{{{},
+                                           {0.f, 0.f, -1.f},
+                                           {0.f, 1.f, 0.f},
+                                           std::numbers::pi_v<float> / 4.f,
+                                           static_cast<float>(window.width()),
+                                           static_cast<float>(window.height()),
+                                           0.01f,
+                                           1000.f},
+                                          key_map};
+
+    ufps::Actor *current_actor = std::addressof(player_actor);
+
     auto ss = std::stringstream{};
     auto scene_description_yaml = std::ifstream{"scene.yaml"};
 
@@ -473,14 +436,6 @@ auto start(int argc, char **argv) -> int
     ufps::ensure(scene_desc);
 
     auto scene = ufps::Scene{
-        {{},
-         {0.f, 0.f, -1.f},
-         {0.f, 1.f, 0.f},
-         std::numbers::pi_v<float> / 4.f,
-         static_cast<float>(window.width()),
-         static_cast<float>(window.height()),
-         0.01f,
-         1000.f},
         std::move(*scene_desc),
         build_entity_cache(*resource_loader)};
 
@@ -488,13 +443,14 @@ auto start(int argc, char **argv) -> int
     pulse_light(point_light_handles[0], scene);
     flicker_light(point_light_handles[1], scene);
 
-    auto key_map = ufps::KeyMap{};
-
     while (running)
     {
         auto &physics = ufps::service<ufps::PhysicsSystem>();
         auto &awaitable = ufps::service<ufps::AwaitableManager>();
         auto &pool = ufps::service<ufps::ThreadPool>();
+
+        key_map.delta_x = 0.f;
+        key_map.delta_y = 0.f;
 
         auto event = window.pump_event();
         while (event && running)
@@ -526,7 +482,8 @@ auto start(int argc, char **argv) -> int
                                 running = false;
                             }
                         }
-                        else if (arg.key() == ufps::Key::F1 && arg.state() == ufps::KeyState::UP)
+                        // else if (arg.key() == ufps::Key::F1 && arg.state() == ufps::KeyState::UP)
+                        else if (key_map[ufps::Key::F1])
                         {
                             if (!show_debug_ui)
                             {
@@ -538,7 +495,6 @@ auto start(int argc, char **argv) -> int
                             }
                             show_debug_ui = !show_debug_ui;
                             renderer.set_enabled(show_debug_ui);
-                            scene.next_camera();
                         }
 
                         key_map.set(arg);
@@ -548,10 +504,8 @@ auto start(int argc, char **argv) -> int
                         if (!show_debug_ui || key_map[ufps::Key::LSHIFT])
                         {
                             static constexpr auto sensitivity = float{0.002f};
-                            const auto delta_x = arg.delta_x() * sensitivity;
-                            const auto delta_y = arg.delta_y() * sensitivity;
-                            scene.camera().adjust_yaw(-delta_x);
-                            scene.camera().adjust_pitch(delta_y);
+                            key_map.delta_x += arg.delta_x() * sensitivity;
+                            key_map.delta_y += arg.delta_y() * sensitivity;
                         }
                     }
                     else if constexpr (std::same_as<T, ufps::MouseButtonEvent>)
@@ -567,14 +521,13 @@ auto start(int argc, char **argv) -> int
             event = window.pump_event();
         }
 
+        current_actor->update();
+
         physics.update();
         awaitable.pump();
         pool.drain();
 
-        scene.camera().translate(walk_direction(key_map, scene.camera()));
-        scene.camera().update();
-
-        renderer.render(scene);
+        renderer.render(scene, current_actor->camera());
 
         window.swap();
     }
@@ -589,7 +542,7 @@ auto start(int argc, char **argv) -> int
 
 auto main(int argc, char **argv) -> int
 {
-    int return_code;
+    auto return_code = 0;
     try
     {
         return_code = start(argc, argv);

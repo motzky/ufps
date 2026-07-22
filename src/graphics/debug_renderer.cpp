@@ -481,7 +481,7 @@ namespace ufps
         init_platform(window);
     }
 
-    auto DebugRenderer::post_render(Scene &scene) -> void
+    auto DebugRenderer::post_render(Scene &scene, const Camera &camera) -> void
     {
         if (std::holds_alternative<Entity *>(_selected))
         {
@@ -496,7 +496,7 @@ namespace ufps
             _debug_lines.append_range(create_aabb_lines(selected_entity->aabb(), selected_entity->transform(), {0.f, 1.f, 0.f}));
         }
 
-        Renderer::post_render(scene);
+        Renderer::post_render(scene, camera);
 
         if (!_enabled)
         {
@@ -652,7 +652,7 @@ namespace ufps
                 .duplicate_entity = {.scene = scene, .selected = &_selected}},
             RemainingSceneInfo{
                 .ambient = scene.lights().ambient,
-                .camera_view = scene.camera().data().view});
+                .camera_view = camera.data().view});
 
         struct LogWindow
         {
@@ -852,7 +852,7 @@ namespace ufps
                     debug_draw_texture(render_entity.emissive_texture_bindless_handle(), false);
                 }
 
-                const auto &camera_data = scene.camera().data();
+                const auto &camera_data = camera.data();
                 static float snap_translation[3] = {1.f, 1.f, 1.f};
 
                 ::ImGuizmo::Manipulate(
@@ -911,7 +911,7 @@ namespace ufps
                 }
 
                 auto transform = Matrix4{light->position};
-                const auto &camera_data = scene.camera().data();
+                const auto &camera_data = camera.data();
 
                 ::ImGuizmo::Manipulate(
                     camera_data.view.data().data(),
@@ -937,7 +937,7 @@ namespace ufps
                     auto &rb = *rigid_body;
 
                     auto world_matrix = Matrix4{rb.transform()};
-                    const auto &camera_data = scene.camera().data();
+                    const auto &camera_data = camera.data();
 
                     ::ImGuizmo::Manipulate(
                         camera_data.view.data().data(),
@@ -968,7 +968,7 @@ namespace ufps
 
         if (_click)
         {
-            const auto pick_ray = screen_ray(_click.value(), _window, scene.camera());
+            const auto pick_ray = screen_ray(_click.value(), _window, camera);
             const auto intersection = scene.intersect_ray(pick_ray);
             if (intersection)
             {
