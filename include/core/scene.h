@@ -4,7 +4,6 @@
 #include <ranges>
 #include <vector>
 
-#include "core/camera.h"
 #include "core/entity.h"
 #include "core/service_locator.h"
 #include "core/sparse_set.h"
@@ -109,8 +108,7 @@ namespace ufps
             std::vector<Entity::Description> entities;
         };
 
-        constexpr Scene(const Camera &camera,
-                        LightData lights,
+        constexpr Scene(LightData lights,
                         ToneMapOptions tone_map_options,
                         SSAOOptions ssao_options,
                         ExposureOptions exposure_options,
@@ -121,8 +119,7 @@ namespace ufps
                         BloomOptions bloom_options,
                         const StringUnorderedMap<Entity> &entity_cache);
 
-        constexpr Scene(const Camera &camera,
-                        const Description &description,
+        constexpr Scene(const Description &description,
                         const StringUnorderedMap<Entity> &entity_cache);
 
         constexpr auto intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>;
@@ -133,9 +130,6 @@ namespace ufps
         auto entities(this Self &&self);
 
         constexpr auto cache_entity(std::string_view name, Entity entity) -> void;
-
-        constexpr auto &camera(this auto &&self);
-        constexpr auto next_camera() -> void;
 
         constexpr auto &lights(this auto &&self);
 
@@ -156,9 +150,6 @@ namespace ufps
     private:
         std::vector<Entity> _entities;
         std::vector<Entity> _entity_cache;
-        Camera _player_camera;
-        Camera _debug_camera;
-        Camera *_active_camera;
         LightData _lights;
         ToneMapOptions _tone_map_options;
         SSAOOptions _ssao_options;
@@ -219,7 +210,7 @@ namespace ufps
         return result;
     }
 
-    constexpr Scene::Scene(const Camera &camera, LightData lights,
+    constexpr Scene::Scene(LightData lights,
                            ToneMapOptions tone_map_options, SSAOOptions ssao_options, ExposureOptions exposure_options,
                            FogOptions fog_options, ChromaticAbberationOptions chromatic_abberation_options,
                            VignetteOptions vignette_options, FilmGrainOptions film_grain_options,
@@ -227,9 +218,6 @@ namespace ufps
                            const StringUnorderedMap<Entity> &entity_cache)
         : _entities{},
           _entity_cache{},
-          _player_camera{camera},
-          _debug_camera{camera},
-          _active_camera{std::addressof(_player_camera)},
           _lights{std::move(lights)},
           _tone_map_options{std::move(tone_map_options)},
           _ssao_options{std::move(ssao_options)},
@@ -246,12 +234,9 @@ namespace ufps
         }
     }
 
-    constexpr Scene::Scene(const Camera &camera, const Description &description, const StringUnorderedMap<Entity> &entity_cache)
+    constexpr Scene::Scene(const Description &description, const StringUnorderedMap<Entity> &entity_cache)
         : _entities{},
           _entity_cache{},
-          _player_camera{camera},
-          _debug_camera{camera},
-          _active_camera{std::addressof(_player_camera)},
           _lights{description.lights},
           _tone_map_options{description.tone_map_options},
           _ssao_options{description.ssao_options},
@@ -310,15 +295,6 @@ namespace ufps
     {
         using SpanType = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const Entity, Entity>;
         return std::span<SpanType>{self._entities.data(), self._entities.data() + self._entities.size()};
-    }
-    constexpr auto &Scene::camera(this auto &&self)
-    {
-        return *self._active_camera;
-    }
-
-    constexpr auto Scene::next_camera() -> void
-    {
-        _active_camera = _active_camera == std::addressof(_player_camera) ? std::addressof(_debug_camera) : std::addressof(_player_camera);
     }
 
     constexpr auto &Scene::lights(this auto &&self)
