@@ -46,10 +46,10 @@ namespace ufps
         }
     }
 
-    class KeyMap
+    class InputMap
     {
     public:
-        constexpr KeyMap()
+        constexpr InputMap()
             : delta_x{},
               delta_y{},
               _map{}

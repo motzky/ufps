@@ -2,31 +2,31 @@
 
 #include "core/actor.h"
 #include "core/camera.h"
-#include "events/key_map.h"
+#include "events/input_map.h"
 #include "math/vector3.h"
 
 namespace
 {
-    auto walk_direction(const ufps::KeyMap &key_map, const ufps::Camera &camera) -> ufps::Vector3
+    auto walk_direction(const ufps::InputMap &input_map, const ufps::Camera &camera) -> ufps::Vector3
     {
         auto direction = ufps::Vector3{};
 
         const auto camera_direction = camera.direction();
         const auto forward = ufps::Vector3::normalize({camera_direction.x, 0.f, camera_direction.z});
 
-        if (key_map[ufps::Key::W])
+        if (input_map[ufps::Key::W])
         {
             direction += forward;
         }
-        if (key_map[ufps::Key::S])
+        if (input_map[ufps::Key::S])
         {
             direction -= forward;
         }
-        if (key_map[ufps::Key::D])
+        if (input_map[ufps::Key::D])
         {
             direction += camera.right();
         }
-        if (key_map[ufps::Key::A])
+        if (input_map[ufps::Key::A])
         {
             direction -= camera.right();
         }
@@ -53,7 +53,7 @@ namespace
 
 namespace ufps
 {
-    PlayerActor::PlayerActor(Camera camera, const KeyMap &key_map, VirtualCharacterController &character_controller)
+    PlayerActor::PlayerActor(Camera camera, const InputMap &key_map, VirtualCharacterController &character_controller)
         : Actor{std::move(camera)},
           _key_map{key_map},
           _character_controller{character_controller}

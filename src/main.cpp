@@ -27,7 +27,7 @@
 #include "core/render_entity.h"
 #include "core/scene.h"
 #include "core/service_locator.h"
-#include "events/key_map.h"
+#include "events/input_map.h"
 #include "graphics/command_buffer.h"
 #include "graphics/debug_renderer.h"
 #include "graphics/mesh_data.h"
@@ -392,7 +392,7 @@ auto start(int argc, char **argv) -> int
     auto physics = std::make_unique<ufps::PhysicsSystem>(ufps::DebugRenderMode::ON);
     auto &player_controller = physics->player_controller();
 
-    auto key_map = ufps::KeyMap{};
+    auto input_map = ufps::InputMap{};
 
     auto player_actor = ufps::PlayerActor{
         {{0.f, 2.f, 0.f},
@@ -403,7 +403,7 @@ auto start(int argc, char **argv) -> int
          static_cast<float>(window.height()),
          0.01f,
          1000.f},
-        key_map,
+        input_map,
         player_controller};
 
     auto flycam_actor = ufps::FlyCamActor{
@@ -415,7 +415,7 @@ auto start(int argc, char **argv) -> int
          static_cast<float>(window.height()),
          0.01f,
          1000.f},
-        key_map};
+        input_map};
 
     ufps::Actor *current_actor = std::addressof(player_actor);
 
@@ -463,8 +463,8 @@ auto start(int argc, char **argv) -> int
         auto &awaitable = ufps::service<ufps::AwaitableManager>();
         auto &pool = ufps::service<ufps::ThreadPool>();
 
-        key_map.delta_x = 0.f;
-        key_map.delta_y = 0.f;
+        input_map.delta_x = 0.f;
+        input_map.delta_y = 0.f;
 
         auto event = window.pump_event();
         while (event && running)
@@ -482,7 +482,7 @@ auto start(int argc, char **argv) -> int
                     if constexpr (std::same_as<T, ufps::KeyEvent>)
                     {
 
-                        if (key_map[ufps::Key::ESC])
+                        if (input_map[ufps::Key::ESC])
                         {
                             if (show_debug_ui)
                             {
@@ -497,7 +497,7 @@ auto start(int argc, char **argv) -> int
                             }
                         }
                         // else if (arg.key() == ufps::Key::F1 && arg.state() == ufps::KeyState::UP)
-                        else if (key_map[ufps::Key::F1])
+                        else if (input_map[ufps::Key::F1])
                         {
                             if (!show_debug_ui)
                             {
@@ -512,15 +512,15 @@ auto start(int argc, char **argv) -> int
                             current_actor = show_debug_ui ? static_cast<ufps::Actor *>(std::addressof(flycam_actor)) : std::addressof(player_actor);
                         }
 
-                        key_map.set(arg);
+                        input_map.set(arg);
                     }
                     else if constexpr (std::same_as<T, ufps::MouseEvent>)
                     {
-                        if (!show_debug_ui || key_map[ufps::Key::LSHIFT])
+                        if (!show_debug_ui || input_map[ufps::Key::LSHIFT])
                         {
                             static constexpr auto sensitivity = float{0.002f};
-                            key_map.delta_x += arg.delta_x() * sensitivity;
-                            key_map.delta_y += arg.delta_y() * sensitivity;
+                            input_map.delta_x += arg.delta_x() * sensitivity;
+                            input_map.delta_y += arg.delta_y() * sensitivity;
                         }
                     }
                     else if constexpr (std::same_as<T, ufps::MouseButtonEvent>)
