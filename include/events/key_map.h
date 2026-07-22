@@ -36,7 +36,7 @@ namespace ufps
         constexpr auto size() -> std::size_t
         {
             const auto &[min, max] = min_max_val();
-            return min - max + 1zu;
+            return max - min + 1zu;
         }
 
         constexpr auto to_index(ufps::Key k) -> std::size_t
@@ -49,6 +49,13 @@ namespace ufps
     class KeyMap
     {
     public:
+        constexpr KeyMap()
+            : delta_x{},
+              delta_y{},
+              _map{}
+        {
+        }
+
         constexpr auto set(KeyEvent event) -> void
         {
             const auto index = impl::to_index(event.key());
@@ -65,6 +72,10 @@ namespace ufps
         {
             return is_set(key);
         }
+
+        float delta_x;
+
+        float delta_y;
 
     private:
         std::bitset<impl::size()> _map;
