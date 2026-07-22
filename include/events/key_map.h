@@ -55,10 +55,15 @@ namespace ufps
             _map.set(index, event.state() == KeyState::DOWN);
         }
 
-        constexpr auto is_set(Key key) -> bool
+        constexpr auto is_set(Key key) const -> bool
         {
             const auto index = impl::to_index(key);
             return _map[index];
+        }
+
+        constexpr auto operator[](Key key) const -> bool
+        {
+            return is_set(key);
         }
 
     private:
