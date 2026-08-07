@@ -12,13 +12,15 @@ namespace ufps
     class PhysicsSystem;
     class TextureManager;
     class ThreadPool;
+    class RenderEntityManager;
 
     using Services = std::tuple<
         std::unique_ptr<AwaitableManager>,
         std::unique_ptr<MeshManager>,
         std::unique_ptr<PhysicsSystem>,
         std::unique_ptr<TextureManager>,
-        std::unique_ptr<ThreadPool>>;
+        std::unique_ptr<ThreadPool>,
+        std::unique_ptr<RenderEntityManager>>;
 
     namespace impl
     {
@@ -38,5 +40,11 @@ namespace ufps
     {
         expect(!!impl::g_services, "services not set");
         return *std::get<std::unique_ptr<T>>(*impl::g_services);
+    }
+
+    template <class... Ts>
+    auto services() -> std::tuple<Ts &...>
+    {
+        return std::tuple<Ts &...>{service<Ts>()...};
     }
 }
