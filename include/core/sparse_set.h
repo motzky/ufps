@@ -29,14 +29,14 @@ namespace ufps
                 return *this != Handle{};
             }
 
+            constexpr auto operator<=>(const Handle &) const = default;
+
         private:
             constexpr explicit Handle(std::uint32_t index, std::uint32_t version)
                 : _index{index},
                   _version{version}
             {
             }
-
-            constexpr auto operator<=>(const Handle &) const = default;
 
             std::uint32_t _index;
             std::uint32_t _version;
