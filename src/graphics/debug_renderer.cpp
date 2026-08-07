@@ -483,13 +483,17 @@ namespace ufps
 
     auto DebugRenderer::post_render(Scene &scene, const Camera &camera) -> void
     {
+        auto &rem = service<RenderEntityManager>();
+
         if (std::holds_alternative<Entity *>(_selected))
         {
             const auto *selected_entity = std::get<Entity *>(_selected);
             auto aabb_lines =
                 selected_entity->render_entities() |
                 std::views::transform([&](const auto &e)
-                                      { return create_aabb_lines(e.aabb(), selected_entity->transform(), {0.f, 0.2f, 0.f}); }) |
+                                      { 
+                                        auto re = rem[e];
+                                        return create_aabb_lines(re->aabb(), selected_entity->transform(), {0.f, 0.2f, 0.f}); }) |
                 std::views::join;
 
             _debug_lines.append_range(aabb_lines);
@@ -842,14 +846,17 @@ namespace ufps
                     }
                 };
 
-                for (const auto &render_entity : entity->render_entities())
+                auto &rem = service<RenderEntityManager>();
+
+                for (auto handle : entity->render_entities())
                 {
-                    debug_draw_texture(render_entity.albedo_texture_bindless_handle(), true);
-                    debug_draw_texture(render_entity.normal_texture_bindless_handle(), true);
-                    debug_draw_texture(render_entity.specular_texture_bindless_handle(), false);
-                    debug_draw_texture(render_entity.roughness_texture_bindless_handle(), true);
-                    debug_draw_texture(render_entity.ao_texture_bindless_handle(), true);
-                    debug_draw_texture(render_entity.emissive_texture_bindless_handle(), false);
+                    auto render_entity = rem[handle];
+                    debug_draw_texture(render_entity->albedo_texture_bindless_handle(), true);
+                    debug_draw_texture(render_entity->normal_texture_bindless_handle(), true);
+                    debug_draw_texture(render_entity->specular_texture_bindless_handle(), false);
+                    debug_draw_texture(render_entity->roughness_texture_bindless_handle(), true);
+                    debug_draw_texture(render_entity->ao_texture_bindless_handle(), true);
+                    debug_draw_texture(render_entity->emissive_texture_bindless_handle(), false);
                 }
 
                 const auto &camera_data = camera.data();

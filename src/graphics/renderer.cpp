@@ -8,6 +8,7 @@
 #include <string_view>
 
 #include "core/camera.h"
+#include "core/render_entity_manager.h"
 #include "core/scene.h"
 #include "graphics/buffer_writer.h"
 #include "graphics/command_buffer.h"
@@ -110,44 +111,10 @@ namespace
         };
     }
 
-    auto sprite() -> ufps::MeshData
-    {
-        const ufps::Vector3 positions[] = {
-            {-1.0f, 1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}, {1.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}};
-
-        const ufps::UV uvs[] = {{0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}};
-
-        auto indices = std::vector<std::uint32_t>{0, 1, 2, 0, 2, 3};
-        return {.vertices = vertices(positions, positions, positions, positions, uvs),
-                .indices = std::move(indices)};
-    }
-
     auto create_sprite() -> ufps::Entity
     {
-        const auto mesh_data = std::vector{sprite()};
-        const auto mesh_views = ufps::service<ufps::MeshManager>().load("sprite", mesh_data);
-
         return {
-            "post_process_sprite",
-            {{
-                mesh_views.front(),
-                0u,
-                0u,
-                0u,
-                0u,
-                0u,
-                0u,
-                // texture_manager.texture_index("textures/default_BaseColor.dds"),
-                // texture_manager.texture_index("textures/default_Normal.dds"),
-                // texture_manager.texture_index("textures/default_Metallic.dds"),
-                // texture_manager.texture_index("textures/default_Roughness.dds"),
-                // texture_manager.texture_index("textures/default_AO.dds"),
-                // texture_manager.texture_index("textures/default_Emissive.dds"),
-                false,
-                1.f,
-                0.f,
-            }},
-            {}};
+            "post_process_sprite", {ufps::service<ufps::RenderEntityManager>()["sprite"]}, {}};
     }
 
     auto create_ssao_noise_texture(const ufps::Sampler &sampler) -> std::uint64_t
@@ -379,25 +346,29 @@ namespace ufps
 
         auto object_data = std::vector<ObjectData>{};
 
+        auto &rem = service<RenderEntityManager>();
+
         for (const auto &entity : scene.entities())
         {
             object_data.append_range(
                 entity.render_entities() |
-                std::views::filter([](const auto &e)
-                                   { return e.opacity() > 0.9999f; }) |
+                std::views::filter([&rem](const auto &e)
+                                   { return rem[e]->opacity() > 0.9999f; }) |
                 std::views::transform(
-                    [&entity](const auto &e)
-                    { return ObjectData{
+                    [&entity, &rem](const auto &h)
+                    { 
+                        auto e = rem[h];
+                        return ObjectData{
                           .model = entity.transform(),
-                          .albedo_texture_bindless_handle = e.albedo_texture_bindless_handle(),
-                          .normal_texture_bindless_handle = e.normal_texture_bindless_handle(),
-                          .specular_texture_bindless_handle = e.specular_texture_bindless_handle(),
-                          .roughness_texture_bindless_handle = e.roughness_texture_bindless_handle(),
-                          .ao_texture_bindless_handle = e.ao_texture_bindless_handle(),
-                          .emissive_texture_bindless_handle = e.emissive_texture_bindless_handle(),
-                          .opacity = e.opacity(),
-                          .emissive_strength = e.emissive_intensity() * entity.emissive_strength(),
-                          .normal_compressed = e.normal_compressed() ? 1u : 0u,
+                          .albedo_texture_bindless_handle = e->albedo_texture_bindless_handle(),
+                          .normal_texture_bindless_handle = e->normal_texture_bindless_handle(),
+                          .specular_texture_bindless_handle = e->specular_texture_bindless_handle(),
+                          .roughness_texture_bindless_handle = e->roughness_texture_bindless_handle(),
+                          .ao_texture_bindless_handle = e->ao_texture_bindless_handle(),
+                          .emissive_texture_bindless_handle = e->emissive_texture_bindless_handle(),
+                          .opacity = e->opacity(),
+                          .emissive_strength = e->emissive_intensity() * entity.emissive_strength(),
+                          .normal_compressed = e->normal_compressed() ? 1u : 0u,
                           .pad{},
                       }; }));
         }
@@ -510,25 +481,29 @@ namespace ufps
 
         auto object_data = std::vector<ObjectData>{};
 
+        auto &rem = service<RenderEntityManager>();
+
         for (const auto &entity : scene.entities())
         {
             object_data.append_range(
                 entity.render_entities() |
-                std::views::filter([](const auto &e)
-                                   { return e.opacity() < 1.f; }) |
+                std::views::filter([&rem](const auto &e)
+                                   { return rem[e]->opacity() < 1.f; }) |
                 std::views::transform(
-                    [&entity](const auto &e)
-                    { return ObjectData{
+                    [&entity, &rem](auto h)
+                    { 
+                        auto e = rem[h];
+                        return ObjectData{
                           .model = entity.transform(),
-                          .albedo_texture_bindless_handle = e.albedo_texture_bindless_handle(),
-                          .normal_texture_bindless_handle = e.normal_texture_bindless_handle(),
-                          .specular_texture_bindless_handle = e.specular_texture_bindless_handle(),
-                          .roughness_texture_bindless_handle = e.roughness_texture_bindless_handle(),
-                          .ao_texture_bindless_handle = e.ao_texture_bindless_handle(),
-                          .emissive_texture_bindless_handle = e.emissive_texture_bindless_handle(),
-                          .opacity = e.opacity(),
+                          .albedo_texture_bindless_handle = e->albedo_texture_bindless_handle(),
+                          .normal_texture_bindless_handle = e->normal_texture_bindless_handle(),
+                          .specular_texture_bindless_handle = e->specular_texture_bindless_handle(),
+                          .roughness_texture_bindless_handle = e->roughness_texture_bindless_handle(),
+                          .ao_texture_bindless_handle = e->ao_texture_bindless_handle(),
+                          .emissive_texture_bindless_handle = e->emissive_texture_bindless_handle(),
+                          .opacity = e->opacity(),
                           .emissive_strength = entity.emissive_strength(),
-                          .normal_compressed = e.normal_compressed() ? 1u : 0u,
+                          .normal_compressed = e->normal_compressed() ? 1u : 0u,
                           .pad{},
                       }; }));
         }

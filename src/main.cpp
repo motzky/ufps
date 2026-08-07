@@ -25,6 +25,7 @@
 #include "core/manifest_descriptions.h"
 #include "core/player_actor.h"
 #include "core/render_entity.h"
+#include "core/render_entity_manager.h"
 #include "core/scene.h"
 #include "core/service_locator.h"
 #include "events/input_map.h"
@@ -191,6 +192,18 @@ namespace
         return vs;
     }
 
+    auto sprite() -> ufps::MeshData
+    {
+        const ufps::Vector3 positions[] = {
+            {-1.0f, 1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}, {1.0f, -1.0f, 0.0f}, {1.0f, 1.0f, 0.0f}};
+
+        const ufps::UV uvs[] = {{0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}};
+
+        auto indices = std::vector<std::uint32_t>{0, 1, 2, 0, 2, 3};
+        return {.vertices = vertices(positions, positions, positions, positions, uvs),
+                .indices = std::move(indices)};
+    }
+
     [[maybe_unused]] auto load_all_textures(ufps::ResourceLoader &resource_loader, ufps::TextureManager &texture_manager, const ufps::Sampler &sampler) -> void
     {
         const auto texture_manifest_str = resource_loader.load_string("configs/texture_manifest.yaml");
@@ -229,15 +242,15 @@ namespace
                std::ranges::to<ufps::StringUnorderedMap<std::vector<ufps::MeshView>>>();
     }
 
-    auto build_entity_cache(ufps::ResourceLoader &resource_loader) -> ufps::StringUnorderedMap<ufps::Entity>
+    auto load_render_entity_manager(ufps::ResourceLoader &resource_loader) -> void
     {
+        auto &&[rem, mesh_manager, texture_manager] = ufps::services<ufps::RenderEntityManager, ufps::MeshManager, ufps::TextureManager>();
+
         auto entity_cache = ufps::StringUnorderedMap<ufps::Entity>{};
 
         const auto model_manifest_str = resource_loader.load_string("configs/model_manifest.yaml");
         const auto model_manifest = ufps::yaml::deserialize<ufps::ModelManifestDescription>(model_manifest_str);
         ensure(model_manifest);
-
-        auto &texture_manager = ufps::service<ufps::TextureManager>();
 
         for (const auto &[name, manifests] : model_manifest->models)
         {
@@ -281,10 +294,32 @@ namespace
                      opacity,
                      emissive_intensity});
             }
-            entity_cache.insert({name, ufps::Entity{name, std::move(render_entities), {}}});
+            rem.register_group(name, std::move(render_entities));
         }
 
-        return entity_cache;
+        const auto mesh_data = std::vector{sprite()};
+        const auto mesh_views = mesh_manager.load("sprite", mesh_data);
+
+        rem.register_group(
+            "sprite",
+            {{
+                mesh_views.front(),
+                0u,
+                0u,
+                0u,
+                0u,
+                0u,
+                0u,
+                // texture_manager.texture_index("textures/default_BaseColor.dds"),
+                // texture_manager.texture_index("textures/default_Normal.dds"),
+                // texture_manager.texture_index("textures/default_Metallic.dds"),
+                // texture_manager.texture_index("textures/default_Roughness.dds"),
+                // texture_manager.texture_index("textures/default_AO.dds"),
+                // texture_manager.texture_index("textures/default_Emissive.dds"),
+                false,
+                1.f,
+                0.f,
+            }});
     }
 
     auto pulse_light(ufps::PointLightHandle handle, ufps::Scene &scene) -> ufps::Task
@@ -440,8 +475,12 @@ auto start(int argc, char **argv) -> int
         std::move(mesh_manager),
         std::move(physics),
         std::move(texture_manager),
-        std::move(pool));
+        std::move(pool),
+        std::move(std::make_unique<ufps::RenderEntityManager>()));
+
     ufps::set_services(services.get());
+
+    load_render_entity_manager(*resource_loader);
 
     auto renderer = ufps::DebugRenderer{window, *resource_loader};
     auto show_debug_ui = false;
@@ -449,9 +488,7 @@ auto start(int argc, char **argv) -> int
     auto scene_desc = ufps::yaml::deserialize<ufps::Scene::Description>(ss.str());
     ufps::ensure(scene_desc);
 
-    auto scene = ufps::Scene{
-        std::move(*scene_desc),
-        build_entity_cache(*resource_loader)};
+    auto scene = ufps::Scene{std::move(*scene_desc)};
 
     const auto point_light_handles = scene.lights().lights.handles();
     pulse_light(point_light_handles[0], scene);

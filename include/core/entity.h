@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "core/render_entity.h"
+#include "core/render_entity_manager.h"
 #include "core/service_locator.h"
 #include "core/utils.h"
 #include "math/aabb.h"
@@ -26,10 +27,10 @@ namespace ufps
             std::vector<RigidBody::Description> rigid_bodies;
         };
 
-        constexpr Entity(std::string name, std::vector<RenderEntity> render_entities, Transform transform);
+        constexpr Entity(std::string name, std::vector<RenderEntityHandle> render_entities, Transform transform);
 
         constexpr auto name() const -> std::string;
-        constexpr auto render_entities() const -> std::span<const RenderEntity>;
+        constexpr auto render_entities() const -> std::span<const RenderEntityHandle>;
         constexpr auto transform() const -> const Transform &;
         constexpr auto set_transform(const Transform &transform) -> void;
         constexpr auto aabb() const -> const AABB &;
@@ -41,19 +42,19 @@ namespace ufps
 
     private:
         std::string _name;
-        std::vector<RenderEntity> _render_entities;
+        std::vector<RenderEntityHandle> _render_entities;
         std::vector<RigidBodyHandle> _rigid_bodies;
         Transform _transform;
         AABB _aabb;
         float _emissive_strength;
     };
 
-    constexpr Entity::Entity(std::string name, std::vector<RenderEntity> render_entities, Transform transform)
+    constexpr Entity::Entity(std::string name, std::vector<RenderEntityHandle> render_entities, Transform transform)
         : _name{std::move(name)},
           _render_entities{std::move(render_entities)},
           _rigid_bodies{},
           _transform{std::move(transform)},
-          _aabb{create_aabb(_render_entities)},
+          _aabb{create_aabb(render_entities)},
           _emissive_strength{1.f}
     {
     }
@@ -63,7 +64,7 @@ namespace ufps
         return _name;
     }
 
-    constexpr auto Entity::render_entities() const -> std::span<const RenderEntity>
+    constexpr auto Entity::render_entities() const -> std::span<const RenderEntityHandle>
     {
         return _render_entities;
     }

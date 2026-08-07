@@ -1,10 +1,12 @@
 #pragma once
 
+#include <deque>
 #include <optional>
 #include <ranges>
 #include <vector>
 
 #include "core/entity.h"
+#include "core/render_entity_manager.h"
 #include "core/service_locator.h"
 #include "core/sparse_set.h"
 #include "graphics/color.h"
@@ -116,20 +118,16 @@ namespace ufps
                         ChromaticAbberationOptions chromatic_abberation_options,
                         VignetteOptions vignette_options,
                         FilmGrainOptions film_grain_options,
-                        BloomOptions bloom_options,
-                        const StringUnorderedMap<Entity> &entity_cache);
+                        BloomOptions bloom_options);
 
-        constexpr Scene(const Description &description,
-                        const StringUnorderedMap<Entity> &entity_cache);
+        constexpr Scene(const Description &description);
 
         constexpr auto intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>;
 
         constexpr auto create_entity(std::string_view name) -> Entity *;
 
         template <class Self>
-        auto entities(this Self &&self);
-
-        constexpr auto cache_entity(std::string_view name, Entity entity) -> void;
+        auto &entities(this Self &&self);
 
         constexpr auto &lights(this auto &&self);
 
@@ -148,8 +146,7 @@ namespace ufps
         constexpr auto remove(PointLightHandle light) -> void;
 
     private:
-        std::vector<Entity> _entities;
-        std::vector<Entity> _entity_cache;
+        std::deque<Entity> _entities;
         LightData _lights;
         ToneMapOptions _tone_map_options;
         SSAOOptions _ssao_options;
@@ -164,6 +161,7 @@ namespace ufps
     constexpr auto Scene::intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>
     {
         auto &mesh_manager = ufps::service<MeshManager>();
+        auto &rem = ufps::service<RenderEntityManager>();
 
         auto result = std::optional<IntersectionResult>{};
         auto min_distance = std::numeric_limits<float>::max();
@@ -176,31 +174,34 @@ namespace ufps
 
             if (!!intersect(transformed_ray, entity.aabb()))
             {
-                for (auto &render_entity : entity.render_entities())
+                for (auto render_entity_handle : entity.render_entities())
                 {
-                    if (!intersect(transformed_ray, render_entity.aabb()))
+                    if (auto render_entity = rem[render_entity_handle]; render_entity)
                     {
-                        continue;
-                    }
-
-                    const auto mesh_view = render_entity.mesh_view();
-                    const auto index_data = mesh_manager.index_data(mesh_view);
-                    const auto vertex_data = mesh_manager.vertex_data(mesh_view);
-
-                    for (const auto &indices : std::views::chunk(index_data, 3))
-                    {
-                        const auto v0 = vertex_data[indices[0]].position;
-                        const auto v1 = vertex_data[indices[1]].position;
-                        const auto v2 = vertex_data[indices[2]].position;
-
-                        if (const auto distance = intersect(transformed_ray, v0, v1, v2); distance)
+                        if (!intersect(transformed_ray, render_entity->aabb()))
                         {
-                            const auto intersection_point = transformed_ray.origin + transformed_ray.direction * (*distance);
+                            continue;
+                        }
 
-                            if (*distance < min_distance)
+                        const auto mesh_view = render_entity->mesh_view();
+                        const auto index_data = mesh_manager.index_data(mesh_view);
+                        const auto vertex_data = mesh_manager.vertex_data(mesh_view);
+
+                        for (const auto &indices : std::views::chunk(index_data, 3))
+                        {
+                            const auto v0 = vertex_data[indices[0]].position;
+                            const auto v1 = vertex_data[indices[1]].position;
+                            const auto v2 = vertex_data[indices[2]].position;
+
+                            if (const auto distance = intersect(transformed_ray, v0, v1, v2); distance)
                             {
-                                result = IntersectionResult{.entity = &entity, .position = intersection_point, .distance = *distance};
-                                min_distance = *distance;
+                                const auto intersection_point = transformed_ray.origin + transformed_ray.direction * (*distance);
+
+                                if (*distance < min_distance)
+                                {
+                                    result = IntersectionResult{.entity = &entity, .position = intersection_point, .distance = *distance};
+                                    min_distance = *distance;
+                                }
                             }
                         }
                     }
@@ -214,10 +215,8 @@ namespace ufps
                            ToneMapOptions tone_map_options, SSAOOptions ssao_options, ExposureOptions exposure_options,
                            FogOptions fog_options, ChromaticAbberationOptions chromatic_abberation_options,
                            VignetteOptions vignette_options, FilmGrainOptions film_grain_options,
-                           BloomOptions bloom_options,
-                           const StringUnorderedMap<Entity> &entity_cache)
+                           BloomOptions bloom_options)
         : _entities{},
-          _entity_cache{},
           _lights{std::move(lights)},
           _tone_map_options{std::move(tone_map_options)},
           _ssao_options{std::move(ssao_options)},
@@ -228,15 +227,10 @@ namespace ufps
           _film_grain_options{std::move(film_grain_options)},
           _bloom_options{std::move(bloom_options)}
     {
-        for (const auto &[name, entity] : entity_cache)
-        {
-            cache_entity(name, entity);
-        }
     }
 
-    constexpr Scene::Scene(const Description &description, const StringUnorderedMap<Entity> &entity_cache)
+    constexpr Scene::Scene(const Description &description)
         : _entities{},
-          _entity_cache{},
           _lights{description.lights},
           _tone_map_options{description.tone_map_options},
           _ssao_options{description.ssao_options},
@@ -247,18 +241,11 @@ namespace ufps
           _film_grain_options{description.film_grain_options},
           _bloom_options{description.bloom_options}
     {
-        for (const auto &[name, entity] : entity_cache)
-        {
-            cache_entity(name, entity);
-        }
+        auto &rem = service<RenderEntityManager>();
 
         for (const auto &entity_description : description.entities)
         {
-            const auto cached = std::ranges::find_if(_entity_cache, [&entity_description](const auto &e)
-                                                     { return e.name() == entity_description.name; });
-            expect(cached != std::ranges::cend(_entity_cache), "unknown entity: {}", entity_description.name);
-
-            auto &new_entity = _entities.emplace_back(*cached);
+            auto &new_entity = _entities.emplace_back(entity_description.name, rem[entity_description.name], entity_description.transform);
             new_entity.set_transform(entity_description.transform);
 
             for (const auto &rb_desc : entity_description.rigid_bodies)
@@ -271,30 +258,15 @@ namespace ufps
 
     constexpr auto Scene::create_entity(std::string_view name) -> Entity *
     {
-        const auto cached = std::ranges::find_if(_entity_cache, [name](const auto &e)
-                                                 { return e.name() == name; });
-        expect(cached != std::ranges::cend(_entity_cache), "unknown entity: {}", name);
+        auto &rem = service<RenderEntityManager>();
 
-        auto &new_entity = _entities.emplace_back(*cached);
-        new_entity.set_transform({});
-
-        return &new_entity;
-    }
-
-    constexpr auto Scene::cache_entity(std::string_view name, Entity entity) -> void
-    {
-        const auto cached = std::ranges::find_if(_entity_cache, [name](const auto &e)
-                                                 { return e.name() == name; });
-        expect(cached == std::ranges::cend(_entity_cache), "entity already exists: {}", name);
-
-        _entity_cache.push_back(std::move(entity));
+        return std::addressof(_entities.emplace_back(std::string{name}, rem[name], Transform{}));
     }
 
     template <class Self>
-    auto Scene::entities(this Self &&self)
+    auto &Scene::entities(this Self &&self)
     {
-        using SpanType = std::conditional_t<std::is_const_v<std::remove_reference_t<Self>>, const Entity, Entity>;
-        return std::span<SpanType>{self._entities.data(), self._entities.data() + self._entities.size()};
+        return self._entities;
     }
 
     constexpr auto &Scene::lights(this auto &&self)
