@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 
+#include "core/entity_manager.h"
 #include "core/render_entity_manager.h"
 #include "core/scene.h"
 #include "core/service_locator.h"
@@ -37,12 +38,14 @@ namespace ufps
 
     auto CommandBuffer::build(const Scene &scene, EntityFilterMode filter_mode) -> std::uint32_t
     {
-        auto rem = service<RenderEntityManager>();
+        auto &&[em, rem] = services<EntityManager, RenderEntityManager>();
 
         const auto command = scene.entities() |
+                             std::views::filter([&](auto e)
+                                                { return !!em[e]; }) |
                              std::views::transform(
-                                 [](const auto &e)
-                                 { return e.render_entities(); }) |
+                                 [&](auto e)
+                                 { return em[e]->render_entities(); }) |
                              std::views::join |
                              std::views::filter([filter_mode, &rem](const auto &e)
                                                 { 
@@ -56,7 +59,7 @@ namespace ufps
                                                         case TRANSPARENT:
                                                             return rem[e]->opacity() < 1.f; 
                                                         default:
-                                                            return true;
+                                                        return true;
                                                     } }) |
                              std::views::transform(
                                  [&rem](auto e)

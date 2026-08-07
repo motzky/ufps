@@ -346,12 +346,18 @@ namespace ufps
 
         auto object_data = std::vector<ObjectData>{};
 
-        auto &rem = service<RenderEntityManager>();
+        auto &&[em, rem] = services<EntityManager, RenderEntityManager>();
 
-        for (const auto &entity : scene.entities())
+        for (auto entity_handle : scene.entities())
         {
+            const auto entity = em[entity_handle];
+            if (!entity)
+            {
+                continue;
+            }
+
             object_data.append_range(
-                entity.render_entities() |
+                entity->render_entities() |
                 std::views::filter([&rem](const auto &e)
                                    { return rem[e]->opacity() > 0.9999f; }) |
                 std::views::transform(
@@ -359,7 +365,7 @@ namespace ufps
                     { 
                         auto e = rem[h];
                         return ObjectData{
-                          .model = entity.transform(),
+                          .model = entity->transform(),
                           .albedo_texture_bindless_handle = e->albedo_texture_bindless_handle(),
                           .normal_texture_bindless_handle = e->normal_texture_bindless_handle(),
                           .specular_texture_bindless_handle = e->specular_texture_bindless_handle(),
@@ -367,7 +373,7 @@ namespace ufps
                           .ao_texture_bindless_handle = e->ao_texture_bindless_handle(),
                           .emissive_texture_bindless_handle = e->emissive_texture_bindless_handle(),
                           .opacity = e->opacity(),
-                          .emissive_strength = e->emissive_intensity() * entity.emissive_strength(),
+                          .emissive_strength = e->emissive_intensity() * entity->emissive_strength(),
                           .normal_compressed = e->normal_compressed() ? 1u : 0u,
                           .pad{},
                       }; }));
@@ -481,12 +487,18 @@ namespace ufps
 
         auto object_data = std::vector<ObjectData>{};
 
-        auto &rem = service<RenderEntityManager>();
+        auto &&[em, rem] = services<EntityManager, RenderEntityManager>();
 
-        for (const auto &entity : scene.entities())
+        for (auto entity_handle : scene.entities())
         {
+            const auto entity = em[entity_handle];
+            if (!entity)
+            {
+                continue;
+            }
+
             object_data.append_range(
-                entity.render_entities() |
+                entity->render_entities() |
                 std::views::filter([&rem](const auto &e)
                                    { return rem[e]->opacity() < 1.f; }) |
                 std::views::transform(
@@ -494,7 +506,7 @@ namespace ufps
                     { 
                         auto e = rem[h];
                         return ObjectData{
-                          .model = entity.transform(),
+                          .model = entity->transform(),
                           .albedo_texture_bindless_handle = e->albedo_texture_bindless_handle(),
                           .normal_texture_bindless_handle = e->normal_texture_bindless_handle(),
                           .specular_texture_bindless_handle = e->specular_texture_bindless_handle(),
@@ -502,7 +514,7 @@ namespace ufps
                           .ao_texture_bindless_handle = e->ao_texture_bindless_handle(),
                           .emissive_texture_bindless_handle = e->emissive_texture_bindless_handle(),
                           .opacity = e->opacity(),
-                          .emissive_strength = entity.emissive_strength(),
+                          .emissive_strength = entity->emissive_strength(),
                           .normal_compressed = e->normal_compressed() ? 1u : 0u,
                           .pad{},
                       }; }));

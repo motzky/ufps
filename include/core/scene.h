@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "core/entity.h"
+#include "core/entity_manager.h"
 #include "core/render_entity_manager.h"
 #include "core/service_locator.h"
 #include "core/sparse_set.h"
@@ -22,7 +23,7 @@ namespace ufps
 
     struct IntersectionResult
     {
-        Entity *entity;
+        EntityHandle entity;
         Vector3 position;
         float distance;
     };
@@ -124,7 +125,7 @@ namespace ufps
 
         constexpr auto intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>;
 
-        constexpr auto create_entity(std::string_view name) -> Entity *;
+        constexpr auto add(EntityHandle handle) -> void;
 
         template <class Self>
         auto &entities(this Self &&self);
@@ -142,11 +143,11 @@ namespace ufps
 
         constexpr auto description(this auto &&self) -> Description;
 
-        constexpr auto remove(const Entity &entity) -> void;
+        constexpr auto remove(EntityHandle entity) -> void;
         constexpr auto remove(PointLightHandle light) -> void;
 
     private:
-        std::deque<Entity> _entities;
+        std::vector<EntityHandle> _entities;
         LightData _lights;
         ToneMapOptions _tone_map_options;
         SSAOOptions _ssao_options;
@@ -160,21 +161,26 @@ namespace ufps
 
     constexpr auto Scene::intersect_ray(const Ray &ray) -> std::optional<IntersectionResult>
     {
-        auto &mesh_manager = ufps::service<MeshManager>();
-        auto &rem = ufps::service<RenderEntityManager>();
+        auto &&[mesh_manager, rem, em] = ufps::services<MeshManager, RenderEntityManager, EntityManager>();
 
         auto result = std::optional<IntersectionResult>{};
         auto min_distance = std::numeric_limits<float>::max();
 
-        for (auto &entity : _entities)
+        for (auto handle : _entities)
         {
-            const auto inv_transform = Matrix4::invert(entity.transform());
+            auto entity = em[handle];
+            if (!entity)
+            {
+                continue;
+            }
+
+            const auto inv_transform = Matrix4::invert(entity->transform());
             const auto transformed_ray =
                 Ray{inv_transform * Vector4{ray.origin, 1.0f}, inv_transform * Vector4{ray.direction, 0.0f}};
 
-            if (!!intersect(transformed_ray, entity.aabb()))
+            if (!!intersect(transformed_ray, entity->aabb()))
             {
-                for (auto render_entity_handle : entity.render_entities())
+                for (auto render_entity_handle : entity->render_entities())
                 {
                     if (auto render_entity = rem[render_entity_handle]; render_entity)
                     {
@@ -199,7 +205,7 @@ namespace ufps
 
                                 if (*distance < min_distance)
                                 {
-                                    result = IntersectionResult{.entity = &entity, .position = intersection_point, .distance = *distance};
+                                    result = IntersectionResult{.entity = handle, .position = intersection_point, .distance = *distance};
                                     min_distance = *distance;
                                 }
                             }
@@ -241,26 +247,28 @@ namespace ufps
           _film_grain_options{description.film_grain_options},
           _bloom_options{description.bloom_options}
     {
-        auto &rem = service<RenderEntityManager>();
+        auto &&[em, rem] = services<EntityManager, RenderEntityManager>();
 
         for (const auto &entity_description : description.entities)
         {
-            auto &new_entity = _entities.emplace_back(entity_description.name, rem[entity_description.name], entity_description.transform);
-            new_entity.set_transform(entity_description.transform);
+            const auto new_entity_handle = em.register_entity(entity_description.name,
+                                                              {entity_description.name, rem[entity_description.name], entity_description.transform});
+            auto new_entity = em[new_entity_handle];
+            new_entity->set_transform(entity_description.transform);
 
             for (const auto &rb_desc : entity_description.rigid_bodies)
             {
                 const auto rb = service<PhysicsSystem>().create_rigid_body(rb_desc);
-                new_entity.add_rigid_body(rb);
+                new_entity->add_rigid_body(rb);
             }
+
+            add(new_entity_handle);
         }
     }
 
-    constexpr auto Scene::create_entity(std::string_view name) -> Entity *
+    constexpr auto Scene::add(EntityHandle handle) -> void
     {
-        auto &rem = service<RenderEntityManager>();
-
-        return std::addressof(_entities.emplace_back(std::string{name}, rem[name], Transform{}));
+        _entities.push_back(handle);
     }
 
     template <class Self>
@@ -316,6 +324,8 @@ namespace ufps
 
     constexpr auto Scene::description(this auto &&self) -> Description
     {
+        auto &em = service<EntityManager>();
+
         return Description{
             .tone_map_options = self._tone_map_options,
             .ssao_options = self._ssao_options,
@@ -326,15 +336,17 @@ namespace ufps
             .film_grain_options = self._film_grain_options,
             .bloom_options = self._bloom_options,
             .lights = self._lights,
-            .entities = self._entities | std::views::transform([](const auto &e)
-                                                               { return e.description(); }) |
+            .entities = self._entities |
+                        std::views::filter([&](auto e)
+                                           { return !!em[e]; }) |
+                        std::views::transform([&](auto e)
+                                              { return em[e]->description(); }) |
                         std::ranges::to<std::vector>()};
     }
 
-    constexpr auto Scene::remove(const Entity &entity) -> void
+    constexpr auto Scene::remove(EntityHandle handle) -> void
     {
-        const auto iter = std::ranges::find_if(_entities, [&entity](const auto &e)
-                                               { return &e == &entity; });
+        const auto iter = std::ranges::find(_entities, handle);
         expect(iter != std::ranges::cend(_entities), "Entity not found");
 
         _entities.erase(iter);
