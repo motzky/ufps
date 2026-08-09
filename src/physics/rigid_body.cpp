@@ -53,7 +53,7 @@ namespace ufps
 
     auto RigidBody::update_transforms(const Transform &local, const Transform &parent) -> void
     {
-        const auto world_transform = Transform{Matrix4{parent} * Matrix4{local}};
+        const auto world_transform = parent * local;
 
         if (world_transform.scale != _applied_scale)
         {
