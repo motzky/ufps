@@ -18,6 +18,8 @@ namespace ufps
 {
     class Entity
     {
+        using EntityHandle = SparseSet<Entity>::handle_type;
+
     public:
         struct Description
         {
@@ -32,28 +34,38 @@ namespace ufps
         constexpr auto name() const -> std::string;
         constexpr auto render_entities() const -> std::span<const RenderEntityHandle>;
         constexpr auto transform() const -> const Transform &;
-        constexpr auto set_transform(const Transform &transform) -> void;
+        auto set_transform(const Transform &transform) -> void;
+        constexpr auto set_local_transform(const Transform &transform) -> void;
         constexpr auto aabb() const -> const AABB &;
         constexpr auto description() const -> Description;
         constexpr auto emissive_strength() const -> float;
         constexpr auto set_emissive_strength(float strength) -> void;
         constexpr auto add_rigid_body(RigidBodyHandle handle) -> void;
         constexpr auto rigid_bodies() const -> std::span<const RigidBodyHandle>;
+        constexpr auto add_child(EntityHandle entity) -> void;
 
     private:
+        constexpr auto update_transforms(const Transform &local, const Transform &parent) -> void;
+        constexpr auto set_parent_transform(const Transform &transform) -> void;
+
         std::string _name;
         std::vector<RenderEntityHandle> _render_entities;
         std::vector<RigidBodyHandle> _rigid_bodies;
+        Transform _local_transform;
+        Transform _parent_transform;
         Transform _transform;
         AABB _aabb;
         float _emissive_strength;
+        std::vector<EntityHandle> _children;
     };
 
     constexpr Entity::Entity(std::string name, std::vector<RenderEntityHandle> render_entities, Transform transform)
         : _name{std::move(name)},
           _render_entities{std::move(render_entities)},
           _rigid_bodies{},
-          _transform{std::move(transform)},
+          _local_transform{std::move(transform)},
+          _parent_transform{{}, {1.f}, {}},
+          _transform{_parent_transform * _local_transform},
           _aabb{create_aabb(render_entities)},
           _emissive_strength{1.f}
     {
@@ -72,21 +84,6 @@ namespace ufps
     constexpr auto Entity::transform() const -> const Transform &
     {
         return _transform;
-    }
-
-    constexpr auto Entity::set_transform(const Transform &transform) -> void
-    {
-        _transform = transform;
-
-        _rigid_bodies = _rigid_bodies |
-                        std::views::filter([](auto e)
-                                           { return !!service<PhysicsSystem>().rigid_body(e); }) |
-                        std::ranges::to<std::vector>();
-
-        for (const auto handle : _rigid_bodies)
-        {
-            service<PhysicsSystem>().rigid_body(handle)->set_parent_transform(_transform);
-        }
     }
 
     constexpr auto Entity::aabb() const -> const AABB &
@@ -137,5 +134,22 @@ namespace ufps
     constexpr auto Entity::rigid_bodies() const -> std::span<const RigidBodyHandle>
     {
         return _rigid_bodies;
+    }
+
+    constexpr auto Entity::add_child(EntityHandle entity) -> void
+    {
+        _children.push_back(entity);
+    }
+
+    constexpr auto Entity::update_transforms(const Transform &local, const Transform &parent) -> void
+    {
+        _transform = parent * local;
+        _local_transform = local;
+        _parent_transform = parent;
+    }
+
+    constexpr auto Entity::set_parent_transform(const Transform &transform) -> void
+    {
+        update_transforms(_local_transform, transform);
     }
 }
