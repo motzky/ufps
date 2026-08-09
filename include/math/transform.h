@@ -108,6 +108,11 @@ namespace ufps
         Quaternion rotation;
     };
 
+    constexpr auto operator*(const Transform &a, const Transform &b) -> Transform
+    {
+        return {Matrix4{a} * Matrix4{b}};
+    }
+
     inline auto to_string(const Transform &transform) -> std::string
     {
         return std::format("pos: {} scale: {} rot: {}", transform.position, transform.scale, transform.rotation);
