@@ -51,62 +51,60 @@ Description:
       filter_radius: 0.028
       mix_amount: 0.558
       threshold: 0.417
+  ambient:
+    Color:
+      r: 0.3604061
+      g: 0.35857663
+      b: 0.35857663
   lights:
-    LightData:
-      ambient:
-        Color:
-          r: 0.3604061
-          g: 0.35857663
-          b: 0.35857663
-      lights:
-        - PointLight:
-            position:
-              Vector3:
-                x: 0.8988724
-                y: 1.7710187
-                z: 0
-            color:
-              Color:
-                r: 1
-                g: 0
-                b: 0
-            constant_attenuation: 1
-            linear_attenuation: 0.313
-            quadratic_attenuation: 0.157
-            specular_power: 32
-            intensity: 6.8011227
-        - PointLight:
-            position:
-              Vector3:
-                x: 16.71976
-                y: 5.315446
-                z: -0.76703924
-            color:
-              Color:
-                r: 1
-                g: 1
-                b: 1
-            constant_attenuation: 1
-            linear_attenuation: 0.36
-            quadratic_attenuation: 0.275
-            specular_power: 32
-            intensity: 0.66
-        - PointLight:
-            position:
-              Vector3:
-                x: -6.3984504
-                y: 2.5874157
-                z: -50.03749
-            color:
-              Color:
-                r: 1
-                g: 1
-                b: 1
-            constant_attenuation: 1
-            linear_attenuation: 0.36
-            quadratic_attenuation: 0.392
-            specular_power: 32
-            intensity: 15
+    - PointLight:
+        position:
+          Vector3:
+            x: 0.8988724
+            y: 1.7710187
+            z: 0
+        color:
+          Color:
+            r: 1
+            g: 0
+            b: 0
+        constant_attenuation: 1
+        linear_attenuation: 0.313
+        quadratic_attenuation: 0.157
+        specular_power: 32
+        intensity: 6.8011227
+    - PointLight:
+        position:
+          Vector3:
+            x: 16.71976
+            y: 5.315446
+            z: -0.76703924
+        color:
+          Color:
+            r: 1
+            g: 1
+            b: 1
+        constant_attenuation: 1
+        linear_attenuation: 0.36
+        quadratic_attenuation: 0.275
+        specular_power: 32
+        intensity: 0.66
+    - PointLight:
+        position:
+          Vector3:
+            x: -6.3984504
+            y: 2.5874157
+            z: -50.03749
+        color:
+          Color:
+            r: 1
+            g: 1
+            b: 1
+        constant_attenuation: 1
+        linear_attenuation: 0.36
+        quadratic_attenuation: 0.392
+        specular_power: 32
+        intensity: 15
   entities:
     - Description:
         name: SM_Corner01_8_8_X.fbx
