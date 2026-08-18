@@ -472,13 +472,13 @@ auto start(int argc, char **argv) -> int
     flicker_light(point_light_handles[1], scene);
 
     auto &&[em, rem] = ufps::services<ufps::EntityManager, ufps::RenderEntityManager>();
-    auto player_entity_handle = em.register_entity("player", {"player", {}, {}});
+    auto player_entity_handle = em.insert("player", {"player", {}, {}});
     scene.add(player_entity_handle);
 
     // TODO uncomment when we have our own gun model
 
     // const auto gun_name = "SciFiRifle01_2";
-    // const auto gun_handle = em.register_entity(gun_name, {gun_name, rem[gun_name], {}});
+    // const auto gun_handle = em.insert(gun_name, {gun_name, rem[gun_name], {}});
     // em[gun_handle]->set_transform(
     //     {{2.f, 0.f, 0.f},
     //      {1.f},
