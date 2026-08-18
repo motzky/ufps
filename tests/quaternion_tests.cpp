@@ -51,3 +51,39 @@ TEST(quaternion, multiply_inv)
     ASSERT_FLOAT_EQ(result.z, expected.z);
     ASSERT_FLOAT_EQ(result.w, expected.w);
 }
+
+TEST(quaternion, 90_deg_yaw)
+{
+    const auto angle = std::numbers::pi_v<float> / 2.f;
+
+    auto q = ufps::Quaternion{{0.f, 1.f, 0.f}, angle};
+
+    ASSERT_FLOAT_EQ(q.x, 0.f);
+    ASSERT_FLOAT_EQ(q.y, std::sin(angle / 2.f));
+    ASSERT_FLOAT_EQ(q.z, 0.f);
+    ASSERT_FLOAT_EQ(q.w, std::cos(angle / 2.f));
+}
+
+TEST(quaternion, 90_deg_pitch)
+{
+    const auto angle = std::numbers::pi_v<float> / 2.f;
+
+    auto q = ufps::Quaternion{{1.f, 0.f, 0.f}, angle};
+
+    ASSERT_FLOAT_EQ(q.x, std::sin(angle / 2.f));
+    ASSERT_FLOAT_EQ(q.y, 0.f);
+    ASSERT_FLOAT_EQ(q.z, 0.f);
+    ASSERT_FLOAT_EQ(q.w, std::cos(angle / 2.f));
+}
+
+TEST(quaternion, 90_deg_roll)
+{
+    const auto angle = std::numbers::pi_v<float> / 2.f;
+
+    auto q = ufps::Quaternion{{0.f, 0.f, 1.f}, angle};
+
+    ASSERT_FLOAT_EQ(q.x, 0.f);
+    ASSERT_FLOAT_EQ(q.y, 0.f);
+    ASSERT_FLOAT_EQ(q.z, std::sin(angle / 2.f));
+    ASSERT_FLOAT_EQ(q.w, std::cos(angle / 2.f));
+}
