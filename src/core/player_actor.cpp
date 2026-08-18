@@ -2,6 +2,7 @@
 
 #include "core/actor.h"
 #include "core/camera.h"
+#include "core/service_locator.h"
 #include "events/input_map.h"
 #include "math/vector3.h"
 
@@ -53,10 +54,11 @@ namespace
 
 namespace ufps
 {
-    PlayerActor::PlayerActor(Camera camera, const InputMap &key_map, VirtualCharacterController &character_controller)
+    PlayerActor::PlayerActor(Camera camera, EntityHandle player_entity, const InputMap &key_map, VirtualCharacterController &character_controller)
         : Actor{std::move(camera)},
           _key_map{key_map},
-          _character_controller{character_controller}
+          _character_controller{character_controller},
+          _player_entity{player_entity}
     {
     }
 
@@ -72,7 +74,18 @@ namespace ufps
         }
 
         _character_controller.set_walk_direction(walk_direction(_key_map, _camera));
-        _camera.set_position(_character_controller.position() + Vector3{0.f, 2.f, 0.f});
+
+        const auto camera_offset = Vector3{0.f, 2.f, 0.f};
+        _camera.set_position(_character_controller.position() + camera_offset);
         _camera.update();
+
+        auto &em = service<EntityManager>();
+        auto player = em[_player_entity];
+        contract_assert(player);
+
+        player->set_transform(
+            {_camera.position(),
+             {1.f},
+             Quaternion{{0.f, 1.f, 0.f}, -_camera.yaw()} * Quaternion{{0.f, 0.f, 1.f}, _camera.pitch()}});
     }
 }
