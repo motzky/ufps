@@ -35,6 +35,8 @@
 
 #include "window.h"
 
+using namespace std::literals;
+
 namespace
 {
     static constexpr auto debug_light_scale = 0.25f;
@@ -776,6 +778,19 @@ namespace ufps
                     contract_assert(entity);
 
                     ::ImGui::Text("entity: %s", entity->name().data());
+
+                    if (::ImGui::BeginCombo("add render entity group", "Select one", 0))
+                    {
+                        for (const auto &name : rem.groups())
+                        {
+                            if (::ImGui::Selectable(name.c_str(), false))
+                            {
+                                entity->add_render_entities(rem[name]);
+                            }
+                        }
+
+                        ::ImGui::EndCombo();
+                    }
 
                     if (::ImGui::Button("add rigid body"))
                     {
