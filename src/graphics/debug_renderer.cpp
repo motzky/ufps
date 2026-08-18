@@ -237,6 +237,30 @@ namespace ufps
 
             ::glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, reinterpret_cast<const void *>(cube_indices_offset_bytes), cube_vertex_offset);
         }
+
+        for (const auto entity_handle : scene.entities() |
+                                            std::views::filter(
+                                                [&](auto e)
+                                                {
+                                                    const auto entity = em[e];
+                                                    return entity && std::ranges::empty(entity->render_entities());
+                                                }))
+        {
+            const auto entity = em[entity_handle];
+
+            const auto light_transform = Transform{entity->transform().position, {debug_light_scale / 4.f}, {}};
+            const auto light_model = Matrix4{light_transform};
+
+            _debug_light_program.set_uniforms(light_model, Color::yellow());
+
+            ::glDrawElementsBaseVertex(
+                GL_TRIANGLES,
+                36,
+                GL_UNSIGNED_INT,
+                reinterpret_cast<const void *>(cube_indices_offset_bytes),
+                cube_vertex_offset);
+        }
+
         _debug_light_program.unbind();
 
         auto &&physics_debug_renderer = service<PhysicsSystem>().debug_renderer();
@@ -318,6 +342,32 @@ namespace ufps
                     if (!intersection || light_intersection < intersection->distance)
                     {
                         _selected = light_handle;
+                    }
+                }
+            }
+
+            for (const auto entity_handle : scene.entities() |
+                                                std::views::filter(
+                                                    [&](auto e)
+                                                    {
+                                                        const auto entity = em[e];
+                                                        return entity && std::ranges::empty(entity->render_entities());
+                                                    }))
+            {
+                const auto entity = em[entity_handle];
+
+                const auto entity_transform = Transform{entity->transform().position, {debug_light_scale / 4.f}, {}};
+                const auto entity_model = Matrix4{entity_transform};
+
+                const auto debug_entity_aabb = ufps::AABB{
+                    .min = entity_model * Vector4{-1.f, -1.f, -1.f, 1.f},
+                    .max = entity_model * Vector4{1.f}};
+
+                if (const auto light_intersection = intersect(pick_ray, debug_entity_aabb); light_intersection)
+                {
+                    if (!intersection || light_intersection < intersection->distance)
+                    {
+                        _selected = entity_handle;
                     }
                 }
             }
