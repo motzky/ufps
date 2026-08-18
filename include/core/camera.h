@@ -48,6 +48,9 @@ namespace ufps
         constexpr auto adjust_pitch(float value) -> void;
         constexpr auto adjust_yaw(float value) -> void;
 
+        constexpr auto yaw() const -> float;
+        constexpr auto pitch() const -> float;
+
         constexpr auto fov() const -> float;
         constexpr auto width() const -> float;
         constexpr auto height() const -> float;
@@ -92,7 +95,7 @@ namespace ufps
           _up(up),
           _right(),
           _pitch{},
-          _yaw{-std::numbers::pi_v<float> / 2.f},
+          _yaw{},
           _fov(fov),
           _width(width),
           _height(height),
@@ -111,7 +114,7 @@ namespace ufps
           _up{Vector3{0.f, 1.f, 0.f}},
           _right{},
           _pitch{},
-          _yaw{-std::numbers::pi_v<float> / 2.f},
+          _yaw{},
           _fov(0.f),
           _width(width),
           _height(height),
@@ -176,6 +179,16 @@ namespace ufps
         //     return;
         // }
         _yaw += value;
+    }
+
+    constexpr auto Camera::yaw() const -> float
+    {
+        return _yaw;
+    }
+
+    constexpr auto Camera::pitch() const -> float
+    {
+        return _pitch;
     }
 
     // constexpr auto Camera::invert_pitch(bool invert) -> void
