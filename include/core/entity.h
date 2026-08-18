@@ -35,7 +35,6 @@ namespace ufps
         constexpr auto render_entities() const -> std::span<const RenderEntityHandle>;
         constexpr auto transform() const -> const Transform &;
         auto set_transform(const Transform &transform) -> void;
-        constexpr auto set_local_transform(const Transform &transform) -> void;
         constexpr auto aabb() const -> const AABB &;
         constexpr auto description() const -> Description;
         constexpr auto emissive_strength() const -> float;
