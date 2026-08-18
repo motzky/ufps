@@ -12,9 +12,8 @@ namespace ufps
     public:
         using handle_type = SparseSet<T>::handle_type;
 
-        constexpr auto insert(std::string_view name, T object) -> handle_type;
+        constexpr auto insert(T object) -> handle_type;
 
-        constexpr auto operator[](std::string_view name) -> handle_type;
         constexpr auto operator[](handle_type handle);
 
         constexpr auto remove(handle_type handle) -> void;
@@ -23,24 +22,13 @@ namespace ufps
 
     private:
         SparseSet<T> _objects;
-        StringUnorderedMap<handle_type> _object_names;
     };
 
     template <class T>
-    constexpr auto StorageManager<T>::insert(std::string_view name, T object) -> handle_type
+    constexpr auto StorageManager<T>::insert(T object) -> handle_type
     {
         auto handle = _objects.emplace(std::move(object));
-        _object_names[std::string{name}] = handle;
         return handle;
-    }
-
-    template <class T>
-    constexpr auto StorageManager<T>::operator[](std::string_view name) -> handle_type
-    {
-        auto element = _object_names.find(name);
-        contract_assert(element != std::ranges::cend(_object_names));
-
-        return element->second;
     }
 
     template <class T>
