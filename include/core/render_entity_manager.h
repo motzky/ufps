@@ -21,6 +21,8 @@ namespace ufps
         constexpr auto operator[](std::string_view name) -> std::vector<RenderEntityHandle>;
         constexpr auto operator[](RenderEntityHandle handle);
 
+        constexpr auto groups();
+
     private:
         SparseSet<RenderEntity> _entities;
         StringUnorderedMap<std::vector<RenderEntityHandle>> _entity_groups;
@@ -47,6 +49,11 @@ namespace ufps
     constexpr auto RenderEntityManager::operator[](RenderEntityHandle handle)
     {
         return _entities[handle];
+    }
+
+    constexpr auto RenderEntityManager::groups()
+    {
+        return std::views::keys(_entity_groups);
     }
 
 }
