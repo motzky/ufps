@@ -23,6 +23,7 @@
 #include "core/actor.h"
 #include "core/entity_manager.h"
 #include "core/flycam_actor.h"
+#include "core/light_manager.h"
 #include "core/manifest_descriptions.h"
 #include "core/player_actor.h"
 #include "core/render_entity.h"
@@ -453,7 +454,8 @@ auto start(int argc, char **argv) -> int
         std::move(texture_manager),
         std::move(pool),
         std::make_unique<ufps::RenderEntityManager>(),
-        std::make_unique<ufps::EntityManager>());
+        std::make_unique<ufps::EntityManager>(),
+        std::make_unique<ufps::LightManager>());
 
     ufps::set_services(services.get());
 
