@@ -111,7 +111,7 @@ namespace ufps
 
         constexpr auto add(EntityHandle handle) -> void;
 
-        constexpr auto &entities(this auto &&self);
+        constexpr auto entities() const -> std::span<const EntityHandle>;
 
         constexpr auto &ambient_light(this auto &&self);
 
@@ -240,9 +240,9 @@ namespace ufps
         _entities.push_back(handle);
     }
 
-    constexpr auto &Scene::entities(this auto &&self)
+    constexpr auto Scene::entities() const -> std::span<const EntityHandle>
     {
-        return self._entities;
+        return _entities;
     }
 
     constexpr auto &Scene::ambient_light(this auto &&self)
