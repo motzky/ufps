@@ -23,13 +23,22 @@ namespace ufps
         {
         }
 
-        constexpr Quaternion(const Vector3 &v, float w)
-            : x{v.x},
-              y{v.y},
-              z{v.z},
-              w{w}
+        constexpr Quaternion(const Vector3 &axis, float angle)
         {
+            const auto sin_half = std::sin(angle / 2.f);
+            const auto cos_half = std::cos(angle / 2.f);
+
+            x = axis.x * sin_half;
+            y = axis.y * sin_half;
+            z = axis.z * sin_half;
+            w = cos_half;
+
+            *this = normalize(*this);
         }
+
+        constexpr Quaternion(float yaw, float pitch, float roll);
+
+        static constexpr auto normalize(const Quaternion &q) -> Quaternion;
 
         auto to_string() const -> std::string;
 
@@ -55,6 +64,27 @@ namespace ufps
     {
         auto tmp{q1};
         return tmp *= q2;
+    }
+
+    constexpr Quaternion::Quaternion(float yaw, float pitch, float roll)
+    {
+        const auto qx = Quaternion{{1.f, 0.f, 0.f}, pitch};
+        const auto qy = Quaternion{{0.f, 1.f, 0.f}, yaw};
+        const auto qz = Quaternion{{0.f, 0.f, 1.f}, roll};
+
+        *this = normalize(qz * qy * qx);
+    }
+
+    constexpr auto Quaternion::normalize(const Quaternion &q) -> Quaternion
+    {
+        const auto det = std::sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+        contract_assert(det != 0.f);
+
+        return {
+            q.x / det,
+            q.y / det,
+            q.z / det,
+            q.w / det};
     }
 
     inline auto Quaternion::to_string() const -> std::string
