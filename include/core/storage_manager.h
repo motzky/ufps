@@ -17,6 +17,10 @@ namespace ufps
         constexpr auto operator[](std::string_view name) -> handle_type;
         constexpr auto operator[](handle_type handle);
 
+        constexpr auto remove(handle_type handle) -> void;
+        constexpr auto data();
+        constexpr auto handles();
+
     private:
         SparseSet<T> _objects;
         StringUnorderedMap<handle_type> _object_names;
@@ -43,6 +47,24 @@ namespace ufps
     constexpr auto StorageManager<T>::operator[](handle_type handle)
     {
         return _objects[handle];
+    }
+
+    template <class T>
+    constexpr auto StorageManager<T>::remove(handle_type handle) -> void
+    {
+        _objects.remove(handle);
+    }
+
+    template <class T>
+    constexpr auto StorageManager<T>::data()
+    {
+        return _objects.data();
+    }
+
+    template <class T>
+    constexpr auto StorageManager<T>::handles()
+    {
+        return _objects.handles();
     }
 
 }
