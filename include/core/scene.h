@@ -7,6 +7,7 @@
 
 #include "core/entity.h"
 #include "core/entity_manager.h"
+#include "core/light_manager.h"
 #include "core/render_entity_manager.h"
 #include "core/service_locator.h"
 #include "core/sparse_set.h"
@@ -19,19 +20,11 @@
 
 namespace ufps
 {
-    using PointLightHandle = SparseSet<PointLight>::handle_type;
-
     struct IntersectionResult
     {
         EntityHandle entity;
         Vector3 position;
         float distance;
-    };
-
-    struct LightData
-    {
-        Color ambient;
-        SparseSet<PointLight> lights;
     };
 
     struct ToneMapOptions
@@ -107,19 +100,10 @@ namespace ufps
             VignetteOptions vignette_options;
             FilmGrainOptions film_grain_options;
             BloomOptions bloom_options;
-            LightData lights;
+            Color ambient;
+            std::vector<PointLight> lights;
             std::vector<Entity::Description> entities;
         };
-
-        constexpr Scene(LightData lights,
-                        ToneMapOptions tone_map_options,
-                        SSAOOptions ssao_options,
-                        ExposureOptions exposure_options,
-                        FogOptions fog_options,
-                        ChromaticAbberationOptions chromatic_abberation_options,
-                        VignetteOptions vignette_options,
-                        FilmGrainOptions film_grain_options,
-                        BloomOptions bloom_options);
 
         constexpr Scene(const Description &description);
 
@@ -127,10 +111,9 @@ namespace ufps
 
         constexpr auto add(EntityHandle handle) -> void;
 
-        template <class Self>
-        auto &entities(this Self &&self);
+        constexpr auto &entities(this auto &&self);
 
-        constexpr auto &lights(this auto &&self);
+        constexpr auto &ambient_light(this auto &&self);
 
         constexpr auto &tone_map_options(this auto &&self);
         constexpr auto &ssao_options(this auto &&self);
@@ -144,11 +127,10 @@ namespace ufps
         constexpr auto description(this auto &&self) -> Description;
 
         constexpr auto remove(EntityHandle entity) -> void;
-        constexpr auto remove(PointLightHandle light) -> void;
 
     private:
         std::vector<EntityHandle> _entities;
-        LightData _lights;
+        Color _ambient;
         ToneMapOptions _tone_map_options;
         SSAOOptions _ssao_options;
         ExposureOptions _exposure_options;
@@ -217,27 +199,9 @@ namespace ufps
         return result;
     }
 
-    constexpr Scene::Scene(LightData lights,
-                           ToneMapOptions tone_map_options, SSAOOptions ssao_options, ExposureOptions exposure_options,
-                           FogOptions fog_options, ChromaticAbberationOptions chromatic_abberation_options,
-                           VignetteOptions vignette_options, FilmGrainOptions film_grain_options,
-                           BloomOptions bloom_options)
-        : _entities{},
-          _lights{std::move(lights)},
-          _tone_map_options{std::move(tone_map_options)},
-          _ssao_options{std::move(ssao_options)},
-          _exposure_options{std::move(exposure_options)},
-          _fog_options{std::move(fog_options)},
-          _chromatic_abberation_options{std::move(chromatic_abberation_options)},
-          _vignette_options{std::move(vignette_options)},
-          _film_grain_options{std::move(film_grain_options)},
-          _bloom_options{std::move(bloom_options)}
-    {
-    }
-
     constexpr Scene::Scene(const Description &description)
         : _entities{},
-          _lights{description.lights},
+          _ambient{description.ambient},
           _tone_map_options{description.tone_map_options},
           _ssao_options{description.ssao_options},
           _exposure_options{description.exposure_options},
@@ -247,7 +211,13 @@ namespace ufps
           _film_grain_options{description.film_grain_options},
           _bloom_options{description.bloom_options}
     {
-        auto &&[em, rem] = services<EntityManager, RenderEntityManager>();
+        auto &&[em, rem, ps, lm] = services<EntityManager, RenderEntityManager, PhysicsSystem, LightManager>();
+
+        for (auto &&[index, light] : std::views::enumerate(description.lights))
+        {
+            lm.insert(std::format("light{}", index), light);
+            log::debug("inserted light");
+        }
 
         for (const auto &entity_description : description.entities)
         {
@@ -258,7 +228,7 @@ namespace ufps
 
             for (const auto &rb_desc : entity_description.rigid_bodies)
             {
-                const auto rb = service<PhysicsSystem>().create_rigid_body(rb_desc);
+                const auto rb = ps.create_rigid_body(rb_desc);
                 new_entity->add_rigid_body(rb);
             }
 
@@ -271,15 +241,14 @@ namespace ufps
         _entities.push_back(handle);
     }
 
-    template <class Self>
-    auto &Scene::entities(this Self &&self)
+    constexpr auto &Scene::entities(this auto &&self)
     {
         return self._entities;
     }
 
-    constexpr auto &Scene::lights(this auto &&self)
+    constexpr auto &Scene::ambient_light(this auto &&self)
     {
-        return self._lights;
+        return self._ambient;
     }
 
     constexpr auto &Scene::tone_map_options(this auto &&self)
@@ -324,7 +293,7 @@ namespace ufps
 
     constexpr auto Scene::description(this auto &&self) -> Description
     {
-        auto &em = service<EntityManager>();
+        const auto &[em, lm] = services<EntityManager, LightManager>();
 
         return Description{
             .tone_map_options = self._tone_map_options,
@@ -335,7 +304,13 @@ namespace ufps
             .vignette_options = self._vignette_options,
             .film_grain_options = self._film_grain_options,
             .bloom_options = self._bloom_options,
-            .lights = self._lights,
+            .ambient = self._ambient,
+            .lights = self._lights.lights |
+                      std::views::filter([&](auto &e)
+                                         { return !!lm[e]; }) |
+                      std::views::transform([&](auto e)
+                                            { return *em[e]; }) |
+                      std::ranges::to<std::vector>(),
             .entities = self._entities |
                         std::views::filter([&](auto e)
                                            { return !!em[e]; }) |
@@ -350,11 +325,6 @@ namespace ufps
         expect(iter != std::ranges::cend(_entities), "Entity not found");
 
         _entities.erase(iter);
-    }
-
-    constexpr auto Scene::remove(PointLightHandle light) -> void
-    {
-        _lights.lights.remove(light);
     }
 
 }

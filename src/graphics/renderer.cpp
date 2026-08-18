@@ -8,6 +8,7 @@
 #include <string_view>
 
 #include "core/camera.h"
+#include "core/light_manager.h"
 #include "core/render_entity_manager.h"
 #include "core/scene.h"
 #include "graphics/buffer_writer.h"
@@ -166,7 +167,7 @@ namespace ufps
           _post_processing_command_buffer{"post_processing_command_buffer"},
           _post_process_sprite{create_sprite()},
           _camera_buffer{sizeof(CameraData), "camera_buffer"},                                                                                                                                                                      //
-          _light_buffer{sizeof(LightData), "light_buffer"},                                                                                                                                                                         //
+          _light_buffer{1zu, "light_buffer"},                                                                                                                                                                                       //
           _object_data_buffer{sizeof(ObjectData), "object_data_buffer"},                                                                                                                                                            //
           _transparent_object_data_buffer{sizeof(ObjectData), "transparent_object_data_buffer"},                                                                                                                                    //
           _luminance_histogram_buffer{sizeof(std::uint32_t) * 256, "luminance_histogram_buffer"},                                                                                                                                   //
@@ -401,8 +402,9 @@ namespace ufps
         const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
 
         {
-            const auto &lights = scene.lights();
-            const auto buffer_size_bytes = sizeof(lights.ambient) + sizeof(std::uint32_t) + sizeof(PointLight) * lights.lights.size();
+            const auto &ambient = scene.ambient_light();
+            const auto &lights = service<LightManager>().data();
+            const auto buffer_size_bytes = sizeof(ambient) + sizeof(std::uint32_t) + lights.size_bytes();
             if (_light_buffer.size() < buffer_size_bytes)
             {
                 _light_buffer = {buffer_size_bytes, _light_buffer.name()};
@@ -410,9 +412,9 @@ namespace ufps
             }
 
             auto writer = BufferWriter{_light_buffer};
-            writer.write(lights.ambient);
-            writer.write(static_cast<std::uint32_t>(lights.lights.size()));
-            writer.write(lights.lights.data());
+            writer.write(ambient);
+            writer.write(static_cast<std::uint32_t>(std::ranges::size(lights)));
+            writer.write(lights);
         }
 
         _light_pass_program.set_uniforms(_gbuffer_rt.color_texture_bindless_handle_0,

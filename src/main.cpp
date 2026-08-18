@@ -324,14 +324,14 @@ namespace
             }});
     }
 
-    auto pulse_light(ufps::PointLightHandle handle, ufps::Scene &scene) -> ufps::Task
+    auto pulse_light(ufps::LightHandle handle) -> ufps::Task
     {
-        auto &awaitable = ufps::service<ufps::AwaitableManager>();
+        const auto &[awaitable, lm] = ufps::services<ufps::AwaitableManager, ufps::LightManager>();
         auto fake_time = 0.f;
 
         for (;;)
         {
-            if (auto light = scene.lights().lights[handle]; light)
+            if (auto light = lm[handle]; light)
             {
                 light->intensity = 2.f + (5.f * ((std::sin(fake_time) + 1.f) / 2.f));
             }
@@ -347,10 +347,10 @@ namespace
         }
     }
 
-    auto flicker_light(ufps::PointLightHandle handle, ufps::Scene &scene) -> ufps::Task
+    auto flicker_light(ufps::LightHandle handle) -> ufps::Task
     {
-        auto &awaitable = ufps::service<ufps::AwaitableManager>();
-        auto light = scene.lights().lights[handle];
+        const auto &[awaitable, lm] = ufps::services<ufps::AwaitableManager, ufps::LightManager>();
+        auto light = lm[handle];
         if (!light)
         {
             ufps::log::warn("light did not exist when starting flicker_light coro");
@@ -360,7 +360,7 @@ namespace
         auto original_intensity = light->intensity;
         for (;;)
         {
-            if (auto light = scene.lights().lights[handle]; light)
+            if (auto light = lm[handle]; light)
             {
                 co_await awaitable(3s);
                 light->intensity = 0.f;
@@ -461,6 +461,8 @@ auto start(int argc, char **argv) -> int
 
     load_render_entity_manager(*resource_loader);
 
+    const auto &[em, rem, lm] = ufps::services<ufps::EntityManager, ufps::RenderEntityManager, ufps::LightManager>();
+
     auto renderer = ufps::DebugRenderer{window, *resource_loader};
     auto show_debug_ui = false;
 
@@ -469,11 +471,10 @@ auto start(int argc, char **argv) -> int
 
     auto scene = ufps::Scene{std::move(*scene_desc)};
 
-    const auto point_light_handles = scene.lights().lights.handles();
-    pulse_light(point_light_handles[0], scene);
-    flicker_light(point_light_handles[1], scene);
+    const auto point_light_handles = lm.handles();
+    pulse_light(point_light_handles[0]);
+    flicker_light(point_light_handles[1]);
 
-    auto &&[em, rem] = ufps::services<ufps::EntityManager, ufps::RenderEntityManager>();
     auto player_entity_handle = em.insert("player", {"player", {}, {}});
     scene.add(player_entity_handle);
 
