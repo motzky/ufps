@@ -37,6 +37,8 @@ namespace ufps
         constexpr auto name() const -> std::string_view;
         constexpr auto render_entities() const -> std::span<const RenderEntityHandle>;
         constexpr auto add_render_entities(std::span<const RenderEntityHandle> render_entities) -> void;
+        constexpr auto remove_render_entity(RenderEntityHandle handle) //
+            pre(std::ranges::contains(_render_entities, handle));
         constexpr auto transform() const -> const Transform &;
         constexpr auto parent_transform() const -> const Transform &;
         auto set_transform(const Transform &transform) -> void;
@@ -89,6 +91,11 @@ namespace ufps
     {
         _render_entities.append_range(render_entities);
         _aabb = create_aabb(_render_entities);
+    }
+
+    constexpr auto Entity::remove_render_entity(RenderEntityHandle handle)
+    {
+        std::erase(_render_entities, handle);
     }
 
     constexpr auto Entity::transform() const -> const Transform &
