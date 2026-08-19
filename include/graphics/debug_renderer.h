@@ -45,6 +45,7 @@ namespace ufps
         MultiBuffer<PersistentBuffer> _debug_line_buffer;
         Program _debug_line_program;
         Program _debug_light_program;
+        RenderEntityHandle _highligh_render_entity;
 
         auto init_platform(const Window &window) const -> void;
         auto new_frame() const -> void;
