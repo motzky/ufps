@@ -138,6 +138,7 @@ namespace ufps
     DebugRenderer::DebugRenderer(const Window &window, ResourceLoader &resource_loader)
         : Renderer{window, resource_loader},
           _enabled{false},
+          _snap_enabled{false},
           _click{},
           _selected{std::monostate{}},
           _debug_lines{},
@@ -777,6 +778,8 @@ namespace ufps
                     auto entity = em[*selected_entity];
                     contract_assert(entity);
 
+                    ::ImGui::Checkbox("Enable snap", std::addressof(_snap_enabled));
+
                     ::ImGui::Text("entity: %s", entity->name().data());
 
                     if (::ImGui::Button("Add Child Entity"))
@@ -980,7 +983,7 @@ namespace ufps
                     ::ImGuizmo::WORLD,
                     world_matrix.data().data(),
                     nullptr,
-                    snap_translation,
+                    _snap_enabled ? snap_translation : nullptr,
                     nullptr,
                     nullptr);
 

@@ -38,6 +38,7 @@ namespace ufps
         auto draw_gizmo(const Camera &camera) -> void;
 
         bool _enabled;
+        bool _snap_enabled;
         std::optional<MouseButtonEvent> _click;
         std::variant<std::monostate, EntityHandle, LightHandle, RigidBodyHandle> _selected;
         std::vector<LineData> _debug_lines;
