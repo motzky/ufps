@@ -49,6 +49,7 @@ namespace ufps
         constexpr auto add_rigid_body(RigidBodyHandle handle) -> void;
         constexpr auto rigid_bodies() const -> std::span<const RigidBodyHandle>;
         auto add_child(EntityHandle child) -> void;
+        constexpr auto children() -> std::span<const EntityHandle>;
 
     private:
         auto update_transforms(const Transform &local, const Transform &parent) -> void;
@@ -141,5 +142,10 @@ namespace ufps
     constexpr auto Entity::set_parent_transform(const Transform &transform) -> void
     {
         update_transforms(_local_transform, transform);
+    }
+
+    constexpr auto Entity::children() -> std::span<const EntityHandle>
+    {
+        return _children;
     }
 }
