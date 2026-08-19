@@ -8,6 +8,7 @@
 #include <ranges>
 #include <string>
 #include <type_traits>
+#include <utility>
 
 #include <imgui.h>
 
@@ -19,6 +20,7 @@
 #include "core/light_manager.h"
 #include "core/scene.h"
 #include "core/service_locator.h"
+#include "events/key.h"
 #include "events/mouse_button_event.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/point_light.h"
@@ -411,6 +413,29 @@ namespace ufps
         if (!io.WantCaptureMouse)
         {
             _click = evt;
+        }
+    }
+
+    auto DebugRenderer::add_key_event(const KeyEvent &evt) -> void
+    {
+        auto &io = ::ImGui::GetIO();
+
+        switch (evt.key())
+        {
+            using enum Key;
+        case BACKSPACE:
+            io.AddKeyEvent(::ImGuiKey_Backspace, evt.state() == KeyState::DOWN);
+            break;
+        case LSHIFT:
+        case RSHIFT:
+            break;
+        default:
+            if (evt.state() == KeyState::DOWN)
+            {
+                io.AddInputCharacter(std::to_underlying(evt.key()));
+            }
+
+            break;
         }
     }
 
@@ -826,7 +851,22 @@ namespace ufps
                     auto entity = em[*selected_entity];
                     contract_assert(entity);
 
-                    ::ImGui::Text("entity: %s", entity->name().data());
+                    ::ImGui::Text("entity");
+                    ::ImGui::SameLine();
+
+                    static auto buffer = std::array<char, 256>{};
+                    const auto name = entity->name();
+                    ensure(std::ranges::size(name) < std::ranges::size(buffer), "{} too long", name);
+                    std::ranges::copy(std::ranges::begin(name), std::ranges::end(name) + 1zu, std::ranges::begin(buffer));
+
+                    ::ImGui::InputText("Name", std::ranges::data(buffer), std::ranges::size(buffer));
+                    ::ImGui::SameLine();
+
+                    if (::ImGui::Button("Set Name"))
+                    {
+                        entity->set_name(std::string(std::ranges::data(buffer)));
+                        log::debug("new name: {}", std::ranges::data(buffer));
+                    }
 
                     ::ImGui::Checkbox("Enable snap", std::addressof(_snap_enabled));
 
