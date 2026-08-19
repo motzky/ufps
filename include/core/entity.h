@@ -35,6 +35,7 @@ namespace ufps
         constexpr Entity(std::string name, std::vector<RenderEntityHandle> render_entities, Transform transform);
 
         constexpr auto name() const -> std::string_view;
+        constexpr auto set_name(std::string name) -> void;
         constexpr auto render_entities() const -> std::span<const RenderEntityHandle>;
         constexpr auto add_render_entities(std::span<const RenderEntityHandle> render_entities) -> void;
         constexpr auto remove_render_entity(RenderEntityHandle handle) //
@@ -81,6 +82,11 @@ namespace ufps
     constexpr auto Entity::name() const -> std::string_view
     {
         return _name;
+    }
+
+    constexpr auto Entity::set_name(std::string name) -> void
+    {
+        _name = std::move(name);
     }
 
     constexpr auto Entity::render_entities() const -> std::span<const RenderEntityHandle>
