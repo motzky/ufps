@@ -479,7 +479,6 @@ auto start(int argc, char **argv) -> int
     auto player_entity_handle = std::ranges::find_if(entity_handles, [&](auto e)
                                                      { return em[e]->name() == "player"; });
     ufps::ensure(player_entity_handle != std::ranges::cend(entity_handles), "no player in scene");
-    scene.add(*player_entity_handle);
 
     auto player_actor = ufps::PlayerActor{
         {{0.f, 2.f, 0.f},
