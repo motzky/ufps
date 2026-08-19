@@ -285,7 +285,8 @@ namespace
                                                 : texture_manager.bindless_handle(emissive_name);
 
                 render_entities.push_back(
-                    {mesh_view,
+                    {name,
+                     mesh_view,
                      albedo_index,
                      normal_index,
                      specular_index,
@@ -305,6 +306,7 @@ namespace
         rem.register_group(
             "sprite",
             {{
+                "sprite",
                 mesh_views.front(),
                 0u,
                 0u,

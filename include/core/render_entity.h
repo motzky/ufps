@@ -44,6 +44,7 @@ namespace ufps
     {
     public:
         constexpr RenderEntity(
+            std::string group_name,
             MeshView mesh_view,
             std::uint64_t albedo_texture_bindless_handle,
             std::uint64_t normal_texture_bindless_handle,
@@ -55,6 +56,7 @@ namespace ufps
             float opacity,
             float emissive_intensity);
 
+        constexpr auto group_name() const -> std::string_view;
         constexpr auto mesh_view() const -> MeshView;
         constexpr auto albedo_texture_bindless_handle() const -> std::uint64_t;
         constexpr auto normal_texture_bindless_handle() const -> std::uint64_t;
@@ -68,6 +70,7 @@ namespace ufps
         constexpr auto aabb() const -> const AABB &;
 
     private:
+        std::string _group_name;
         MeshView _mesh_view;
         std::uint64_t _albedo_texture_bindless_handle;
         std::uint64_t _normal_texture_bindless_handle;
@@ -82,6 +85,7 @@ namespace ufps
     };
 
     constexpr RenderEntity::RenderEntity(
+        std::string group_name,
         MeshView mesh_view,
         std::uint64_t albedo_texture_bindless_handle,
         std::uint64_t normal_texture_bindless_handle,
@@ -92,7 +96,8 @@ namespace ufps
         bool normal_compressed,
         float opacity,
         float emissive_intensity)
-        : _mesh_view{mesh_view},
+        : _group_name{group_name},
+          _mesh_view{mesh_view},
           _albedo_texture_bindless_handle{albedo_texture_bindless_handle},
           _normal_texture_bindless_handle{normal_texture_bindless_handle},
           _specular_texture_bindless_handle{specular_texture_bindless_handle},
@@ -105,6 +110,11 @@ namespace ufps
           _aabb{impl::calculate_aabb(mesh_view)}
 
     {
+    }
+
+    constexpr auto RenderEntity::group_name() const -> std::string_view
+    {
+        return _group_name;
     }
 
     constexpr auto RenderEntity::mesh_view() const -> MeshView
