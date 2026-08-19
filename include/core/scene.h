@@ -304,11 +304,7 @@ namespace ufps
             .film_grain_options = self._film_grain_options,
             .bloom_options = self._bloom_options,
             .ambient = self._ambient,
-            .lights = self._lights.lights |
-                      std::views::filter([&](auto &e)
-                                         { return !!lm[e]; }) |
-                      std::views::transform([&](auto e)
-                                            { return *em[e]; }) |
+            .lights = lm.data() |
                       std::ranges::to<std::vector>(),
             .entities = self._entities |
                         std::views::filter([&](auto e)

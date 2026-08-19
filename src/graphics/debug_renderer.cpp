@@ -499,6 +499,15 @@ namespace ufps
         {
             ::ImGui::PushID("scene");
 
+            if (::ImGui::Button("Save"))
+            {
+                const auto scene_yaml = ufps::yaml::serialize(scene.description());
+                contract_assert(scene_yaml);
+                auto out = std::ofstream("scene.yaml");
+
+                out << *scene_yaml;
+            }
+
             ::ImGui::Text("ambient");
             create_debug_control("ambient", scene.ambient_light());
 
