@@ -34,7 +34,7 @@ namespace ufps
         auto draw_logs() -> void;
         auto draw_bloom_mips() -> void;
         auto draw_render_targets() -> void;
-        auto draw_inspector() -> void;
+        auto draw_inspector(Scene &scene) -> void;
         auto draw_gizmo(const Camera &camera) -> void;
 
         bool _enabled;
