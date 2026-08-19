@@ -221,9 +221,15 @@ namespace ufps
 
         for (const auto &entity_description : description.entities)
         {
-            const auto new_entity_handle = em.insert({entity_description.name, rem[entity_description.name], entity_description.transform});
+            const auto new_entity_handle = em.insert({entity_description.name, {}, entity_description.transform});
+
             auto new_entity = em[new_entity_handle];
             new_entity->set_transform(entity_description.transform);
+
+            for (const auto &group_name : entity_description.render_entities)
+            {
+                new_entity->add_render_entities(rem[group_name]);
+            }
 
             for (const auto &rb_desc : entity_description.rigid_bodies)
             {
