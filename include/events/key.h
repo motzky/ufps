@@ -20,6 +20,8 @@ namespace ufps
         LSHIFT = 0x10,
         LCTRL = 0x11,
 #else
+        RSHIFT = 0x14f,
+
         LSHIFT = 0x154,
         LCTRL = 0x155,
 #endif
@@ -109,6 +111,8 @@ namespace ufps
 #endif
 
 #ifdef _WIN32
+        BACKSPACE = VK_BACK,
+        DEL = VK_DELETE,
         F1 = VK_F1,
         F2 = VK_F2,
         F3 = VK_F3,
@@ -122,6 +126,9 @@ namespace ufps
         F11 = VK_F11,
         F12 = VK_F12,
 #else
+        BACKSPACE = 0x103,
+        INS = 0x104,
+        DEL = 0x105,
         F1 = 0x122,
         F2 = 0x123,
         F3 = 0x124,
@@ -134,6 +141,7 @@ namespace ufps
         F10 = 0x12b,
         F11 = 0x12c,
         F12 = 0x12d,
+
 #endif
 
     };
@@ -170,6 +178,8 @@ namespace ufps
             return "RETURN";
         case LSHIFT:
             return "LSHIFT";
+        case RSHIFT:
+            return "RSHIFT";
         case LCTRL:
             return "LCTRL";
         case ESC:
@@ -184,6 +194,10 @@ namespace ufps
             return "END";
         case HOME:
             return "HOME";
+        case DEL:
+            return "DEL";
+        case INS:
+            return "INS";
         case LEFT_ARROW:
             return "LEFT_ARROW";
         case UP_ARROW:
@@ -200,6 +214,8 @@ namespace ufps
         case DELETE:
 #endif
             return "DELETE";
+        case BACKSPACE:
+            return "BACKSPACE";
 
         case KEY_0:
             return "0";
