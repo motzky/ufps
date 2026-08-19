@@ -35,6 +35,7 @@ namespace ufps
         constexpr auto render_entities() const -> std::span<const RenderEntityHandle>;
         constexpr auto add_render_entities(std::span<const RenderEntityHandle> render_entities) -> void;
         constexpr auto transform() const -> const Transform &;
+        constexpr auto parent_transform() const -> const Transform &;
         auto set_transform(const Transform &transform) -> void;
         constexpr auto aabb() const -> const AABB &;
         constexpr auto description() const -> Description;
@@ -42,10 +43,10 @@ namespace ufps
         constexpr auto set_emissive_strength(float strength) -> void;
         constexpr auto add_rigid_body(RigidBodyHandle handle) -> void;
         constexpr auto rigid_bodies() const -> std::span<const RigidBodyHandle>;
-        constexpr auto add_child(EntityHandle entity) -> void;
+        auto add_child(EntityHandle child) -> void;
 
     private:
-        constexpr auto update_transforms(const Transform &local, const Transform &parent) -> void;
+        auto update_transforms(const Transform &local, const Transform &parent) -> void;
         constexpr auto set_parent_transform(const Transform &transform) -> void;
 
         std::string _name;
@@ -90,6 +91,11 @@ namespace ufps
     constexpr auto Entity::transform() const -> const Transform &
     {
         return _transform;
+    }
+
+    constexpr auto Entity::parent_transform() const -> const Transform &
+    {
+        return _parent_transform;
     }
 
     constexpr auto Entity::aabb() const -> const AABB &
@@ -140,18 +146,6 @@ namespace ufps
     constexpr auto Entity::rigid_bodies() const -> std::span<const RigidBodyHandle>
     {
         return _rigid_bodies;
-    }
-
-    constexpr auto Entity::add_child(EntityHandle entity) -> void
-    {
-        _children.push_back(entity);
-    }
-
-    constexpr auto Entity::update_transforms(const Transform &local, const Transform &parent) -> void
-    {
-        _transform = parent * local;
-        _local_transform = local;
-        _parent_transform = parent;
     }
 
     constexpr auto Entity::set_parent_transform(const Transform &transform) -> void

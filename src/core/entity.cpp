@@ -31,4 +31,31 @@ namespace ufps
         }
     }
 
+    auto Entity::update_transforms(const Transform &local, const Transform &parent) -> void
+    {
+        _transform = parent * local;
+        _local_transform = local;
+        _parent_transform = parent;
+
+        auto &&[em, ps] = services<EntityManager, PhysicsSystem>();
+
+        for (auto handle : _children)
+        {
+            const auto child = em[handle];
+            child->set_parent_transform(_transform);
+        }
+    }
+
+    auto Entity::add_child(EntityHandle child) -> void
+    {
+        auto &em = service<EntityManager>();
+
+        const auto entity = em[child];
+        contract_assert(entity);
+
+        entity->set_parent_transform(_transform);
+
+        _children.push_back(child);
+    }
+
 }
