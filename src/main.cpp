@@ -248,8 +248,6 @@ namespace
     {
         auto &&[rem, mesh_manager, texture_manager] = ufps::services<ufps::RenderEntityManager, ufps::MeshManager, ufps::TextureManager>();
 
-        auto entity_cache = ufps::StringUnorderedMap<ufps::Entity>{};
-
         const auto model_manifest_str = resource_loader.load_string("configs/model_manifest.yaml");
         const auto model_manifest = ufps::yaml::deserialize<ufps::ModelManifestDescription>(model_manifest_str);
         ensure(model_manifest);

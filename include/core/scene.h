@@ -219,12 +219,16 @@ namespace ufps
             log::debug("inserted light");
         }
 
+        auto lookup = StringUnorderedMap<EntityHandle>{};
+
         for (const auto &entity_description : description.entities)
         {
             const auto new_entity_handle = em.insert({entity_description.name, {}, entity_description.transform});
 
             auto new_entity = em[new_entity_handle];
             new_entity->set_transform(entity_description.transform);
+
+            new_entity->set_emissive_strength(entity_description.emissive_strength);
 
             for (const auto &group_name : entity_description.render_entities)
             {
@@ -238,6 +242,20 @@ namespace ufps
             }
 
             add(new_entity_handle);
+            lookup[entity_description.name] = new_entity_handle;
+        }
+
+        for (const auto &entity_description : description.entities)
+        {
+            const auto &entity = lookup[entity_description.name];
+
+            for (const auto &child : entity_description.children)
+            {
+                const auto child_handle = lookup.find(child);
+                ensure(child_handle != std::ranges::cend(lookup), "child {} not found", child);
+
+                em[entity]->add_child(child_handle->second);
+            }
         }
     }
 

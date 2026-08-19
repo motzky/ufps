@@ -24,10 +24,12 @@ namespace ufps
         struct Description
         {
             std::string name;
+            float emissive_strength;
             Transform transform;
             AABB aabb;
             std::vector<RigidBody::Description> rigid_bodies;
             std::vector<std::string> render_entities;
+            std::vector<std::string> children;
         };
 
         constexpr Entity(std::string name, std::vector<RenderEntityHandle> render_entities, Transform transform);
@@ -39,7 +41,7 @@ namespace ufps
         constexpr auto parent_transform() const -> const Transform &;
         auto set_transform(const Transform &transform) -> void;
         constexpr auto aabb() const -> const AABB &;
-        constexpr auto description() const -> Description;
+        auto description() const -> Description;
         constexpr auto emissive_strength() const -> float;
         constexpr auto set_emissive_strength(float strength) -> void;
         constexpr auto add_rigid_body(RigidBodyHandle handle) -> void;
@@ -102,35 +104,6 @@ namespace ufps
     constexpr auto Entity::aabb() const -> const AABB &
     {
         return _aabb;
-    }
-
-    constexpr auto Entity::description() const -> Description
-    {
-        const auto &[rem, ps] = services<RenderEntityManager, PhysicsSystem>();
-
-        auto render_entities = _render_entities |
-                               std::views::filter([&](auto e)
-                                                  { return !!rem[e]; }) |
-                               std::views::transform([&](auto e)
-                                                     { return std::string{rem[e]->group_name()}; }) |
-                               std::ranges::to<std::vector>();
-
-        std::ranges::sort(render_entities);
-        static_cast<void>(std::ranges::unique(render_entities));
-
-        return {
-            .name = _name,
-            .transform = _transform,
-            .aabb = _aabb,
-            .rigid_bodies = _rigid_bodies |
-                            std::views::transform([&](auto e)
-                                                  { return ps.rigid_body(e); }) |
-                            std::views::filter([](const auto &e)
-                                               { return !!e; }) |
-                            std::views::transform([](const auto &e)
-                                                  { return e->description(); }) |
-                            std::ranges::to<std::vector>(),
-            .render_entities = std::move(render_entities)};
     }
 
     constexpr auto Entity::emissive_strength() const -> float
