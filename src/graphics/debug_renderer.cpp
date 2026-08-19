@@ -801,9 +801,12 @@ namespace ufps
                         _selected = handle;
                     }
 
+                    auto groups = rem.groups() | std::ranges::to<std::vector>();
+                    std::ranges::sort(groups);
+
                     if (::ImGui::BeginCombo("add render entity group", "Select one", 0))
                     {
-                        for (const auto &name : rem.groups())
+                        for (const auto &name : groups)
                         {
                             if (::ImGui::Selectable(name.c_str(), false))
                             {
