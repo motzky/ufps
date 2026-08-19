@@ -5,11 +5,13 @@
 #include <vector>
 
 #include "core/entity.h"
+#include "core/entity_manager.h"
 #include "core/scene.h"
 #include "events/mouse_button_event.h"
 #include "graphics/line_data.h"
 #include "graphics/point_light.h"
 #include "graphics/renderer.h"
+#include "physics/physics_system.h"
 #include "resources/resource_loader.h"
 #include "window.h"
 
@@ -45,7 +47,9 @@ namespace ufps
         MultiBuffer<PersistentBuffer> _debug_line_buffer;
         Program _debug_line_program;
         Program _debug_light_program;
-        RenderEntityHandle _highligh_render_entity;
+        RenderEntityHandle _highlight_render_entity;
+        EntityHandle _highlight_entity;
+        RigidBodyHandle _highlight_rigid_body;
 
         auto init_platform(const Window &window) const -> void;
         auto new_frame() const -> void;

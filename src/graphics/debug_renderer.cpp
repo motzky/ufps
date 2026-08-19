@@ -155,7 +155,9 @@ namespace ufps
                                               "debug_light_vertex_shader",
                                               "shaders/debug_light.frag",
                                               "debug_light_fragment_shader")},
-          _highligh_render_entity{}
+          _highlight_render_entity{},
+          _highlight_entity{},
+          _highlight_rigid_body{}
     {
         IMGUI_CHECKVERSION();
         ::ImGui::CreateContext();
@@ -186,12 +188,30 @@ namespace ufps
                 std::views::transform([&](const auto &e)
                                       { 
                                         auto re = rem[e];
-                                        const auto color = e == _highligh_render_entity ? Color::magenta() : Color{0.f, 0.2f, 0.f};
+                                        const auto color = e == _highlight_render_entity ? Color::magenta() : Color{0.f, 0.2f, 0.f};
                                         return create_aabb_lines(re->aabb(), entity->transform(), color); }) |
                 std::views::join;
 
             _debug_lines.append_range(aabb_lines);
-            _debug_lines.append_range(create_aabb_lines(entity->aabb(), entity->transform(), {0.f, 1.f, 0.f}));
+
+            const auto color = selected_entity == _highlight_entity ? Color::magenta() : Color::green();
+
+            _debug_lines.append_range(create_aabb_lines(entity->aabb(), entity->transform(), color));
+        }
+
+        if (_highlight_entity)
+        {
+            auto entity = em[_highlight_entity];
+            contract_assert(entity);
+            _debug_lines.append_range(create_aabb_lines(entity->aabb(), entity->transform(), Color::magenta()));
+        }
+
+        if (_highlight_rigid_body)
+        {
+            const auto rb = ps.rigid_body(_highlight_rigid_body);
+            contract_assert(rb);
+
+            _debug_lines.append_range(create_aabb_lines({.min = {-1.f}, .max = {1.f}}, rb->transform(), Color::magenta()));
         }
 
         Renderer::post_render(scene, camera);
@@ -510,6 +530,14 @@ namespace ufps
                 out << *scene_yaml;
             }
 
+            if (::ImGui::Button("Add Entity"))
+            {
+                static auto counter = std::ranges::size(scene.entities());
+                const auto handle = em.insert({std::format("entity_{}", counter++), {}, {}});
+                scene.add(handle);
+                _selected = handle;
+            }
+
             ::ImGui::Text("ambient");
             create_debug_control("ambient", scene.ambient_light());
 
@@ -531,6 +559,8 @@ namespace ufps
             {
                 static auto selected_index = std::optional<std::size_t>{};
 
+                auto to_highlight = EntityHandle{};
+
                 for (const auto &[index, entity] : std::views::enumerate(entities))
                 {
                     const auto &[name, handle] = entity;
@@ -543,11 +573,18 @@ namespace ufps
                         _selected = handle;
                     }
 
+                    if (::ImGui::IsItemHovered())
+                    {
+                        to_highlight = handle;
+                    }
+
                     if (is_selected)
                     {
                         ::ImGui::SetItemDefaultFocus();
                     }
                 }
+
+                _highlight_entity = to_highlight;
 
                 ::ImGui::EndListBox();
             }
@@ -789,9 +826,9 @@ namespace ufps
                     auto entity = em[*selected_entity];
                     contract_assert(entity);
 
-                    ::ImGui::Checkbox("Enable snap", std::addressof(_snap_enabled));
-
                     ::ImGui::Text("entity: %s", entity->name().data());
+
+                    ::ImGui::Checkbox("Enable snap", std::addressof(_snap_enabled));
 
                     if (::ImGui::Button("Add Child Entity"))
                     {
@@ -801,6 +838,45 @@ namespace ufps
                         entity->add_child(handle);
                         scene.add(handle);
                         _selected = handle;
+                    }
+
+                    {
+                        auto to_delete = EntityHandle{};
+                        auto to_highlight = EntityHandle{};
+
+                        for (const auto &[index, handle] : std::views::enumerate(entity->children()))
+                        {
+                            const auto header = std::format("child_entity {}", index);
+
+                            if (::ImGui::CollapsingHeader(header.c_str()))
+                            {
+                                ::ImGui::PushID(index);
+
+                                if (::ImGui::IsItemHovered())
+                                {
+                                    log::debug("hover {}", index);
+                                    to_highlight = handle;
+                                }
+
+                                if (::ImGui::Button("Delete"))
+                                {
+                                    to_delete = handle;
+                                }
+
+                                if (::ImGui::Button("Select"))
+                                {
+                                    _selected = handle;
+                                }
+
+                                ::ImGui::PopID();
+                            }
+                        }
+
+                        if (to_delete)
+                        {
+                        }
+
+                        _highlight_entity = to_highlight;
                     }
 
                     auto groups = rem.groups() | std::ranges::to<std::vector>();
@@ -819,6 +895,69 @@ namespace ufps
                         ::ImGui::EndCombo();
                     }
 
+                    {
+                        auto to_delete = RenderEntityHandle{};
+                        auto to_highlight = RenderEntityHandle{};
+
+                        auto debug_draw_texture = [&tm](auto idx, auto should_same_line) -> void
+                        {
+                            if (idx < 65537)
+                            {
+                                const auto *texture = tm.texture(idx);
+                                if (texture)
+                                {
+                                    ::ImGui::Image(
+                                        texture->native_handle(),
+                                        ::ImVec2(64.f, 64.f),
+                                        ::ImVec2(0.f, 1.f),
+                                        ::ImVec2(1.f, 0.f));
+                                    if (should_same_line)
+                                    {
+                                        ::ImGui::SameLine();
+                                    }
+                                }
+                            }
+                        };
+
+                        for (const auto &[index, handle] : std::views::enumerate(entity->render_entities()))
+                        {
+                            auto render_entity = rem[handle];
+
+                            const auto header = std::format("render_entity {}", index);
+
+                            if (::ImGui::CollapsingHeader(header.c_str()))
+                            {
+                                ::ImGui::PushID(index);
+
+                                if (::ImGui::Button("Delete"))
+                                {
+                                    to_delete = handle;
+                                }
+
+                                debug_draw_texture(render_entity->albedo_texture_bindless_handle(), true);
+                                debug_draw_texture(render_entity->normal_texture_bindless_handle(), true);
+                                debug_draw_texture(render_entity->specular_texture_bindless_handle(), false);
+                                debug_draw_texture(render_entity->roughness_texture_bindless_handle(), true);
+                                debug_draw_texture(render_entity->ao_texture_bindless_handle(), true);
+                                debug_draw_texture(render_entity->emissive_texture_bindless_handle(), false);
+
+                                ::ImGui::PopID();
+                            }
+
+                            if (::ImGui::IsItemHovered())
+                            {
+                                to_highlight = handle;
+                            }
+                        }
+
+                        if (to_delete)
+                        {
+                            entity->remove_render_entity(to_delete);
+                        }
+
+                        _highlight_render_entity = to_highlight;
+                    }
+
                     if (::ImGui::Button("add rigid body"))
                     {
                         const auto body = service<PhysicsSystem>().create_box({{-1.f}, {1.f}}, entity->transform().position, ufps::PhysicsLayer::DYNAMIC);
@@ -829,53 +968,59 @@ namespace ufps
                     {
                         auto to_delete = RigidBodyHandle{};
                         auto to_duplicate = RigidBodyHandle{};
+                        auto to_highlight = RigidBodyHandle{};
 
                         for (const auto &[index, handle] : std::views::enumerate(entity->rigid_bodies()))
                         {
+                            const auto header = std::format("rigid body {}", index);
+                            if (::ImGui::CollapsingHeader(header.c_str()))
                             {
-                                const auto button_text = std::format("rigid body {}", index);
-                                if (::ImGui::Button(button_text.c_str()))
+                                ::ImGui::PushID(index);
+
+                                if (::ImGui::Button("Select"))
                                 {
                                     _selected = handle;
                                     break;
                                 }
-                            }
 
-                            ::ImGui::SameLine();
+                                ::ImGui::SameLine();
 
-                            {
-                                const auto button_text = std::format("remove rigid body {}", index);
-
-                                if (::ImGui::Button(button_text.c_str()))
+                                if (::ImGui::Button("Delete"))
                                 {
                                     to_delete = handle;
                                     break;
                                 }
-                            }
 
-                            ::ImGui::SameLine();
+                                ::ImGui::SameLine();
 
-                            {
-                                const auto button_text = std::format("duplicate body {}", index);
-                                if (::ImGui::Button(button_text.c_str()))
+                                if (::ImGui::Button("Duplicate"))
                                 {
                                     to_duplicate = handle;
                                     break;
                                 }
+
+                                ::ImGui::PopID();
+                            }
+
+                            if (::ImGui::IsItemHovered())
+                            {
+                                to_highlight = handle;
                             }
                         }
 
                         if (to_delete)
                         {
-                            service<PhysicsSystem>().remove_rigid_body(to_delete);
+                            ps.remove_rigid_body(to_delete);
                         }
 
                         if (to_duplicate)
                         {
-                            const auto handle = service<PhysicsSystem>().duplicate_rigid_body(to_duplicate);
+                            const auto handle = ps.duplicate_rigid_body(to_duplicate);
                             entity->add_rigid_body(handle);
                             _selected = handle;
                         }
+
+                        _highlight_rigid_body = to_highlight;
 
                         {
                             auto value = entity->emissive_strength();
@@ -900,68 +1045,6 @@ namespace ufps
                         }
                         ::ImGui::EndTable();
                     }
-
-                    auto to_delete = RenderEntityHandle{};
-                    auto to_highlight = RenderEntityHandle{};
-
-                    auto debug_draw_texture = [&tm](auto idx, auto should_same_line) -> void
-                    {
-                        if (idx < 65537)
-                        {
-                            const auto *texture = tm.texture(idx);
-                            if (texture)
-                            {
-                                ::ImGui::Image(
-                                    texture->native_handle(),
-                                    ::ImVec2(64.f, 64.f),
-                                    ::ImVec2(0.f, 1.f),
-                                    ::ImVec2(1.f, 0.f));
-                                if (should_same_line)
-                                {
-                                    ::ImGui::SameLine();
-                                }
-                            }
-                        }
-                    };
-
-                    for (const auto &[index, handle] : std::views::enumerate(entity->render_entities()))
-                    {
-                        auto render_entity = rem[handle];
-
-                        const auto header = std::format("render_entity {}", index);
-
-                        if (::ImGui::CollapsingHeader(header.c_str()))
-                        {
-                            ::ImGui::PushID(index);
-
-                            if (::ImGui::Button("Delete"))
-                            {
-                                to_delete = handle;
-                            }
-
-                            if (::ImGui::IsItemHovered())
-                            {
-                                log::debug("hover {}", index);
-                                to_highlight = handle;
-                            }
-
-                            debug_draw_texture(render_entity->albedo_texture_bindless_handle(), true);
-                            debug_draw_texture(render_entity->normal_texture_bindless_handle(), true);
-                            debug_draw_texture(render_entity->specular_texture_bindless_handle(), false);
-                            debug_draw_texture(render_entity->roughness_texture_bindless_handle(), true);
-                            debug_draw_texture(render_entity->ao_texture_bindless_handle(), true);
-                            debug_draw_texture(render_entity->emissive_texture_bindless_handle(), false);
-
-                            ::ImGui::PopID();
-                        }
-                    }
-
-                    if (to_delete)
-                    {
-                        entity->remove_render_entity(to_delete);
-                    }
-
-                    _highligh_render_entity = to_highlight;
                 }
                 else if (auto *selected_light = std::get_if<LightHandle>(&_selected))
                 {
