@@ -27,6 +27,7 @@ namespace ufps
             Transform transform;
             AABB aabb;
             std::vector<RigidBody::Description> rigid_bodies;
+            std::vector<std::string> render_entities;
         };
 
         constexpr Entity(std::string name, std::vector<RenderEntityHandle> render_entities, Transform transform);
@@ -105,22 +106,31 @@ namespace ufps
 
     constexpr auto Entity::description() const -> Description
     {
+        const auto &[rem, ps] = services<RenderEntityManager, PhysicsSystem>();
+
+        auto render_entities = _render_entities |
+                               std::views::filter([&](auto e)
+                                                  { return !!rem[e]; }) |
+                               std::views::transform([&](auto e)
+                                                     { return std::string{rem[e]->group_name()}; }) |
+                               std::ranges::to<std::vector>();
+
+        std::ranges::sort(render_entities);
+        static_cast<void>(std::ranges::unique(render_entities));
+
         return {
             .name = _name,
             .transform = _transform,
             .aabb = _aabb,
             .rigid_bodies = _rigid_bodies |
-                            std::views::transform(
-                                [](auto e)
-                                {
-                                    auto &physics = service<PhysicsSystem>();
-                                    return physics.rigid_body(e);
-                                }) |
+                            std::views::transform([&](auto e)
+                                                  { return ps.rigid_body(e); }) |
                             std::views::filter([](const auto &e)
                                                { return !!e; }) |
                             std::views::transform([](const auto &e)
                                                   { return e->description(); }) |
-                            std::ranges::to<std::vector>()};
+                            std::ranges::to<std::vector>(),
+            .render_entities = std::move(render_entities)};
     }
 
     constexpr auto Entity::emissive_strength() const -> float
