@@ -1,0 +1,1322 @@
+Description:
+  tone_map_options:
+    ToneMapOptions:
+      max_brightness: 10.434
+      contrast: 1.425
+      linear_section_start: 0.347
+      linear_section_length: 0.475
+      black_tightness: 1.344
+      pedestal: 0
+      gamma: 1.941
+  ssao_options:
+    SSAOOptions:
+      enabled: true
+      sample_count: 64
+      radius: 0.75
+      bias: 0.039
+      power: 2
+  exposure_options:
+    ExposureOptions:
+      min_log_luminance: -1.849
+      max_log_luminance: -1.576
+      tau: 3.087
+  fog_options:
+    FogOptions:
+      color:
+        Color:
+          r: 0
+          g: 0
+          b: 0
+      density: 0.054
+  chromatic_abberation_options:
+    ChromaticAbberationOptions:
+      red_offset: 0.009
+      green_offset: 0.006
+      blue_offset: -0.006
+      strength: 0.352
+  vignette_options:
+    VignetteOptions:
+      color:
+        Color:
+          r: 0
+          g: 0
+          b: 0
+      strength: 0.573
+      feather: 0.223
+  film_grain_options:
+    FilmGrainOptions:
+      strength: 0.01
+  bloom_options:
+    BloomOptions:
+      filter_radius: 0.028
+      mix_amount: 0.558
+      threshold: 0.417
+  ambient:
+    Color:
+      r: 0.3604061
+      g: 0.35857663
+      b: 0.35857663
+  lights:
+    - PointLight:
+        position:
+          Vector3:
+            x: 0.8988724
+            y: 1.7710187
+            z: 0
+        color:
+          Color:
+            r: 1
+            g: 0
+            b: 0
+        constant_attenuation: 1
+        linear_attenuation: 0.313
+        quadratic_attenuation: 0.157
+        specular_power: 32
+        intensity: 6.8011227
+    - PointLight:
+        position:
+          Vector3:
+            x: 16.71976
+            y: 5.315446
+            z: -0.76703924
+        color:
+          Color:
+            r: 1
+            g: 1
+            b: 1
+        constant_attenuation: 1
+        linear_attenuation: 0.36
+        quadratic_attenuation: 0.275
+        specular_power: 32
+        intensity: 0.66
+    - PointLight:
+        position:
+          Vector3:
+            x: -6.3984504
+            y: 2.5874157
+            z: -50.03749
+        color:
+          Color:
+            r: 1
+            g: 1
+            b: 1
+        constant_attenuation: 1
+        linear_attenuation: 0.36
+        quadratic_attenuation: 0.392
+        specular_power: 32
+        intensity: 15
+  entities:
+    - Description:
+        name: SM_Corner01_8_8_X.fbx
+        emissive_strength: 4
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 0
+                y: 0
+                z: 0
+            scale:
+              Vector3:
+                x: 1
+                y: 1
+                z: 1
+            rotation:
+              Quaternion:
+                x: 0
+                y: 0
+                z: 0
+                w: 1
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -8.000499
+                y: -0.2937603
+                z: -8
+            max:
+              Vector3:
+                x: 8
+                y: 4.0000134
+                z: 8
+        rigid_bodies:
+          - Description:
+              local_transform:
+                - 7.9843764
+                - 0
+                - 0
+                - 0
+                - 0
+                - 0.24711135
+                - 0
+                - 0
+                - 0
+                - 0
+                - 7.4722896
+                - 0
+                - -0.012764335
+                - -0.20285493
+                - 0.38244247
+                - 1
+              applied_scale:
+                Vector3:
+                  x: 7.9843764
+                  y: 0.24711135
+                  z: 7.4722896
+          - Description:
+              local_transform:
+                - 7.9843764
+                - 0
+                - 0
+                - 0
+                - 0
+                - 0.24711135
+                - 0
+                - 0
+                - 0
+                - 0
+                - 7.4722896
+                - 0
+                - -0.012764335
+                - 3.2136033
+                - 0.38244247
+                - 1
+              applied_scale:
+                Vector3:
+                  x: 7.9843764
+                  y: 0.24711135
+                  z: 7.4722896
+          - Description:
+              local_transform:
+                - 1.970745
+                - 0
+                - 0
+                - 0
+                - 0
+                - 1.646917
+                - 0
+                - 0
+                - 0
+                - 0
+                - 2.3483603
+                - 0
+                - 3.9295275
+                - 1.6838582
+                - 4.3068624
+                - 1
+              applied_scale:
+                Vector3:
+                  x: 1.970745
+                  y: 1.646917
+                  z: 2.3483603
+          - Description:
+              local_transform:
+                - 1.970745
+                - 0
+                - 0
+                - 0
+                - 0
+                - 1.646917
+                - 0
+                - 0
+                - 0
+                - 0
+                - 2.3483603
+                - 0
+                - -3.9129772
+                - 1.6838576
+                - 4.3185306
+                - 1
+              applied_scale:
+                Vector3:
+                  x: 1.970745
+                  y: 1.646917
+                  z: 2.3483603
+          - Description:
+              local_transform:
+                - 1.970745
+                - 0
+                - 0
+                - 0
+                - 0
+                - 1.646917
+                - 0
+                - 0
+                - 0
+                - 0
+                - 2.3483603
+                - 0
+                - -3.9207296
+                - 1.6838605
+                - -4.2833624
+                - 1
+              applied_scale:
+                Vector3:
+                  x: 1.970745
+                  y: 1.646917
+                  z: 2.3483603
+          - Description:
+              local_transform:
+                - 1.970745
+                - 0
+                - 0
+                - 0
+                - 0
+                - 1.646917
+                - 0
+                - 0
+                - 0
+                - 0
+                - 2.3483603
+                - 0
+                - 3.9426897
+                - 1.6838608
+                - -4.267811
+                - 1
+              applied_scale:
+                Vector3:
+                  x: 1.970745
+                  y: 1.646917
+                  z: 2.3483603
+        render_entities:
+          - SM_Corner01_8_8_X.fbx
+          - SM_Corner01_8_8_X.fbx
+          - SM_Corner01_8_8_X.fbx
+          - SM_Corner01_8_8_X.fbx
+          - SM_Corner01_8_8_X.fbx
+          - SM_Corner01_8_8_X.fbx
+          - SM_Corner01_8_8_X.fbx
+          - SM_Corner01_8_8_X.fbx
+          - SM_Corner01_8_8_X.fbx
+          - SM_Corner01_8_8_X.fbx
+          - SM_Corner01_8_8_X.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor039_12_06_Top_B_02.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: -12.000024
+                y: 0
+                z: 1.04904175e-05
+            scale:
+              Vector3:
+                x: 0.9999165
+                y: 1
+                z: 0.9999165
+            rotation:
+              Quaternion:
+                x: 0
+                y: -0.70710754
+                z: 0
+                w: 0.707106
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -7
+                y: 3.999999
+                z: -1.5210224e-08
+            max:
+              Vector3:
+                x: 7
+                y: 6.999999
+                z: 6
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor039_12_06_Top_B_02.fbx
+          - SM_Corridor039_12_06_Top_B_02.fbx
+          - SM_Corridor039_12_06_Top_B_02.fbx
+          - SM_Corridor039_12_06_Top_B_02.fbx
+          - SM_Corridor039_12_06_Top_B_02.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor045_04_04.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: -11.999985
+                y: -1
+                z: 2.3841862e-06
+            scale:
+              Vector3:
+                x: 0.99963474
+                y: 1
+                z: 0.99963474
+            rotation:
+              Quaternion:
+                x: 0
+                y: -0.70710754
+                z: 0
+                w: 0.707106
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -2.0646152
+                y: -2.9424907e-10
+                z: -4
+            max:
+              Vector3:
+                x: 2.0646152
+                y: 2.0976985
+                z: 8.34465e-07
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor045_04_04.fbx
+          - SM_Corridor045_04_04.fbx
+          - SM_Corridor045_04_04.fbx
+          - SM_Corridor045_04_04.fbx
+          - SM_Corridor045_04_04.fbx
+          - SM_Corridor045_04_04.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor042_12_06_Bottom_B.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: -11.998637
+                y: 0
+                z: -0.0068274736
+            scale:
+              Vector3:
+                x: 1.0000066
+                y: 1
+                z: 1.0000066
+            rotation:
+              Quaternion:
+                x: 0
+                y: -0.7068654
+                z: 0
+                w: 0.7073481
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -7
+                y: -0.2937603
+                z: 0
+            max:
+              Vector3:
+                x: 7.0794563
+                y: 3.9999998
+                z: 6
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor043_12_06_Bottom_B.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: -18.000008
+                y: 0
+                z: 2.2172928e-05
+            scale:
+              Vector3:
+                x: 0.99995834
+                y: 1
+                z: 0.99995834
+            rotation:
+              Quaternion:
+                x: 0
+                y: -0.7071081
+                z: 0
+                w: 0.70710546
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -7.072682
+                y: -0.2937603
+                z: 0
+            max:
+              Vector3:
+                x: 7.0794563
+                y: 3.9999998
+                z: 6
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+        children: ~
+    - Description:
+        name: SM_Windows03_12_4.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: -23.998863
+                y: 1
+                z: -0.0034139156
+            scale:
+              Vector3:
+                x: 1.0000021
+                y: 1
+                z: 1.0000021
+            rotation:
+              Quaternion:
+                x: 0
+                y: 0.7072563
+                z: 0
+                w: 0.7069572
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -7.0000005
+                y: -0.11926164
+                z: -0.36168748
+            max:
+              Vector3:
+                x: 7.0000005
+                y: 5
+                z: 0
+        rigid_bodies: ~
+        render_entities:
+          - SM_Windows03_12_4.fbx
+          - SM_Windows03_12_4.fbx
+          - SM_Windows03_12_4.fbx
+          - SM_Windows03_12_4.fbx
+          - SM_Windows03_12_4.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor036_12_06_Top_B_02.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: -18
+                y: 0
+                z: 0.00607574
+            scale:
+              Vector3:
+                x: 1.0000052
+                y: 1
+                z: 1.0000052
+            rotation:
+              Quaternion:
+                x: 0
+                y: -0.70698744
+                z: 0
+                w: 0.70722616
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -7
+                y: 3.999999
+                z: -5.9604645e-08
+            max:
+              Vector3:
+                x: 7
+                y: 6.999999
+                z: 6
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor036_12_06_Top_B_02.fbx
+          - SM_Corridor036_12_06_Top_B_02.fbx
+          - SM_Corridor036_12_06_Top_B_02.fbx
+          - SM_Corridor036_12_06_Top_B_02.fbx
+          - SM_Corridor036_12_06_Top_B_02.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor045_04_04.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 8.000015
+                y: -1
+                z: 4.5299534e-05
+            scale:
+              Vector3:
+                x: 0.99960566
+                y: 1
+                z: 0.99960566
+            rotation:
+              Quaternion:
+                x: 0
+                y: -0.70710754
+                z: 0
+                w: 0.707106
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -2.0646152
+                y: -2.9424907e-10
+                z: -4
+            max:
+              Vector3:
+                x: 2.0646152
+                y: 2.0976985
+                z: 8.34465e-07
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor045_04_04.fbx
+          - SM_Corridor045_04_04.fbx
+          - SM_Corridor045_04_04.fbx
+          - SM_Corridor045_04_04.fbx
+          - SM_Corridor045_04_04.fbx
+          - SM_Corridor045_04_04.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor042_12_06_Bottom_B.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 18.001354
+                y: 0
+                z: -0.027308822
+            scale:
+              Vector3:
+                x: 1.0000066
+                y: 1
+                z: 1.0000066
+            rotation:
+              Quaternion:
+                x: 0
+                y: -0.7068654
+                z: 0
+                w: 0.7073481
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -7
+                y: -0.2937603
+                z: 0
+            max:
+              Vector3:
+                x: 7.0794563
+                y: 3.9999998
+                z: 6
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+          - SM_Corridor042_12_06_Bottom_B.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor043_12_06_Bottom_B.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 23.999992
+                y: 0
+                z: 0.00017738344
+            scale:
+              Vector3:
+                x: 0.99993575
+                y: 1
+                z: 0.99993575
+            rotation:
+              Quaternion:
+                x: 0
+                y: -0.7071081
+                z: 0
+                w: 0.70710546
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -7.072682
+                y: -0.2937603
+                z: 0
+            max:
+              Vector3:
+                x: 7.0794563
+                y: 3.9999998
+                z: 6
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+          - SM_Corridor043_12_06_Bottom_B.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor039_12_06_Top_B_02.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 17.999977
+                y: 0
+                z: 7.486344e-05
+            scale:
+              Vector3:
+                x: 0.99989927
+                y: 1
+                z: 0.99989927
+            rotation:
+              Quaternion:
+                x: 0
+                y: -0.70710754
+                z: 0
+                w: 0.707106
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -7
+                y: 3.999999
+                z: -1.5210224e-08
+            max:
+              Vector3:
+                x: 7
+                y: 6.999999
+                z: 6
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor039_12_06_Top_B_02.fbx
+          - SM_Corridor039_12_06_Top_B_02.fbx
+          - SM_Corridor039_12_06_Top_B_02.fbx
+          - SM_Corridor039_12_06_Top_B_02.fbx
+          - SM_Corridor039_12_06_Top_B_02.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor036_12_06_Top_B_02.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 24
+                y: 0
+                z: -0.0081009865
+            scale:
+              Vector3:
+                x: 1.0000052
+                y: 1
+                z: 1.0000052
+            rotation:
+              Quaternion:
+                x: 0
+                y: -0.70698744
+                z: 0
+                w: 0.70722616
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -7
+                y: 3.999999
+                z: -5.9604645e-08
+            max:
+              Vector3:
+                x: 7
+                y: 6.999999
+                z: 6
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor036_12_06_Top_B_02.fbx
+          - SM_Corridor036_12_06_Top_B_02.fbx
+          - SM_Corridor036_12_06_Top_B_02.fbx
+          - SM_Corridor036_12_06_Top_B_02.fbx
+          - SM_Corridor036_12_06_Top_B_02.fbx
+        children: ~
+    - Description:
+        name: SM_Windows03_12_4.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 24.00113
+                y: 1
+                z: -0.023715734
+            scale:
+              Vector3:
+                x: 1.0000262
+                y: 1
+                z: 1.0000262
+            rotation:
+              Quaternion:
+                x: 0
+                y: -0.7067894
+                z: 0
+                w: 0.7074241
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -7.0000005
+                y: -0.11926164
+                z: -0.36168748
+            max:
+              Vector3:
+                x: 7.0000005
+                y: 5
+                z: 0
+        rigid_bodies: ~
+        render_entities:
+          - SM_Windows03_12_4.fbx
+          - SM_Windows03_12_4.fbx
+          - SM_Windows03_12_4.fbx
+          - SM_Windows03_12_4.fbx
+          - SM_Windows03_12_4.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor019_06_08_B.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 0
+                y: 0
+                z: -6
+            scale:
+              Vector3:
+                x: 1
+                y: 1
+                z: 1
+            rotation:
+              Quaternion:
+                x: 0
+                y: 0
+                z: 0
+                w: 1
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -4.093223
+                y: -0.38264126
+                z: -8
+            max:
+              Vector3:
+                x: 4.104806
+                y: 4.4271092
+                z: 4.7683716e-07
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor019_06_08_B.fbx
+          - SM_Corridor019_06_08_B.fbx
+          - SM_Corridor019_06_08_B.fbx
+          - SM_Corridor019_06_08_B.fbx
+          - SM_Corridor019_06_08_B.fbx
+          - SM_Corridor019_06_08_B.fbx
+          - SM_Corridor019_06_08_B.fbx
+          - SM_Corridor019_06_08_B.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor018_06_08_B.fbx
+        emissive_strength: 2
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 0
+                y: 0
+                z: -14
+            scale:
+              Vector3:
+                x: 1
+                y: 1
+                z: 1
+            rotation:
+              Quaternion:
+                x: 0
+                y: 0
+                z: 0
+                w: 1
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -3.327793
+                y: -0.1192618
+                z: -8
+            max:
+              Vector3:
+                x: 4.081047
+                y: 4.279462
+                z: 3.7758843e-17
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor018_06_08_B.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 0
+                y: 0
+                z: -22
+            scale:
+              Vector3:
+                x: 1
+                y: 1
+                z: 1
+            rotation:
+              Quaternion:
+                x: 0
+                y: 0
+                z: 0
+                w: 1
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -3.327793
+                y: -0.1192618
+                z: -8
+            max:
+              Vector3:
+                x: 4.081047
+                y: 4.279462
+                z: 3.7758843e-17
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+        children: ~
+    - Description:
+        name: SM_Corridor018_06_08_B.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 0
+                y: 0
+                z: -30
+            scale:
+              Vector3:
+                x: 1
+                y: 1
+                z: 1
+            rotation:
+              Quaternion:
+                x: 0
+                y: 0
+                z: 0
+                w: 1
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -3.327793
+                y: -0.1192618
+                z: -8
+            max:
+              Vector3:
+                x: 4.081047
+                y: 4.279462
+                z: 3.7758843e-17
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+          - SM_Corridor018_06_08_B.fbx
+        children: ~
+    - Description:
+        name: SM_Corner06_12_12_B_L.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: -12
+                y: 0
+                z: -50
+            scale:
+              Vector3:
+                x: 1
+                y: 1
+                z: 1
+            rotation:
+              Quaternion:
+                x: 0
+                y: 0
+                z: 0
+                w: 1
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -9.536743e-07
+                y: -0.38264126
+                z: -3.3277931
+            max:
+              Vector3:
+                x: 15.327793
+                y: 4.4271092
+                z: 12.000001
+        rigid_bodies: ~
+        render_entities:
+          - SM_Corner06_12_12_B_L.fbx
+          - SM_Corner06_12_12_B_L.fbx
+          - SM_Corner06_12_12_B_L.fbx
+          - SM_Corner06_12_12_B_L.fbx
+          - SM_Corner06_12_12_B_L.fbx
+          - SM_Corner06_12_12_B_L.fbx
+          - SM_Corner06_12_12_B_L.fbx
+          - SM_Corner06_12_12_B_L.fbx
+          - SM_Corner06_12_12_B_L.fbx
+          - SM_Corner06_12_12_B_L.fbx
+        children: ~
+    - Description:
+        name: SM_Windows05_6_4.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: -12.00001
+                y: 0
+                z: -50.00003
+            scale:
+              Vector3:
+                x: 0.9999408
+                y: 1
+                z: 0.9999408
+            rotation:
+              Quaternion:
+                x: 0
+                y: 0.7071084
+                z: 0
+                w: 0.70710516
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -3.3277922
+                y: -0.11926164
+                z: -0.36168748
+            max:
+              Vector3:
+                x: 3.3277926
+                y: 4.279462
+                z: 0
+        rigid_bodies: ~
+        render_entities:
+          - SM_Windows05_6_4.fbx
+          - SM_Windows05_6_4.fbx
+          - SM_Windows05_6_4.fbx
+          - SM_Windows05_6_4.fbx
+          - SM_Windows05_6_4.fbx
+        children: ~
+    - Description:
+        name: SM_Detail13.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: -3
+                y: 2
+                z: -20
+            scale:
+              Vector3:
+                x: 1
+                y: 1
+                z: 1
+            rotation:
+              Quaternion:
+                x: 0
+                y: 0
+                z: 0
+                w: 1
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -0.0011047125
+                y: -0.0003068447
+                z: -0.21635056
+            max:
+              Vector3:
+                x: 0.13479376
+                y: 0.44238245
+                z: 0.21634865
+        rigid_bodies: ~
+        render_entities:
+          - SM_Detail13.fbx
+        children: ~
+    - Description:
+        name: SM_Generator.fbx
+        emissive_strength: 10
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: -19
+                y: 0
+                z: 0
+            scale:
+              Vector3:
+                x: 3
+                y: 3
+                z: 3
+            rotation:
+              Quaternion:
+                x: 0
+                y: 0
+                z: 0
+                w: 1
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -0.9403464
+                y: -0.06625354
+                z: -1.0975153
+            max:
+              Vector3:
+                x: 0.9403464
+                y: 1.4152939
+                z: 1.0975153
+        rigid_bodies: ~
+        render_entities:
+          - SM_Generator.fbx
+          - SM_Generator.fbx
+        children: ~
+    - Description:
+        name: SM_Monitor.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: -15
+                y: 1
+                z: -6
+            scale:
+              Vector3:
+                x: 0.99991655
+                y: 1
+                z: 0.99991655
+            rotation:
+              Quaternion:
+                x: 0
+                y: 0.7071084
+                z: 0
+                w: 0.70710516
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -0.12734976
+                y: -0.36726955
+                z: -0.58520603
+            max:
+              Vector3:
+                x: 0.0049307793
+                y: 0.36726955
+                z: 0.58520603
+        rigid_bodies: ~
+        render_entities:
+          - SM_Monitor.fbx
+          - SM_Monitor.fbx
+        children: ~
+    - Description:
+        name: SM_Fan03.fbx
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 23
+                y: 12
+                z: 0
+            scale:
+              Vector3:
+                x: 5
+                y: 4
+                z: 5
+            rotation:
+              Quaternion:
+                x: 0
+                y: 0
+                z: 0
+                w: 1
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -1.4132903
+                y: -1.8423135
+                z: -0.654063
+            max:
+              Vector3:
+                x: -0.06586146
+                y: -1.536452
+                z: 0.654063
+        rigid_bodies: ~
+        render_entities:
+          - SM_Fan03.fbx
+        children: ~
+    - Description:
+        name: player
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 0
+                y: 2.0442564
+                z: 0
+            scale:
+              Vector3:
+                x: 1.0000001
+                y: 0.99999994
+                z: 1
+            rotation:
+              Quaternion:
+                x: -0.014995892
+                y: 0.7139849
+                z: -0.01469893
+                w: 0.69984615
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: 3.4028235e+38
+                y: 3.4028235e+38
+                z: 3.4028235e+38
+            max:
+              Vector3:
+                x: -3.4028235e+38
+                y: -3.4028235e+38
+                z: -3.4028235e+38
+        rigid_bodies: ~
+        render_entities: ~
+        children:
+          - player_child_0
+    - Description:
+        name: player
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 0
+                y: 2.0442564
+                z: 0
+            scale:
+              Vector3:
+                x: 1.0000001
+                y: 0.99999994
+                z: 1
+            rotation:
+              Quaternion:
+                x: -0.014995892
+                y: 0.7139849
+                z: -0.01469893
+                w: 0.69984615
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: 3.4028235e+38
+                y: 3.4028235e+38
+                z: 3.4028235e+38
+            max:
+              Vector3:
+                x: -3.4028235e+38
+                y: -3.4028235e+38
+                z: -3.4028235e+38
+        rigid_bodies: ~
+        render_entities: ~
+        children:
+          - player_child_0
+    - Description:
+        name: player_child_0
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: -0.017233202
+                y: 1.134609
+                z: -0.86154777
+            scale:
+              Vector3:
+                x: 1.0000128
+                y: 0.9999936
+                z: 1
+            rotation:
+              Quaternion:
+                x: -0.014995954
+                y: 0.7139849
+                z: -0.014698865
+                w: 0.69984615
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -0.053433396
+                y: -0.5502794
+                z: -0.14810744
+            max:
+              Vector3:
+                x: 0.053433403
+                y: 0.41483355
+                z: 0.13504946
+        rigid_bodies: ~
+        render_entities: ~
+        children: ~
