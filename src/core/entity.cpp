@@ -54,14 +54,14 @@ namespace ufps
 
     auto Entity::set_transform(const Transform &transform) -> void
     {
-        auto &&[mgr, ps, cm] = services<EntityManager, PhysicsSystem, CameraManager>();
+        auto &&[em, ps, cm] = services<EntityManager, PhysicsSystem, CameraManager>();
 
         update_transforms(transform, _parent_transform);
 
         for (auto handle : _children)
         {
-            const auto child = mgr[handle];
-            child->set_parent_transform(transform);
+            const auto child = em[handle];
+            child->set_parent_transform(_transform);
         }
 
         _rigid_bodies = _rigid_bodies |
