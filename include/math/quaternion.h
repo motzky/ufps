@@ -68,8 +68,8 @@ namespace ufps
 
     constexpr Quaternion::Quaternion(float yaw, float pitch, float roll)
     {
-        const auto qx = Quaternion{{1.f, 0.f, 0.f}, pitch};
-        const auto qy = Quaternion{{0.f, 1.f, 0.f}, yaw};
+        const auto qx = Quaternion{{1.f, 0.f, 0.f}, yaw};
+        const auto qy = Quaternion{{0.f, 1.f, 0.f}, pitch};
         const auto qz = Quaternion{{0.f, 0.f, 1.f}, roll};
 
         *this = normalize(qz * qy * qx);
