@@ -5,6 +5,7 @@
 #include <ranges>
 #include <vector>
 
+#include "core/camera_manager.h"
 #include "core/entity.h"
 #include "core/entity_manager.h"
 #include "core/light_manager.h"
@@ -211,12 +212,11 @@ namespace ufps
           _film_grain_options{description.film_grain_options},
           _bloom_options{description.bloom_options}
     {
-        auto &&[em, rem, ps, lm] = services<EntityManager, RenderEntityManager, PhysicsSystem, LightManager>();
+        auto &&[em, rem, ps, lm, cm] = services<EntityManager, RenderEntityManager, PhysicsSystem, LightManager, CameraManager>();
 
-        for (auto &&[index, light] : std::views::enumerate(description.lights))
+        for (auto &light : description.lights)
         {
             lm.insert(light);
-            log::debug("inserted light");
         }
 
         auto lookup = StringUnorderedMap<EntityHandle>{};
@@ -239,6 +239,12 @@ namespace ufps
             {
                 const auto rb = ps.create_rigid_body(rb_desc);
                 new_entity->add_rigid_body(rb);
+            }
+
+            if (entity_description.camera)
+            {
+                const auto camera_handle = cm.insert(*entity_description.camera);
+                new_entity->set_camera(camera_handle);
             }
 
             add(new_entity_handle);
