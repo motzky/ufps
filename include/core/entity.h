@@ -32,7 +32,7 @@ namespace ufps
             std::vector<std::string> children;
         };
 
-        constexpr Entity(std::string name, std::vector<RenderEntityHandle> render_entities, Transform transform);
+        constexpr Entity(std::string name, std::span<const RenderEntityHandle> render_entities, Transform transform);
 
         constexpr auto name() const -> std::string_view;
         constexpr auto set_name(std::string name) -> void;
@@ -67,14 +67,14 @@ namespace ufps
         std::vector<EntityHandle> _children;
     };
 
-    constexpr Entity::Entity(std::string name, std::vector<RenderEntityHandle> render_entities, Transform transform)
+    constexpr Entity::Entity(std::string name, std::span<const RenderEntityHandle> render_entities, Transform transform)
         : _name{std::move(name)},
-          _render_entities{std::move(render_entities)},
+          _render_entities{std::ranges::cbegin(render_entities), std::ranges::cend(render_entities)},
           _rigid_bodies{},
           _local_transform{std::move(transform)},
           _parent_transform{{}, {1.f}, {}},
           _transform{_parent_transform * _local_transform},
-          _aabb{create_aabb(render_entities)},
+          _aabb{create_aabb(_render_entities)},
           _emissive_strength{1.f}
     {
     }
