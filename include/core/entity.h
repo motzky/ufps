@@ -1,11 +1,13 @@
 #pragma once
 
 #include <algorithm>
+#include <optional>
 #include <ranges>
 #include <span>
 #include <string>
 #include <vector>
 
+#include "core/camera_manager.h"
 #include "core/render_entity.h"
 #include "core/render_entity_manager.h"
 #include "core/service_locator.h"
@@ -30,6 +32,7 @@ namespace ufps
             std::vector<RigidBody::Description> rigid_bodies;
             std::vector<std::string> render_entities;
             std::vector<std::string> children;
+            std::optional<Camera::Description> camera;
         };
 
         constexpr Entity(std::string name, std::span<const RenderEntityHandle> render_entities, Transform transform);
@@ -51,6 +54,8 @@ namespace ufps
         constexpr auto rigid_bodies() const -> std::span<const RigidBodyHandle>;
         auto add_child(EntityHandle child) -> void;
         constexpr auto children() -> std::span<const EntityHandle>;
+        auto camera() const -> CameraHandle;
+        auto set_camera(CameraHandle handle) -> void;
 
     private:
         auto update_transforms(const Transform &local, const Transform &parent) -> void;
@@ -65,6 +70,7 @@ namespace ufps
         AABB _aabb;
         float _emissive_strength;
         std::vector<EntityHandle> _children;
+        CameraHandle _camera;
     };
 
     constexpr Entity::Entity(std::string name, std::span<const RenderEntityHandle> render_entities, Transform transform)

@@ -2,6 +2,7 @@
 
 #include <ranges>
 
+#include "core/camera_manager.h"
 #include "core/entity_manager.h"
 #include "core/service_locator.h"
 #include "math/transform.h"
@@ -10,7 +11,7 @@ namespace ufps
 {
     auto Entity::description() const -> Description
     {
-        const auto &[em, rem, ps] = services<EntityManager, RenderEntityManager, PhysicsSystem>();
+        const auto &[em, rem, ps, cm] = services<EntityManager, RenderEntityManager, PhysicsSystem, CameraManager>();
 
         auto render_entities = _render_entities |
                                std::views::filter([&](auto e)
@@ -22,6 +23,8 @@ namespace ufps
         std::ranges::sort(render_entities);
         const auto [first, last] = std::ranges::unique(render_entities);
         render_entities.erase(first, last);
+
+        const auto camera = cm[_camera];
 
         return {
             .name = _name,
@@ -45,12 +48,13 @@ namespace ufps
                         std::views::transform([](const auto &e)
                                               { return std::string{e->name()}; }) |
                         std::ranges::to<std::vector>(),
-        };
+            .camera = camera.transform([](const auto &e)
+                                       { return e.description(); })};
     }
 
     auto Entity::set_transform(const Transform &transform) -> void
     {
-        auto &&[mgr, ps] = services<EntityManager, PhysicsSystem>();
+        auto &&[mgr, ps, cm] = services<EntityManager, PhysicsSystem, CameraManager>();
 
         update_transforms(transform, _parent_transform);
 
@@ -68,6 +72,14 @@ namespace ufps
         for (const auto handle : _rigid_bodies)
         {
             ps.rigid_body(handle)->set_parent_transform(_transform);
+        }
+
+        if (_camera)
+        {
+            const auto camera = cm[_camera];
+            contract_assert(camera);
+
+            camera->set_parent_transform(_transform);
         }
     }
 
@@ -96,6 +108,16 @@ namespace ufps
         entity->set_parent_transform(_transform);
 
         _children.push_back(child);
+    }
+
+    auto Entity::camera() const -> CameraHandle
+    {
+        return _camera;
+    }
+
+    auto Entity::set_camera(CameraHandle handle) -> void
+    {
+        _camera = handle;
     }
 
 }
