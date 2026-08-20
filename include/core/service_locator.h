@@ -15,6 +15,7 @@ namespace ufps
     class RenderEntityManager;
     class EntityManager;
     class LightManager;
+    class CameraManager;
 
     using Services = std::tuple<
         std::unique_ptr<AwaitableManager>,
@@ -24,7 +25,8 @@ namespace ufps
         std::unique_ptr<ThreadPool>,
         std::unique_ptr<RenderEntityManager>,
         std::unique_ptr<EntityManager>,
-        std::unique_ptr<LightManager>>;
+        std::unique_ptr<LightManager>,
+        std::unique_ptr<CameraManager>>;
 
     namespace impl
     {

@@ -21,6 +21,7 @@
 #include "concurrency/thread_pool.h"
 #include "config.h"
 #include "core/actor.h"
+#include "core/camera_manager.h"
 #include "core/entity_manager.h"
 #include "core/flycam_actor.h"
 #include "core/light_manager.h"
@@ -455,7 +456,8 @@ auto start(int argc, char **argv) -> int
         std::move(pool),
         std::make_unique<ufps::RenderEntityManager>(),
         std::make_unique<ufps::EntityManager>(),
-        std::make_unique<ufps::LightManager>());
+        std::make_unique<ufps::LightManager>(),
+        std::make_unique<ufps::CameraManager>());
 
     ufps::set_services(services.get());
 
