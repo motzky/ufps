@@ -25,11 +25,11 @@ namespace
         }
         if (input_map[ufps::Key::D])
         {
-            direction += camera.right();
+            direction -= camera.right();
         }
         if (input_map[ufps::Key::A])
         {
-            direction -= camera.right();
+            direction += camera.right();
         }
         // if (key_map[ufps::Key::SPACE])
         // {
@@ -72,8 +72,8 @@ namespace ufps
         static auto yaw = 0.f;
         static auto pitch = 0.f;
 
-        yaw += _input_map.delta_y;
-        pitch -= _input_map.delta_x;
+        yaw -= _input_map.delta_y;
+        pitch += _input_map.delta_x;
 
         _character_controller.set_walk_direction(walk_direction(_input_map, *camera));
 
