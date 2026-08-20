@@ -4,11 +4,13 @@
 #include <concepts>
 #include <expected>
 #include <meta>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <string_view>
 #include <type_traits>
 
+#include <yaml-cpp/node/node.h>
 #include <yaml-cpp/yaml.h>
 
 #include "math/bounded_number.h"
@@ -47,6 +49,9 @@ namespace ufps::yaml
 
         template <class T>
         concept Enum = std::is_enum_v<T>;
+
+        template <class T, class S>
+        concept CanPushBack = requires(T t, S s) { t.push_back(s); };
 
         template <Class T>
         auto do_serialize(const T &obj) -> ::YAML::Node;
@@ -186,7 +191,14 @@ namespace ufps::yaml
                 {
                     return std::unexpected(inner_element.error());
                 }
-                obj.push_back(std::move(*inner_element));
+                if constexpr (CanPushBack<T, typename T::value_type>)
+                {
+                    obj.push_back(std::move(*inner_element));
+                }
+                else
+                {
+                    obj = *inner_element;
+                }
             }
 
             return obj;
