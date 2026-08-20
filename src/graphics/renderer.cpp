@@ -8,6 +8,7 @@
 #include <string_view>
 
 #include "core/camera.h"
+#include "core/camera_manager.h"
 #include "core/light_manager.h"
 #include "core/render_entity_manager.h"
 #include "core/scene.h"
@@ -271,9 +272,12 @@ namespace ufps
         return ufps::Program{comp_shader, program_name};
     }
 
-    auto Renderer::render(Scene &scene, const Camera &camera) -> void
+    auto Renderer::render(Scene &scene, CameraHandle handle) -> void
     {
-        _camera_buffer.write(camera.data_view(), 0zu);
+        const auto camera = service<CameraManager>()[handle];
+        contract_assert(camera);
+
+        _camera_buffer.write(camera->data_view(), 0zu);
 
         execute_gbuffer_pass(scene);
 
@@ -302,7 +306,7 @@ namespace ufps
             _final_fb = &_light_pass_rt.fb;
         }
 
-        post_render(scene, camera);
+        post_render(scene, *camera);
 
         _command_buffer.advance();
         _camera_buffer.advance();

@@ -4,6 +4,7 @@
 #include <variant>
 #include <vector>
 
+#include "core/camera_manager.h"
 #include "core/entity.h"
 #include "core/entity_manager.h"
 #include "core/scene.h"
@@ -44,7 +45,7 @@ namespace ufps
         bool _enabled;
         bool _snap_enabled;
         std::optional<MouseButtonEvent> _click;
-        std::variant<std::monostate, EntityHandle, LightHandle, RigidBodyHandle> _selected;
+        std::variant<std::monostate, EntityHandle, LightHandle, RigidBodyHandle, CameraHandle> _selected;
         std::vector<LineData> _debug_lines;
         MultiBuffer<PersistentBuffer> _debug_line_buffer;
         Program _debug_line_program;

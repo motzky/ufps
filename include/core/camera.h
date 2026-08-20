@@ -4,6 +4,7 @@
 #include <span>
 
 #include "math/matrix4.h"
+#include "math/transform.h"
 #include "math/vector3.h"
 #include "utils/data_buffer.h"
 
@@ -11,14 +12,25 @@ namespace ufps
 {
     namespace impl
     {
-        constexpr auto create_direction(float pitch, float yaw) -> ufps::Vector3
+        constexpr auto extract_up(const ufps::Transform &transform) -> ufps::Vector3
         {
-            return ufps::Vector3::normalize({std::cos(yaw) * std::cos(pitch),
-                                             std::sin(pitch),
-                                             std::sin(yaw) * std::cos(pitch)});
+            const auto m = ufps::Matrix4{transform};
+            return ufps::Vector3::normalize({m[4zu], m[5zu], m[6zu]});
         }
 
+        constexpr auto extract_right(const ufps::Transform &transform) -> ufps::Vector3
+        {
+            const auto m = ufps::Matrix4{transform};
+            return ufps::Vector3::normalize({m[0zu], m[1zu], m[2zu]});
+        }
+
+        constexpr auto extract_direction(const ufps::Transform &transform) -> ufps::Vector3
+        {
+            const auto m = ufps::Matrix4{transform};
+            return ufps::Vector3::normalize({m[8zu], m[9zu], m[10zu]});
+        }
     }
+
     struct CameraData
     {
         Matrix4 view;
@@ -30,26 +42,30 @@ namespace ufps
     class Camera
     {
     public:
-        constexpr Camera(const Vector3 &postion, const Vector3 &look_at, const Vector3 &up,
+        struct Description
+        {
+            Transform transform;
+            float fov;
+            float width;
+            float height;
+            float near_plane;
+            float far_plane;
+        };
+
+        constexpr Camera(const Description &description);
+
+        constexpr Camera(const Transform &transform,
                          float fov, float width, float height, float near_plane, float far_plane);
 
         constexpr Camera(float width, float height, float depth);
 
         constexpr auto direction() const -> Vector3;
-        constexpr auto right() const -> Vector3;
         constexpr auto up() const -> Vector3;
-        constexpr auto position() const -> Vector3;
-        constexpr auto set_position(const Vector3 &position) -> void;
+        constexpr auto right() const -> Vector3;
 
-        constexpr auto translate(const Vector3 &translation) -> void;
-
-        constexpr auto set_pitch(float value) -> void;
-        constexpr auto set_yaw(float value) -> void;
-        constexpr auto adjust_pitch(float value) -> void;
-        constexpr auto adjust_yaw(float value) -> void;
-
-        constexpr auto yaw() const -> float;
-        constexpr auto pitch() const -> float;
+        constexpr auto transform() const -> const Transform &;
+        constexpr auto set_transform(const Transform &transform) -> void;
+        constexpr auto set_parent_transform(const Transform &transform) -> void;
 
         constexpr auto fov() const -> float;
         constexpr auto width() const -> float;
@@ -59,67 +75,73 @@ namespace ufps
 
         constexpr auto frustum_corners() const -> std::array<Vector3, 8u>;
 
-        // auto invert_pitch(bool invert) -> void;
-        // auto invert_yaw(bool invert) -> void;
         constexpr auto data() const -> const CameraData &;
         constexpr auto data_view() const -> DataBufferView;
 
-        constexpr auto update() -> void;
+        constexpr auto description() const -> Description;
 
     private:
-        CameraData _data;
+        constexpr auto update_transforms(const Transform &local, const Transform &parent) -> void;
+
         Vector3 _direction;
         Vector3 _up;
         Vector3 _right;
-        float _pitch;
-        float _yaw;
+
+        Transform _local_transform;
+        Transform _parent_transform;
+        Transform _transform;
+
         float _fov;
         float _width;
         float _height;
         float _near_plane;
         float _far_plane;
 
-        // bool _invert_pitch;
-        // bool _invert_yaw;
+        CameraData _data;
 
         constexpr auto recalculate_view() -> void;
         constexpr auto clamp_pitch() -> void;
     };
 
-    constexpr Camera::Camera(const Vector3 &position, const Vector3 &look_at, const Vector3 &up,
+    constexpr Camera::Camera(const Description &description)
+        : Camera{
+              description.transform,
+              description.fov,
+              description.width,
+              description.height,
+              description.near_plane,
+              description.far_plane}
+    {
+    }
+
+    constexpr Camera::Camera(const Transform &transform,
                              float fov, float width, float height, float near_plane, float far_plane)
-        : _data{.view = Matrix4::look_at(position, look_at, up),
-                .projection = Matrix4::perspective(fov, width, height, near_plane, far_plane),
-                .position = position},
-          _direction(look_at),
-          _up(up),
-          _right(),
-          _pitch{},
-          _yaw{-std::numbers::pi_v<float> / 2.f},
+        : _direction(impl::extract_direction(transform)),
+          _up(impl::extract_up(transform)),
+          _right(impl::extract_right(transform)),
           _fov(fov),
           _width(width),
           _height(height),
           _near_plane(near_plane),
-          _far_plane(far_plane)
+          _far_plane(far_plane),
+          _data{.view = Matrix4::look_at(transform.position, _direction, _up),
+                .projection = Matrix4::perspective(fov, width, height, near_plane, far_plane),
+                .position = transform.position}
     {
-        _direction = impl::create_direction(_pitch, _yaw);
-        _right = Vector3::normalize(Vector3::cross(_direction, _up));
     }
 
     constexpr Camera::Camera(float width, float height, float depth)
-        : _data{.view = Matrix4::look_at({0.f, 0.f, 1.f}, {}, {0.f, 1.f, 0.f}),
-                .projection = Matrix4::orthographic(width, height, depth),
-                .position = Vector3{0.f, 0.f, 1.f}},
-          _direction{Vector3{0.f, 0.f, -1.f}},
+        : _direction{Vector3{0.f, 0.f, -1.f}},
           _up{Vector3{0.f, 1.f, 0.f}},
           _right{},
-          _pitch{},
-          _yaw{-std::numbers::pi_v<float> / 2.f},
           _fov(0.f),
           _width(width),
           _height(height),
           _near_plane(0.001f),
-          _far_plane(depth)
+          _far_plane(depth),
+          _data{.view = Matrix4::look_at({0.f, 0.f, 1.f}, {}, {0.f, 1.f, 0.f}),
+                .projection = Matrix4::orthographic(width, height, depth),
+                .position = Vector3{0.f, 0.f, 1.f}}
     {
     }
 
@@ -127,78 +149,22 @@ namespace ufps
     {
         return _direction;
     }
-    constexpr auto Camera::right() const -> Vector3
-    {
-        return _right;
-    }
     constexpr auto Camera::up() const -> Vector3
     {
         return _up;
     }
-    constexpr auto Camera::position() const -> Vector3
+    constexpr auto Camera::right() const -> Vector3
     {
-        return _data.position;
+        return _right;
     }
-
-    constexpr auto Camera::set_position(const Vector3 &position) -> void
+    constexpr auto Camera::transform() const -> const Transform &
     {
-        _data.position = position;
+        return _transform;
     }
-
-    constexpr auto Camera::translate(const Vector3 &translation) -> void
+    constexpr auto Camera::set_transform(const Transform &transform) -> void
     {
-        _data.position += translation;
-        _direction += translation;
+        update_transforms(transform, _parent_transform);
     }
-
-    constexpr auto Camera::set_pitch(float value) -> void
-    {
-        _pitch = value;
-    }
-    constexpr auto Camera::set_yaw(float value) -> void
-    {
-        _yaw = value;
-    }
-
-    constexpr auto Camera::adjust_pitch(float value) -> void
-    {
-        // if (_invert_pitch)
-        // {
-        //     _pitch -= adjust;
-        //     return;
-        // }
-        _pitch += value;
-
-        clamp_pitch();
-    }
-    constexpr auto Camera::adjust_yaw(float value) -> void
-    {
-        // if (_invert_yaw)
-        // {
-        //     _yaw -= adjust;
-        //     return;
-        // }
-        _yaw += value;
-    }
-
-    constexpr auto Camera::yaw() const -> float
-    {
-        return _yaw;
-    }
-
-    constexpr auto Camera::pitch() const -> float
-    {
-        return _pitch;
-    }
-
-    // constexpr auto Camera::invert_pitch(bool invert) -> void
-    // {
-    //     _invert_pitch = invert;
-    // }
-    // constexpr auto Camera::invert_yaw(bool invert) -> void
-    // {
-    //     _invert_yaw = invert;
-    // }
 
     constexpr auto Camera::data() const -> const CameraData &
     {
@@ -208,16 +174,6 @@ namespace ufps
     constexpr auto Camera::data_view() const -> DataBufferView
     {
         return {reinterpret_cast<const std::byte *>(&_data), sizeof(_data)};
-    }
-
-    constexpr auto Camera::update() -> void
-    {
-        _direction = impl::create_direction(_pitch, _yaw);
-
-        auto world_up = Vector3{0.f, 1.0f, 0.f};
-        _right = Vector3::normalize(Vector3::cross(_direction, world_up));
-        _up = Vector3::normalize(Vector3::cross(_right, _direction));
-        recalculate_view();
     }
 
     constexpr auto Camera::fov() const -> float
@@ -282,10 +238,32 @@ namespace ufps
         return corners;
     }
 
-    constexpr auto Camera::clamp_pitch() -> void
+    constexpr auto Camera::update_transforms(const Transform &local, const Transform &parent) -> void
     {
-        constexpr auto pitch_eps = 0.0001f;
-        _pitch = std::clamp(_pitch, (-std::numbers::pi_v<float> / 2.f) + pitch_eps, (std::numbers::pi_v<float> / 2.f) - pitch_eps);
+        _transform = parent * local;
+        _local_transform = local;
+        _parent_transform = parent;
+
+        _direction = impl::extract_direction(_transform);
+        _up = impl::extract_up(_transform);
+        _right = impl::extract_right(_transform);
+        _data.position = _transform.position;
+        _data.view = Matrix4::look_at(_data.position, _data.position + _direction, _up);
     }
 
+    constexpr auto Camera::set_parent_transform(const Transform &transform) -> void
+    {
+        update_transforms(_local_transform, transform);
+    }
+
+    constexpr auto Camera::description() const -> Description
+    {
+        return {
+            .transform = _transform,
+            .fov = _fov,
+            .width = _width,
+            .height = _height,
+            .near_plane = _near_plane,
+            .far_plane = _far_plane};
+    }
 }

@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-#include "core/camera.h"
+#include "core/camera_manager.h"
 #include "core/scene.h"
 #include "graphics/command_buffer.h"
 #include "graphics/frame_buffer.h"
@@ -36,7 +36,7 @@ namespace ufps
         Renderer(const Window &window, ResourceLoader &resource_loader);
         virtual ~Renderer() = default;
 
-        auto render(Scene &scene, const Camera &camera) -> void;
+        auto render(Scene &scene, CameraHandle handle) -> void;
 
     protected:
         static auto create_program(
