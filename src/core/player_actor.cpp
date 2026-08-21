@@ -72,8 +72,8 @@ namespace ufps
         static auto yaw = 0.f;
         static auto pitch = 0.f;
 
-        yaw += _input_map.delta_y;
-        pitch -= _input_map.delta_x;
+        yaw += _input_map.delta_x;
+        pitch -= _input_map.delta_y;
 
         constexpr auto pitch_eps = 0.0001f;
         pitch = std::clamp(pitch, (-std::numbers::pi_v<float> / 2.f) + pitch_eps, (std::numbers::pi_v<float> / 2.f) - pitch_eps);
@@ -83,7 +83,7 @@ namespace ufps
         auto player = em[_player_entity];
         contract_assert(player);
 
-        const auto new_transform = Transform{_character_controller.position(), {1.f}, Quaternion{pitch, yaw, 0.f}};
+        const auto new_transform = Transform{_character_controller.position(), {1.f}, Quaternion{yaw, pitch, 0.f}};
         player->set_transform(new_transform);
     }
 }

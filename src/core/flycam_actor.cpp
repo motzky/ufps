@@ -79,7 +79,7 @@ namespace ufps
 
         static const auto speed = 1.0f;
         const auto transform = e->transform();
-        const auto new_transform = Transform{transform.position + (walk_direction(_input_map, *camera) * speed), {1.f}, Quaternion{pitch, yaw, 0.f}};
+        const auto new_transform = Transform{transform.position + (walk_direction(_input_map, *camera) * speed), {1.f}, Quaternion{yaw, pitch, 0.f}};
 
         e->set_transform(new_transform);
     }
