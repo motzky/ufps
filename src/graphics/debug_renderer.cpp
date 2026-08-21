@@ -102,7 +102,7 @@ namespace
         const auto inv_vp = ufps::Matrix4::invert(proj * view);
 
         constexpr auto ndc_far_corners = std::array<ufps::Vector4, 4>{{{-1.f, 1.f, 1.f, 1.f},
-                                                                       {1.f, -1.f, 1.f, 1.f},
+                                                                       {1.f, 1.f, 1.f, 1.f},
                                                                        {1.f, -1.f, 1.f, 1.f},
                                                                        {-1.f, -1.f, 1.f, 1.f}}};
 
@@ -926,7 +926,7 @@ namespace ufps
         {
             if (::ImGui::Begin("Inspector"))
             {
-                const auto &[tm, em, rem, ps, lm] = services<TextureManager, EntityManager, RenderEntityManager, PhysicsSystem, LightManager>();
+                const auto &[tm, em, rem, ps, lm, cm] = services<TextureManager, EntityManager, RenderEntityManager, PhysicsSystem, LightManager, CameraManager>();
 
                 if (auto *selected_entity = std::get_if<EntityHandle>(&_selected))
                 {
@@ -1098,10 +1098,16 @@ namespace ufps
                             {
                                 ::ImGui::PushID(index);
 
+                                ::ImGui::PushStyleColor(ImGuiCol_Button, ::ImVec4(0.8f, 0.15f, 0.15f, 1.0f));
+                                ::ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ::ImVec4(0.95f, 0.25f, 0.25f, 1.0f));
+                                ::ImGui::PushStyleColor(ImGuiCol_ButtonActive, ::ImVec4(0.65f, 0.1f, 0.1f, 1.0f));
+
                                 if (::ImGui::Button("Delete"))
                                 {
                                     to_delete = handle;
                                 }
+
+                                ::ImGui::PopStyleColor(3);
 
                                 debug_draw_texture(render_entity->albedo_texture_bindless_handle(), true);
                                 debug_draw_texture(render_entity->normal_texture_bindless_handle(), true);
@@ -1153,10 +1159,16 @@ namespace ufps
 
                                 ::ImGui::SameLine();
 
+                                ::ImGui::PushStyleColor(ImGuiCol_Button, ::ImVec4(0.8f, 0.15f, 0.15f, 1.0f));
+                                ::ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ::ImVec4(0.95f, 0.25f, 0.25f, 1.0f));
+                                ::ImGui::PushStyleColor(ImGuiCol_ButtonActive, ::ImVec4(0.65f, 0.1f, 0.1f, 1.0f));
+
                                 if (::ImGui::Button("Delete"))
                                 {
                                     to_delete = handle;
                                 }
+
+                                ::ImGui::PopStyleColor(3);
 
                                 ::ImGui::SameLine();
 
@@ -1204,6 +1216,9 @@ namespace ufps
 
                         for (const auto &[transform, name] : std::views::zip(transforms, transform_names))
                         {
+                            ::ImGui::Text(name.c_str());
+                            ::ImGui::SameLine();
+
                             ::ImGui::BeginTable(name.c_str(), 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit);
 
                             for (auto row = 0; row < 4; ++row)
@@ -1217,6 +1232,41 @@ namespace ufps
                             }
 
                             ::ImGui::EndTable();
+                        }
+                    }
+                    {
+                        const auto camera_handle = entity->camera();
+                        if (!camera_handle || !cm[camera_handle])
+                        {
+                            if (::ImGui::Button("Add camera"))
+                            {
+                                const auto new_handle = cm.insert({{}, std::numbers::pi_v<float> / 4.f, 1920.f, 1080.f, 0.1f, 1000.f});
+                                cm[new_handle]->set_parent_transform(entity->transform());
+
+                                entity->set_camera(new_handle);
+                                _selected = new_handle;
+                            }
+                        }
+                        else
+                        {
+                            if (::ImGui::Button("Select"))
+                            {
+                                _selected = camera_handle;
+                            }
+
+                            ::ImGui::SameLine();
+
+                            ::ImGui::PushStyleColor(ImGuiCol_Button, ::ImVec4(0.8f, 0.15f, 0.15f, 1.0f));
+                            ::ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ::ImVec4(0.95f, 0.25f, 0.25f, 1.0f));
+                            ::ImGui::PushStyleColor(ImGuiCol_ButtonActive, ::ImVec4(0.65f, 0.1f, 0.1f, 1.0f));
+
+                            if (::ImGui::Button("Delete"))
+                            {
+                                entity->set_camera({});
+                                cm.remove(camera_handle);
+                            }
+
+                            ::ImGui::PopStyleColor(3);
                         }
                     }
                 }
@@ -1257,6 +1307,36 @@ namespace ufps
                     if (::ImGui::SliderFloat("intensity", &intensity, 0.f, 100.f))
                     {
                         light->intensity = intensity;
+                    }
+                }
+                else if (auto *selected_camera = std::get_if<CameraHandle>(&_selected))
+                {
+                    auto camera = cm[*selected_camera];
+
+                    const auto transforms = std::array<Matrix4, 3u>{
+                        camera->transform(),
+                        camera->local_transform(),
+                        camera->parent_transform()};
+                    const auto transform_names = std::array<std::string, 3u>{"world", "local", "parent"};
+
+                    for (const auto &[transform, name] : std::views::zip(transforms, transform_names))
+                    {
+                        ::ImGui::Text(name.c_str());
+                        ::ImGui::SameLine();
+
+                        ::ImGui::BeginTable(name.c_str(), 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit);
+
+                        for (auto row = 0; row < 4; ++row)
+                        {
+                            ::ImGui::TableNextRow();
+                            for (auto col = 0; col < 4; ++col)
+                            {
+                                ::ImGui::TableSetColumnIndex(col);
+                                ::ImGui::Text("%0.2f", transform[col * 4 + row]);
+                            }
+                        }
+
+                        ::ImGui::EndTable();
                     }
                 }
             }
