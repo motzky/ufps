@@ -66,6 +66,7 @@ namespace ufps
         constexpr auto transform() const -> const Transform &;
         constexpr auto set_transform(const Transform &transform) -> void;
         constexpr auto set_parent_transform(const Transform &transform) -> void;
+        constexpr auto parent_transform() const -> const Transform &;
 
         constexpr auto fov() const -> float;
         constexpr auto width() const -> float;
@@ -164,6 +165,11 @@ namespace ufps
     constexpr auto Camera::set_transform(const Transform &transform) -> void
     {
         update_transforms(transform, _parent_transform);
+    }
+
+    constexpr auto Camera::parent_transform() const -> const Transform &
+    {
+        return _parent_transform;
     }
 
     constexpr auto Camera::data() const -> const CameraData &
