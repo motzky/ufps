@@ -51,24 +51,36 @@ namespace
 
 namespace ufps
 {
-    FlyCamActor::FlyCamActor(CameraHandle camera, const InputMap &key_map)
+    FlyCamActor::FlyCamActor(CameraHandle camera, EntityHandle entity, const InputMap &key_map)
         : Actor{camera},
-          _key_map{key_map}
+          _input_map{key_map},
+          _entity{entity}
     {
     }
 
     auto FlyCamActor::update() -> void
     {
-        // if (_key_map.delta_x != 0.f)
-        // {
-        //     _camera.adjust_yaw(-_key_map.delta_x);
-        // }
-        // if (_key_map.delta_y != 0.f)
-        // {
-        //     _camera.adjust_pitch(_key_map.delta_y);
-        // }
+        const auto &[em, cm] = services<EntityManager, CameraManager>();
 
-        // _camera.translate(walk_direction(_key_map, _camera));
-        // _camera.update();
+        const auto camera = cm[_camera];
+        contract_assert(camera);
+
+        static auto yaw = 0.f;
+        static auto pitch = 0.f;
+
+        yaw += _input_map.delta_x;
+        pitch -= _input_map.delta_y;
+
+        constexpr auto pitch_eps = 0.0001f;
+        pitch = std::clamp(pitch, (-std::numbers::pi_v<float> / 2.f) + pitch_eps, (std::numbers::pi_v<float> / 2.f) - pitch_eps);
+
+        auto e = em[_entity];
+        contract_assert(e);
+
+        static const auto speed = 1.0f;
+        const auto transform = e->transform();
+        const auto new_transform = Transform{transform.position + (walk_direction(_input_map, *camera) * speed), {1.f}, Quaternion{pitch, yaw, 0.f}};
+
+        e->set_transform(new_transform);
     }
 }
