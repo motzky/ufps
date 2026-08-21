@@ -12,9 +12,9 @@ Description:
     SSAOOptions:
       enabled: true
       sample_count: 64
-      radius: 0.75
-      bias: 0.039
-      power: 2
+      radius: 2
+      bias: 0.1
+      power: 1.495
   exposure_options:
     ExposureOptions:
       min_log_luminance: -1.849

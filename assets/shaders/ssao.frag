@@ -46,9 +46,8 @@ void main()
 
     const int x = int(uv.x * size.x) % 4;
     const int y = int(uv.y * size.y) % 4;
-    const int index = (y * 4) + x;
-    const vec2 noise_scale = vec2(width / 4.0, height / 4.0);
-    const vec3 rand = normalize(texture(noise_texture, noise_scale).xyz);
+    const vec2 noise_uv = (vec2(float(x), float(y)) + 0.5) / 4.0;
+    const vec3 rand = normalize(texture(noise_texture, noise_uv).xyz * 2.0 - 1.0);
 
     const vec3 tangent = normalize(rand - normal * dot(rand, normal));
     const vec3 bitangent = cross(normal, tangent);
