@@ -4,6 +4,7 @@
 #include "core/camera.h"
 #include "events/input_map.h"
 #include "math/vector3.h"
+#include "utils/ensure.h"
 
 namespace
 {
@@ -51,10 +52,9 @@ namespace
 
 namespace ufps
 {
-    FlyCamActor::FlyCamActor(CameraHandle camera, EntityHandle entity, const InputMap &key_map)
-        : Actor{camera},
-          _input_map{key_map},
-          _entity{entity}
+    FlyCamActor::FlyCamActor(EntityHandle entity, const InputMap &key_map)
+        : Actor{entity},
+          _input_map{key_map}
     {
     }
 
@@ -65,7 +65,7 @@ namespace ufps
         const auto camera = cm[_camera];
         contract_assert(camera);
 
-        static auto yaw = 0.f;
+        static auto yaw = std::numbers::pi_v<float>;
         static auto pitch = 0.f;
 
         yaw += _input_map.delta_x;
@@ -74,7 +74,7 @@ namespace ufps
         constexpr auto pitch_eps = 0.0001f;
         pitch = std::clamp(pitch, (-std::numbers::pi_v<float> / 2.f) + pitch_eps, (std::numbers::pi_v<float> / 2.f) - pitch_eps);
 
-        auto e = em[_entity];
+        const auto e = em[_entity];
         contract_assert(e);
 
         static const auto speed = 1.0f;

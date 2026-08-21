@@ -12,7 +12,7 @@ namespace ufps
     class PlayerActor : public Actor
     {
     public:
-        PlayerActor(CameraHandle camera, EntityHandle player_entity, const InputMap &key_map, VirtualCharacterController &character_controller);
+        PlayerActor(EntityHandle entity, const InputMap &input_map, VirtualCharacterController &character_controller);
         ~PlayerActor() override = default;
 
         auto update() -> void override;
@@ -20,7 +20,6 @@ namespace ufps
     private:
         const InputMap &_input_map;
         VirtualCharacterController &_character_controller;
-        EntityHandle _player_entity;
     };
 
 }

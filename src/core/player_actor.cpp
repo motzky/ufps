@@ -54,11 +54,10 @@ namespace
 
 namespace ufps
 {
-    PlayerActor::PlayerActor(CameraHandle camera, EntityHandle player_entity, const InputMap &key_map, VirtualCharacterController &character_controller)
-        : Actor{camera},
-          _input_map{key_map},
-          _character_controller{character_controller},
-          _player_entity{player_entity}
+    PlayerActor::PlayerActor(EntityHandle entity, const InputMap &input_map, VirtualCharacterController &character_controller)
+        : Actor{entity},
+          _input_map{input_map},
+          _character_controller{character_controller}
     {
     }
 
@@ -69,7 +68,7 @@ namespace ufps
         const auto camera = cm[_camera];
         contract_assert(camera);
 
-        static auto yaw = 0.f;
+        static auto yaw = std::numbers::pi_v<float>;
         static auto pitch = 0.f;
 
         yaw += _input_map.delta_x;
@@ -80,10 +79,14 @@ namespace ufps
 
         _character_controller.set_walk_direction(walk_direction(_input_map, *camera));
 
-        auto player = em[_player_entity];
+        auto player = em[_entity];
         contract_assert(player);
 
-        const auto new_transform = Transform{_character_controller.position(), {1.f}, Quaternion{yaw, pitch, 0.f}};
+        const auto transform = player->transform();
+
+        auto new_transform = Transform{_character_controller.position(), {1.f}, Quaternion{yaw, pitch, 0.f}};
+        new_transform.position.y = transform.position.y;
+
         player->set_transform(new_transform);
     }
 }
