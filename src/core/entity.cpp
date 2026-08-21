@@ -29,7 +29,7 @@ namespace ufps
         return {
             .name = _name,
             .emissive_strength = _emissive_strength,
-            .transform = _transform,
+            .transform = _local_transform,
             .aabb = _aabb,
             .rigid_bodies = _rigid_bodies |
                             std::views::transform([&](auto e)
