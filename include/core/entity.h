@@ -44,6 +44,7 @@ namespace ufps
         constexpr auto remove_render_entity(RenderEntityHandle handle) //
             pre(std::ranges::contains(_render_entities, handle));
         constexpr auto transform() const -> const Transform &;
+        constexpr auto local_transform() const -> const Transform &;
         constexpr auto parent_transform() const -> const Transform &;
         auto set_transform(const Transform &transform) -> void;
         constexpr auto aabb() const -> const AABB &;
@@ -114,6 +115,11 @@ namespace ufps
     constexpr auto Entity::transform() const -> const Transform &
     {
         return _transform;
+    }
+
+    constexpr auto Entity::local_transform() const -> const Transform &
+    {
+        return _local_transform;
     }
 
     constexpr auto Entity::parent_transform() const -> const Transform &
