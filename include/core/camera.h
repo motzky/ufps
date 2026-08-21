@@ -21,7 +21,7 @@ namespace ufps
         constexpr auto extract_right(const ufps::Transform &transform) -> ufps::Vector3
         {
             const auto m = ufps::Matrix4{transform};
-            return ufps::Vector3::normalize({m[0zu], m[1zu], m[2zu]});
+            return -ufps::Vector3::normalize({m[0zu], m[1zu], m[2zu]});
         }
 
         constexpr auto extract_direction(const ufps::Transform &transform) -> ufps::Vector3
