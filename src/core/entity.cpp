@@ -9,6 +9,99 @@
 
 namespace ufps
 {
+    Entity::Entity(std::string name, std::span<const RenderEntityHandle> render_entities, Transform transform)
+        : _name{std::move(name)},
+          _render_entities{std::ranges::cbegin(render_entities), std::ranges::cend(render_entities)},
+          _rigid_bodies{},
+          _local_transform{std::move(transform)},
+          _parent_transform{{}, {1.f}, {}},
+          _transform{_parent_transform * _local_transform},
+          _aabb{create_aabb(_render_entities)},
+          _emissive_strength{1.f}
+    {
+    }
+
+    auto Entity::name() const -> std::string_view
+    {
+        return _name;
+    }
+
+    auto Entity::set_name(std::string name) -> void
+    {
+        _name = std::move(name);
+    }
+
+    auto Entity::render_entities() const -> std::span<const RenderEntityHandle>
+    {
+        return _render_entities;
+    }
+
+    auto Entity::add_render_entities(std::span<const RenderEntityHandle> render_entities) -> void
+    {
+        _render_entities.append_range(render_entities);
+        _aabb = create_aabb(_render_entities);
+    }
+
+    auto Entity::remove_render_entity(RenderEntityHandle handle) -> void
+    {
+        std::erase(_render_entities, handle);
+    }
+
+    auto Entity::transform() const -> const Transform &
+    {
+        return _transform;
+    }
+
+    auto Entity::local_transform() const -> const Transform &
+    {
+        return _local_transform;
+    }
+
+    auto Entity::parent_transform() const -> const Transform &
+    {
+        return _parent_transform;
+    }
+
+    auto Entity::aabb() const -> const AABB &
+    {
+        return _aabb;
+    }
+
+    auto Entity::emissive_strength() const -> float
+    {
+        return _emissive_strength;
+    }
+
+    auto Entity::set_emissive_strength(float strength) -> void
+    {
+        _emissive_strength = strength;
+    }
+
+    auto Entity::add_rigid_body(RigidBodyHandle handle) -> void
+    {
+        _rigid_bodies.push_back(handle);
+        auto body = service<PhysicsSystem>().rigid_body(handle);
+        if (body)
+        {
+            body->set_parent_transform(_transform);
+        }
+    }
+
+    auto Entity::rigid_bodies() const -> std::span<const RigidBodyHandle>
+    {
+        return _rigid_bodies;
+    }
+
+    auto Entity::set_parent_transform(const Transform &transform) -> void
+    {
+        update_transforms(_local_transform, transform);
+    }
+
+    auto Entity::children() -> std::span<const EntityHandle>
+    {
+        return _children;
+    }
+
     auto Entity::description() const -> Description
     {
         const auto &[em, rem, ps, cm] = services<EntityManager, RenderEntityManager, PhysicsSystem, CameraManager>();
