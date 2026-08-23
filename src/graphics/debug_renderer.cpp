@@ -1024,7 +1024,6 @@ namespace ufps
 
                             if (::ImGui::IsItemHovered())
                             {
-                                log::debug("hover {}", index);
                                 to_highlight = handle;
                             }
                         }
@@ -1208,7 +1207,7 @@ namespace ufps
                             }
                         }
 
-                        const auto transforms = std::array<Matrix4, 3u>{
+                        const auto transforms = std::array<Transform, 3u>{
                             entity->transform(),
                             entity->local_transform(),
                             entity->parent_transform()};
@@ -1221,16 +1220,31 @@ namespace ufps
 
                             ::ImGui::BeginTable(name.c_str(), 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit);
 
+                            auto matrix = Matrix4{transform};
+
                             for (auto row = 0; row < 4; ++row)
                             {
                                 ::ImGui::TableNextRow();
                                 for (auto col = 0; col < 4; ++col)
                                 {
                                     ::ImGui::TableSetColumnIndex(col);
-                                    ::ImGui::Text("%0.2f", transform[col * 4 + row]);
+                                    ::ImGui::Text("%0.2f", matrix[col * 4 + row]);
                                 }
                             }
 
+                            ::ImGui::EndTable();
+
+                            const auto quat_name = std::format("{}_quat", name);
+                            ::ImGui::BeginTable(quat_name.c_str(), 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingFixedFit);
+                            ::ImGui::TableNextRow();
+                            ::ImGui::TableSetColumnIndex(0);
+                            ::ImGui::Text("%0.2f", transform.rotation.x);
+                            ::ImGui::TableSetColumnIndex(1);
+                            ::ImGui::Text("%0.2f", transform.rotation.y);
+                            ::ImGui::TableSetColumnIndex(2);
+                            ::ImGui::Text("%0.2f", transform.rotation.z);
+                            ::ImGui::TableSetColumnIndex(3);
+                            ::ImGui::Text("%0.2f", transform.rotation.w);
                             ::ImGui::EndTable();
                         }
                     }
