@@ -277,11 +277,18 @@ namespace ufps
             }();
         }
 
+        auto flags = ::aiPostProcessSteps::aiProcess_Triangulate | ::aiPostProcessSteps::aiProcess_FlipUVs | ::aiPostProcessSteps::aiProcess_CalcTangentSpace;
+
+        if (file_name == "SciFiRifle01_1.fbx")
+        {
+            flags |= ::aiPostProcessSteps::aiProcess_PreTransformVertices;
+        }
+
         auto importer = ::Assimp::Importer{};
         auto *scene = importer.ReadFileFromMemory(
             model_data.data(),
             model_data.size(),
-            ::aiPostProcessSteps::aiProcess_Triangulate | ::aiPostProcessSteps::aiProcess_FlipUVs | ::aiPostProcessSteps::aiProcess_CalcTangentSpace,
+            flags,
             format.c_str());
 
         ensure(scene != nullptr, "failed to parse assimp scene");
@@ -332,11 +339,23 @@ namespace ufps
             const auto albedo_filename =
                 diffuse_color_count > 0 ? get_texture_file_name(material, ::aiTextureType_DIFFUSE) : get_texture_file_name(material, ::aiTextureType_BASE_COLOR);
 
-            const auto normal_filename = get_texture_file_name(material, ::aiTextureType_NORMAL_CAMERA);
-            const auto specular_filename = get_texture_file_name(material, ::aiTextureType_METALNESS);
-            const auto roughness_filename = get_texture_file_name(material, ::aiTextureType_DIFFUSE_ROUGHNESS);
-            const auto ao_filename = get_texture_file_name(material, ::aiTextureType_AMBIENT_OCCLUSION);
-            const auto emissive_filename = get_texture_file_name(material, ::aiTextureType_EMISSION_COLOR);
+            auto normal_filename = get_texture_file_name(material, ::aiTextureType_NORMAL_CAMERA);
+            if (!normal_filename)
+            {
+                normal_filename = get_texture_file_name(material, ::aiTextureType_NORMALS);
+            }
+            auto specular_filename = get_texture_file_name(material, ::aiTextureType_METALNESS);
+            if (!specular_filename)
+            {
+                specular_filename = get_texture_file_name(material, ::aiTextureType_SHININESS);
+            }
+            auto roughness_filename = get_texture_file_name(material, ::aiTextureType_DIFFUSE_ROUGHNESS);
+            auto ao_filename = get_texture_file_name(material, ::aiTextureType_AMBIENT_OCCLUSION);
+            auto emissive_filename = get_texture_file_name(material, ::aiTextureType_EMISSION_COLOR);
+            if (!emissive_filename)
+            {
+                emissive_filename = get_texture_file_name(material, ::aiTextureType_EMISSIVE);
+            }
 
             auto opacity = 1.0f;
             if (material->Get(AI_MATKEY_OPACITY, opacity) != AI_SUCCESS)
