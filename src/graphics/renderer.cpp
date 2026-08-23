@@ -272,8 +272,9 @@ namespace ufps
         return ufps::Program{comp_shader, program_name};
     }
 
-    auto Renderer::render(Scene &scene, CameraHandle handle) -> void
+    auto Renderer::render(Scene &scene) -> void
     {
+        const auto handle = service<CameraHandle>();
         const auto camera = service<CameraManager>()[handle];
         contract_assert(camera);
 

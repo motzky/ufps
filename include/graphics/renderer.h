@@ -36,7 +36,7 @@ namespace ufps
         Renderer(const Window &window, ResourceLoader &resource_loader);
         virtual ~Renderer() = default;
 
-        auto render(Scene &scene, CameraHandle handle) -> void;
+        auto render(Scene &scene) -> void;
 
     protected:
         static auto create_program(

@@ -546,6 +546,7 @@ auto start(int argc, char **argv) -> int
                             show_debug_ui = !show_debug_ui;
                             renderer.set_enabled(show_debug_ui);
                             current_actor = show_debug_ui ? static_cast<ufps::Actor *>(std::addressof(flycam_actor)) : std::addressof(player_actor);
+                            ufps::service<ufps::CameraHandle>() = current_actor->camera();
                         }
 
                         input_map.set(arg);
@@ -579,7 +580,7 @@ auto start(int argc, char **argv) -> int
         awaitable.pump();
         pool.drain();
 
-        renderer.render(scene, current_actor->camera());
+        renderer.render(scene);
 
         window.swap();
     }

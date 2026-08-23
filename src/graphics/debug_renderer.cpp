@@ -1322,6 +1322,11 @@ namespace ufps
                         service<CameraHandle>() = *selected_camera;
                     }
 
+                    auto fov = camera->fov();
+                    if (::ImGui::SliderFloat("fov", &fov, 0.6f, 1.1f))
+                    {
+                        camera->set_fov(fov);
+                    }
 
                     const auto transforms = std::array<Matrix4, 3u>{
                         camera->transform(),
