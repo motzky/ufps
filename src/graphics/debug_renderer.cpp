@@ -1249,6 +1249,10 @@ namespace ufps
                         }
                         else
                         {
+                            if (::ImGui::Button("Look through"))
+                            {
+                                service<CameraHandle>() = camera_handle;
+                            }
                             if (::ImGui::Button("Select"))
                             {
                                 _selected = camera_handle;
@@ -1312,6 +1316,12 @@ namespace ufps
                 else if (auto *selected_camera = std::get_if<CameraHandle>(&_selected))
                 {
                     auto camera = cm[*selected_camera];
+
+                    if (::ImGui::Button("Look through"))
+                    {
+                        service<CameraHandle>() = *selected_camera;
+                    }
+
 
                     const auto transforms = std::array<Matrix4, 3u>{
                         camera->transform(),

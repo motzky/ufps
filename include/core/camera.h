@@ -70,6 +70,7 @@ namespace ufps
         constexpr auto local_transform() const -> const Transform &;
 
         constexpr auto fov() const -> float;
+        constexpr auto set_fov(float fov) -> void;
         constexpr auto width() const -> float;
         constexpr auto height() const -> float;
         constexpr auto near_plane() const -> float;
@@ -191,6 +192,12 @@ namespace ufps
     constexpr auto Camera::fov() const -> float
     {
         return _fov;
+    }
+
+    constexpr auto Camera::set_fov(float fov) -> void
+    {
+        _fov = fov;
+        _data.projection = Matrix4::perspective(fov, _width, _height, _near_plane, _far_plane);
     }
 
     constexpr auto Camera::width() const -> float
