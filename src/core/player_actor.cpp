@@ -59,6 +59,7 @@ namespace ufps
           _input_map{input_map},
           _character_controller{character_controller}
     {
+        service<CameraHandle>() = _camera;
     }
 
     auto PlayerActor::update() -> void

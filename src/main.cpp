@@ -457,7 +457,8 @@ auto start(int argc, char **argv) -> int
         std::make_unique<ufps::RenderEntityManager>(),
         std::make_unique<ufps::EntityManager>(),
         std::make_unique<ufps::LightManager>(),
-        std::make_unique<ufps::CameraManager>());
+        std::make_unique<ufps::CameraManager>(),
+        ufps::CameraHandle{});
 
     ufps::set_services(services.get());
 
