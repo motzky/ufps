@@ -1311,6 +1311,8 @@ namespace ufps
                                 _selected = new_light;
                             }
                         }
+
+                        ::ImGui::PopID();
                     }
                 }
                 else if (auto *selected_light = std::get_if<LightHandle>(&_selected))
