@@ -114,6 +114,8 @@ namespace ufps
 
         constexpr auto entities() const -> std::span<const EntityHandle>;
 
+        constexpr auto gun() const -> EntityHandle;
+
         constexpr auto &ambient_light(this auto &&self);
 
         constexpr auto &tone_map_options(this auto &&self);
@@ -131,6 +133,7 @@ namespace ufps
 
     private:
         std::vector<EntityHandle> _entities;
+        EntityHandle _gun;
         Color _ambient;
         ToneMapOptions _tone_map_options;
         SSAOOptions _ssao_options;
@@ -202,6 +205,7 @@ namespace ufps
 
     constexpr Scene::Scene(const Description &description)
         : _entities{},
+          _gun{},
           _ambient{description.ambient},
           _tone_map_options{description.tone_map_options},
           _ssao_options{description.ssao_options},
@@ -247,7 +251,14 @@ namespace ufps
                 new_entity->set_camera(camera_handle);
             }
 
-            add(new_entity_handle);
+            if (new_entity->name() == "gun")
+            {
+                _gun = new_entity_handle;
+            }
+            else
+            {
+                add(new_entity_handle);
+            }
             lookup[entity_description.name] = new_entity_handle;
         }
 
@@ -273,6 +284,11 @@ namespace ufps
     constexpr auto Scene::entities() const -> std::span<const EntityHandle>
     {
         return _entities;
+    }
+
+    constexpr auto Scene::gun() const -> EntityHandle
+    {
+        return _gun;
     }
 
     constexpr auto &Scene::ambient_light(this auto &&self)
