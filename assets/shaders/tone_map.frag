@@ -24,7 +24,7 @@ layout(bindless_sampler, location = 8) uniform sampler2D ssao_texture;
 layout(bindless_sampler, location = 9) uniform sampler2D depth_texture;
 layout(location = 10) uniform vec3 fog_color;
 layout(location = 11) uniform float fog_density;
-
+layout(bindless_sampler, location = 12) uniform sampler2D normal_texture;
 
 layout(location = 0) in vec2 uv;
 
@@ -121,8 +121,12 @@ void main()
     Yxz.x /= (9.6 * average + 0.0001);
     float occlusion = texture(ssao_texture, uv).r;
 
+    float ssao_scale = texture(normal_texture, uv).w;
+
     vec3 in_color = convertYxy2RGB(Yxz);
-    in_color = fog(depth, in_color * occlusion);
+
+    in_color *= max(occlusion, (1.0 - ssao_scale));
+    in_color = fog(depth, in_color);
 
     vec3 tone_mapped_color = uchimura(in_color, in_P, in_a, in_m, in_l, in_c, in_b);
     

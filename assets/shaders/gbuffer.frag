@@ -22,6 +22,8 @@ layout(location = 4) out vec4 out_roughness;
 layout(location = 5) out vec4 out_ao;
 layout(location = 6) out vec4 out_emissive_color;
 
+layout(location = 0) uniform float u_mask;
+
 void main()
 {
     vec3 nm = vec3(0.0, 0.0, 1.0);
@@ -47,7 +49,8 @@ void main()
 
     out_color = vec4(albedo.rgb, o);
 
-    out_normal = vec4(n, 1.0);
+    out_normal = vec4(n, u_mask);
+
     out_pos = frag_position;
     if(specular_bindless_handle.x < 65535)
     {

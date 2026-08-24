@@ -60,11 +60,13 @@ namespace ufps
         CommandBuffer _command_buffer;
         CommandBuffer _forward_transparancy_command_buffer;
         CommandBuffer _post_processing_command_buffer;
+        CommandBuffer _gun_command_buffer;
         Entity _post_process_sprite;
         MultiBuffer<PersistentBuffer> _camera_buffer;
         MultiBuffer<PersistentBuffer> _light_buffer;
         MultiBuffer<PersistentBuffer> _object_data_buffer;
         MultiBuffer<PersistentBuffer> _transparent_object_data_buffer;
+        MultiBuffer<PersistentBuffer> _gun_object_data_buffer;
         Buffer _luminance_histogram_buffer;
         Buffer _average_luminance_buffer;
         Buffer _ssao_samples_buffer;
@@ -97,7 +99,9 @@ namespace ufps
 
     private:
         auto execute_gbuffer_pass(Scene &scene) -> void;
+        auto execute_gun_gbuffer_pass(Scene &scene) -> void;
         auto execute_lighting_pass(Scene &scene) -> void;
+        auto execute_gun_lighting_pass(Scene &scene) -> void;
         auto execute_bloom_pass(Scene &scene) -> void;
         auto execute_forward_transparancy_pass(Scene &scene) -> void;
         auto execute_luminance_histogram_pass(Scene &scene) -> void;
