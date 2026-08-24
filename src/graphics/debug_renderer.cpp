@@ -394,8 +394,8 @@ namespace ufps
         draw_inspector(scene);
         draw_gizmo(camera);
 
-        static auto first = false;
-        if (!first)
+        static auto first = true;
+        if (first)
         {
             ::ImGui::SetWindowFocus("Render Targets");
             ::ImGui::SetWindowFocus("Scene");
