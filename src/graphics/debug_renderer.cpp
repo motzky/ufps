@@ -23,6 +23,7 @@
 #include "core/service_locator.h"
 #include "events/key.h"
 #include "events/mouse_button_event.h"
+#include "graphics/debug_layer.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/point_light.h"
 #include "graphics/texture_manager.h"
@@ -183,14 +184,6 @@ namespace ufps
           _snap_enabled{false},
           _click{},
           _selected{std::monostate{}},
-          _debug_lines{},
-          _debug_line_buffer{sizeof(LineData) * 2u, "line_data_buffer"},
-          _debug_line_program{create_program(resource_loader,
-                                             "debug_lines_program",
-                                             "shaders/line.vert",
-                                             "line_vertex_shader",
-                                             "shaders/line.frag",
-                                             "line_fragment_shader")},
           _debug_light_program{create_program(resource_loader,
                                               "debug_light_program",
                                               "shaders/debug_light.vert",
@@ -217,7 +210,14 @@ namespace ufps
 
     auto DebugRenderer::post_render(Scene &scene, const Camera &camera) -> void
     {
-        auto &&[em, rem, mm, lm, ps, cm] = services<EntityManager, RenderEntityManager, MeshManager, LightManager, PhysicsSystem, CameraManager>();
+        auto &&[em, rem, mm, lm, ps, cm, dl] = services<
+            EntityManager,
+            RenderEntityManager,
+            MeshManager,
+            LightManager,
+            PhysicsSystem,
+            CameraManager,
+            DebugLayer>();
 
         if (std::holds_alternative<EntityHandle>(_selected))
         {
@@ -265,19 +265,6 @@ namespace ufps
         }
 
         _light_pass_rt.fb.unbind();
-        ::glBlitNamedFramebuffer(
-            _gbuffer_rt.fb.native_handle(),
-            0,
-            0u,
-            0u,
-            _gbuffer_rt.fb.width(),
-            _gbuffer_rt.fb.height(),
-            0u,
-            0u,
-            _gbuffer_rt.fb.width(),
-            _gbuffer_rt.fb.height(),
-            GL_DEPTH_BUFFER_BIT,
-            GL_NEAREST);
 
         _debug_light_program.bind();
 
@@ -350,18 +337,14 @@ namespace ufps
 
         _debug_light_program.unbind();
 
-        auto &&physics_debug_renderer = ps.debug_renderer();
-        if (physics_debug_renderer)
+        auto debug_layer_lines = dl.yield_lines(DebugLayerType::DEBUG);
+        while (!std::ranges::empty(debug_layer_lines))
         {
-            _debug_lines.append_range(physics_debug_renderer->yield_lines());
+            _debug_lines.push_back(debug_layer_lines.front());
+            debug_layer_lines.pop();
         }
 
-        if (_debug_lines.size() > 10 * 1000 * 1000)
-        {
-            _debug_lines.clear();
-        }
-
-        if (!_debug_lines.empty())
+        if (!std::ranges::empty(debug_layer_lines) && debug_layer_lines.size() <= 10 * 1000 * 1000)
         {
             _debug_line_program.bind();
 
@@ -372,10 +355,9 @@ namespace ufps
 
             ::glDrawArrays(GL_LINES, 0, _debug_lines.size());
 
-            _debug_line_program.unbind();
-
             _debug_lines.clear();
-            _debug_line_buffer.advance();
+
+            _debug_line_program.unbind();
         }
 
         auto &io = ::ImGui::GetIO();

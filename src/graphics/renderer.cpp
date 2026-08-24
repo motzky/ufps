@@ -14,6 +14,7 @@
 #include "core/scene.h"
 #include "graphics/buffer_writer.h"
 #include "graphics/command_buffer.h"
+#include "graphics/debug_layer.h"
 #include "graphics/mesh_manager.h"
 #include "graphics/object_data.h"
 #include "graphics/opengl.h"
@@ -200,7 +201,15 @@ namespace ufps
           _bloom_mips{},
           _bloom_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "bloom")},
           _final_fb{},
-          _enable_post_processing{true}
+          _enable_post_processing{true},
+          _debug_lines{},
+          _debug_line_buffer{sizeof(LineData) * 2u, "line_data_buffer"},
+          _debug_line_program{create_program(resource_loader,
+                                             "debug_lines_program",
+                                             "shaders/line.vert",
+                                             "line_vertex_shader",
+                                             "shaders/line.frag",
+                                             "line_fragment_shader")}
     {
         _post_processing_command_buffer.build(_post_process_sprite);
 
@@ -341,6 +350,44 @@ namespace ufps
             _final_fb->height(),
             GL_COLOR_BUFFER_BIT,
             GL_NEAREST);
+
+        ::glBlitNamedFramebuffer(
+            _gbuffer_rt.fb.native_handle(),
+            0,
+            0u,
+            0u,
+            _gbuffer_rt.fb.width(),
+            _gbuffer_rt.fb.height(),
+            0u,
+            0u,
+            _gbuffer_rt.fb.width(),
+            _gbuffer_rt.fb.height(),
+            GL_DEPTH_BUFFER_BIT,
+            GL_NEAREST);
+
+        auto &dl = service<DebugLayer>();
+
+        auto debug_layer_lines = dl.yield_lines(DebugLayerType::DEFAULT);
+        while (!std::ranges::empty(debug_layer_lines))
+        {
+            _debug_lines.push_back(debug_layer_lines.front());
+            debug_layer_lines.pop();
+        }
+
+        if (!std::ranges::empty(_debug_lines))
+        {
+            _debug_line_program.bind();
+
+            resize_gpu_buffer(_debug_lines, _debug_line_buffer);
+            _debug_line_buffer.write(std::as_bytes(std::span{_debug_lines.data(), _debug_lines.size()}), 0zu);
+            ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _debug_line_buffer.native_handle());
+            ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
+            ::glDrawArrays(GL_LINES, 0, _debug_lines.size());
+
+            _debug_lines.clear();
+
+            _debug_line_program.unbind();
+        }
     }
 
     auto Renderer::execute_gbuffer_pass(Scene &scene) -> void

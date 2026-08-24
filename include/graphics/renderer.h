@@ -6,6 +6,7 @@
 #include "core/scene.h"
 #include "graphics/command_buffer.h"
 #include "graphics/frame_buffer.h"
+#include "graphics/line_data.h"
 #include "graphics/multi_buffer.h"
 #include "graphics/opengl.h"
 #include "graphics/persistent_buffer.h"
@@ -96,6 +97,9 @@ namespace ufps
         RenderTarget _bloom_rt;
         FrameBuffer *_final_fb;
         bool _enable_post_processing;
+        std::vector<LineData> _debug_lines;
+        MultiBuffer<PersistentBuffer> _debug_line_buffer;
+        Program _debug_line_program;
 
     private:
         auto execute_gbuffer_pass(Scene &scene) -> void;

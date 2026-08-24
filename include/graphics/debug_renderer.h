@@ -46,9 +46,6 @@ namespace ufps
         bool _snap_enabled;
         std::optional<MouseButtonEvent> _click;
         std::variant<std::monostate, EntityHandle, LightHandle, RigidBodyHandle, CameraHandle> _selected;
-        std::vector<LineData> _debug_lines;
-        MultiBuffer<PersistentBuffer> _debug_line_buffer;
-        Program _debug_line_program;
         Program _debug_light_program;
         RenderEntityHandle _highlight_render_entity;
         EntityHandle _highlight_entity;
