@@ -72,7 +72,7 @@ Description:
         linear_attenuation: 0.313
         quadratic_attenuation: 0.157
         specular_power: 32
-        intensity: 6.8011227
+        intensity: 6.7547884
     - PointLight:
         position:
           Vector3:
@@ -157,9 +157,9 @@ Description:
           Transform:
             position:
               Vector3:
-                x: 0.25030336
+                x: 1.3432078
                 y: 2
-                z: 13.231616
+                z: -1.9678961
             scale:
               Vector3:
                 x: 1
@@ -167,10 +167,10 @@ Description:
                 z: 1
             rotation:
               Quaternion:
-                x: 0.0012985623
-                y: -0.99811655
-                z: 0.056954335
-                w: 0.022757119
+                x: -0.12332099
+                y: 0.25481662
+                z: -0.032783676
+                w: -0.9585331
         aabb:
           AABB:
             min:
@@ -192,20 +192,20 @@ Description:
                 Transform:
                   position:
                     Vector3:
-                      x: 0
-                      y: 0
-                      z: 0
+                      x: 1.3432078
+                      y: 2
+                      z: -1.9678961
                   scale:
                     Vector3:
                       x: 1
-                      y: 1
+                      y: 0.9999999
                       z: 1
                   rotation:
                     Quaternion:
-                      x: 0
-                      y: 0
-                      z: 0
-                      w: 1
+                      x: 0.123321004
+                      y: -0.25481662
+                      z: 0.032783676
+                      w: 0.9585331
               fov: 0.7853982
               width: 3840
               height: 2160
@@ -228,10 +228,10 @@ Description:
                 z: 1
             rotation:
               Quaternion:
-                x: 0.001999599
-                y: -0.019998629
-                z: 3.9997314e-05
-                w: 0.99979806
+                x: -0.001630576
+                y: 0.99820745
+                z: -0.032336064
+                w: -0.050335538
         aabb:
           AABB:
             min:
@@ -255,19 +255,19 @@ Description:
                   position:
                     Vector3:
                       x: 0
-                      y: 0
+                      y: 2
                       z: 0
                   scale:
                     Vector3:
-                      x: 1
+                      x: 1.0000002
                       y: 1
-                      z: 1
+                      z: 1.0000002
                   rotation:
                     Quaternion:
-                      x: 0
-                      y: 0
-                      z: 0
-                      w: 1
+                      x: -0.001630576
+                      y: 0.99820745
+                      z: -0.032336064
+                      w: -0.050335526
               fov: 0.7853982
               width: 1920
               height: 1080
@@ -290,9 +290,9 @@ Description:
                 z: 0.007636256
             rotation:
               Quaternion:
-                x: 0.05
+                x: 0.04
                 y: 0.72
-                z: 0.0
+                z: 0.06
                 w: 0.69
         aabb:
           AABB:
@@ -862,14 +862,14 @@ Description:
           AABB:
             min:
               Vector3:
-                x: -3.327793
-                y: -0.1192618
+                x: -4.093223
+                y: -0.38264126
                 z: -8
             max:
               Vector3:
-                x: 4.081047
-                y: 4.279462
-                z: 3.7758843e-17
+                x: 4.104806
+                y: 4.4271092
+                z: 4.7683716e-07
         rigid_bodies: ~
         render_entities:
           - SM_Corridor019_06_08_B.fbx
