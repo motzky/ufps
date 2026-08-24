@@ -1,13 +1,13 @@
 Description:
   tone_map_options:
     ToneMapOptions:
-      max_brightness: 10.434
+      max_brightness: 56.611
       contrast: 1.425
-      linear_section_start: 0.347
-      linear_section_length: 0.475
+      linear_section_start: 0.297
+      linear_section_length: 0.45
       black_tightness: 1.344
       pedestal: 0
-      gamma: 1.941
+      gamma: 2.216
   ssao_options:
     SSAOOptions:
       enabled: true
@@ -17,8 +17,8 @@ Description:
       power: 1.495
   exposure_options:
     ExposureOptions:
-      min_log_luminance: -1.849
-      max_log_luminance: -1.576
+      min_log_luminance: -1.208
+      max_log_luminance: 3.264
       tau: 3.087
   fog_options:
     FogOptions:
@@ -41,7 +41,7 @@ Description:
           r: 0
           g: 0
           b: 0
-      strength: 0.573
+      strength: 0.509
       feather: 0.223
   film_grain_options:
     FilmGrainOptions:
@@ -53,58 +53,9 @@ Description:
       threshold: 0.488
   ambient:
     Color:
-      r: 0.3604061
-      g: 0.35857663
-      b: 0.35857663
-  lights:
-    - PointLight:
-        position:
-          Vector3:
-            x: 0.8988724
-            y: 1.7710187
-            z: 0
-        color:
-          Color:
-            r: 1
-            g: 0
-            b: 0
-        constant_attenuation: 1
-        linear_attenuation: 0.313
-        quadratic_attenuation: 0.157
-        specular_power: 32
-        intensity: 6.7547884
-    - PointLight:
-        position:
-          Vector3:
-            x: 16.71976
-            y: 5.315446
-            z: -0.76703924
-        color:
-          Color:
-            r: 1
-            g: 1
-            b: 1
-        constant_attenuation: 1
-        linear_attenuation: 0.36
-        quadratic_attenuation: 0.275
-        specular_power: 32
-        intensity: 0.66
-    - PointLight:
-        position:
-          Vector3:
-            x: -6.3984504
-            y: 2.5874157
-            z: -50.03749
-        color:
-          Color:
-            r: 1
-            g: 1
-            b: 1
-        constant_attenuation: 1
-        linear_attenuation: 0.36
-        quadratic_attenuation: 0.392
-        specular_power: 32
-        intensity: 15
+      r: 0.492163
+      g: 0.47827753
+      b: 0.47827753
   entities:
     - Description:
         name: level
@@ -149,7 +100,9 @@ Description:
           - north_corridor_6
           - big_room_0
           - north_corridor_7
+          - level_child_0
         camera: ~
+        light: ~
     - Description:
         name: flycam
         emissive_strength: 1
@@ -192,25 +145,26 @@ Description:
                 Transform:
                   position:
                     Vector3:
-                      x: 1.3432078
-                      y: 2
-                      z: -1.9678961
+                      x: 0
+                      y: 0
+                      z: 0
                   scale:
                     Vector3:
                       x: 1
-                      y: 0.9999999
+                      y: 1
                       z: 1
                   rotation:
                     Quaternion:
-                      x: 0.123321004
-                      y: -0.25481662
-                      z: 0.032783676
-                      w: 0.9585331
+                      x: 0
+                      y: 0
+                      z: 0
+                      w: 1
               fov: 0.7853982
               width: 3840
               height: 2160
               near_plane: 0.1
               far_plane: 1000
+        light: ~
     - Description:
         name: player
         emissive_strength: 1
@@ -218,9 +172,9 @@ Description:
           Transform:
             position:
               Vector3:
-                x: 0
-                y: 2
-                z: 0
+                x: -0.6115605
+                y: 1.8277693
+                z: 2.0590892
             scale:
               Vector3:
                 x: 1
@@ -228,10 +182,10 @@ Description:
                 z: 1
             rotation:
               Quaternion:
-                x: -0.001630576
-                y: 0.99820745
-                z: -0.032336064
-                w: -0.050335538
+                x: -0.0014275977
+                y: 0.9985405
+                z: -0.041963935
+                w: -0.033969983
         aabb:
           AABB:
             min:
@@ -255,62 +209,25 @@ Description:
                   position:
                     Vector3:
                       x: 0
-                      y: 2
+                      y: 0
                       z: 0
                   scale:
                     Vector3:
-                      x: 1.0000002
+                      x: 1
                       y: 1
-                      z: 1.0000002
+                      z: 1
                   rotation:
                     Quaternion:
-                      x: -0.001630576
-                      y: 0.99820745
-                      z: -0.032336064
-                      w: -0.050335526
+                      x: 0
+                      y: 0
+                      z: 0
+                      w: 1
               fov: 0.7853982
               width: 1920
               height: 1080
               near_plane: 0.1
               far_plane: 1000
-    - Description:
-        name: gun
-        emissive_strength: 1
-        transform:
-          Transform:
-            position:
-              Vector3:
-                x: -0.3517456
-                y: -0.21345997
-                z: 0.6670682
-            scale:
-              Vector3:
-                x: 0.0075807797
-                y: 0.00704042
-                z: 0.007636256
-            rotation:
-              Quaternion:
-                x: 0.04
-                y: 0.72
-                z: 0.06
-                w: 0.69
-        aabb:
-          AABB:
-            min:
-              Vector3:
-                x: -0.053433396
-                y: -0.5502794
-                z: -0.14810744
-            max:
-              Vector3:
-                x: 0.053433403
-                y: 0.41483355
-                z: 0.19927938
-        rigid_bodies: ~
-        render_entities:
-          - SciFiRifle01_1.fbx
-        children: ~
-        camera: ~
+        light: ~
     - Description:
         name: world_colliders
         emissive_strength: 1
@@ -601,6 +518,7 @@ Description:
         render_entities: ~
         children: ~
         camera: ~
+        light: ~
     - Description:
         name: north_corridor_0
         emissive_strength: 1
@@ -637,8 +555,10 @@ Description:
         rigid_bodies: ~
         render_entities:
           - SM_Corridor009_06_08_B.fbx
-        children: ~
+        children:
+          - north_corridor_0_alert_light
         camera: ~
+        light: ~
     - Description:
         name: north_corridor_1
         emissive_strength: 1
@@ -677,6 +597,7 @@ Description:
           - SM_Corridor053_08_08_A.fbx
         children: ~
         camera: ~
+        light: ~
     - Description:
         name: north_corridor_3
         emissive_strength: 1
@@ -715,6 +636,7 @@ Description:
           - SM_Corridor051_02_04_A.fbx
         children: ~
         camera: ~
+        light: ~
     - Description:
         name: north_corridor_6
         emissive_strength: 1
@@ -751,8 +673,10 @@ Description:
         rigid_bodies: ~
         render_entities:
           - SM_Corner05_8_8_A_L.fbx
-        children: ~
+        children:
+          - north_corridor_6_child_1
         camera: ~
+        light: ~
     - Description:
         name: big_room_0
         emissive_strength: 1
@@ -799,6 +723,7 @@ Description:
           - big_room_0_child_11
           - big_room_0_child_0
         camera: ~
+        light: ~
     - Description:
         name: big_room_0_child_1
         emissive_strength: 1
@@ -837,6 +762,7 @@ Description:
           - SM_FloorPanel10_07_04.fbx
         children: ~
         camera: ~
+        light: ~
     - Description:
         name: north_corridor_7
         emissive_strength: 1
@@ -862,19 +788,20 @@ Description:
           AABB:
             min:
               Vector3:
-                x: -4.093223
-                y: -0.38264126
+                x: -3.327793
+                y: -0.1192618
                 z: -8
             max:
               Vector3:
-                x: 4.104806
-                y: 4.4271092
-                z: 4.7683716e-07
+                x: 4.081047
+                y: 4.279462
+                z: 3.7758843e-17
         rigid_bodies: ~
         render_entities:
           - SM_Corridor019_06_08_B.fbx
         children: ~
         camera: ~
+        light: ~
     - Description:
         name: big_room_0_child_2
         emissive_strength: 1
@@ -913,6 +840,7 @@ Description:
           - SM_CorridorEnd11_E.fbx
         children: ~
         camera: ~
+        light: ~
     - Description:
         name: big_room_0_child_4
         emissive_strength: 1
@@ -951,6 +879,7 @@ Description:
           - SM_Corridor033_12_06_Bottom_B.fbx
         children: ~
         camera: ~
+        light: ~
     - Description:
         name: big_room_0_child_5
         emissive_strength: 1
@@ -989,6 +918,7 @@ Description:
           - SM_Corridor042_12_06_Bottom_B.fbx
         children: ~
         camera: ~
+        light: ~
     - Description:
         name: big_room_0_child_6
         emissive_strength: 1
@@ -1027,6 +957,7 @@ Description:
           - SM_Corridor038_12_06_Bottom_B.fbx
         children: ~
         camera: ~
+        light: ~
     - Description:
         name: big_room_0_child_8
         emissive_strength: 1
@@ -1065,6 +996,7 @@ Description:
           - SM_CorridorEnd08_E.fbx
         children: ~
         camera: ~
+        light: ~
     - Description:
         name: big_room_0_child_9
         emissive_strength: 1
@@ -1103,6 +1035,7 @@ Description:
           - SM_Corridor037_12_06_Top_B_04.fbx
         children: ~
         camera: ~
+        light: ~
     - Description:
         name: big_room_0_child_10
         emissive_strength: 1
@@ -1141,6 +1074,7 @@ Description:
           - SM_Corridor041_12_06_Top_B_04.fbx
         children: ~
         camera: ~
+        light: ~
     - Description:
         name: big_room_0_child_11
         emissive_strength: 1
@@ -1179,6 +1113,7 @@ Description:
           - SM_Corridor037_12_06_Top_B_04.fbx
         children: ~
         camera: ~
+        light: ~
     - Description:
         name: big_room_0_child_0
         emissive_strength: 1
@@ -1217,3 +1152,208 @@ Description:
           - SM_Corridor033_12_06_Bottom_B.fbx
         children: ~
         camera: ~
+        light: ~
+    - Description:
+        name: north_corridor_0_alert_light
+        emissive_strength: 6.8772388
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 0.004521206
+                y: 2.8045137
+                z: -8.015027
+            scale:
+              Vector3:
+                x: 1
+                y: 0.99991477
+                z: 0.99991477
+            rotation:
+              Quaternion:
+                x: 0.7071081
+                y: 0
+                z: 0
+                w: 0.70710546
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -0.1610424
+                y: -0.0015348047
+                z: -0.16104239
+            max:
+              Vector3:
+                x: 0.1610424
+                y: 0.1168893
+                z: 0.1610424
+        rigid_bodies: ~
+        render_entities:
+          - SM_Light001.fbx
+        children: ~
+        camera: ~
+        light:
+          - PointLight:
+              position:
+                Vector3:
+                  x: 0.014306426
+                  y: 2.7934303
+                  z: -13.647933
+              color:
+                Color:
+                  r: 1
+                  g: 0
+                  b: 0
+              constant_attenuation: 1.027
+              linear_attenuation: 1.692
+              quadratic_attenuation: 1.319
+              specular_power: 32
+              intensity: 6.8772388
+    - Description:
+        name: level_child_0
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 0
+                y: 3
+                z: 0
+            scale:
+              Vector3:
+                x: 1
+                y: 1.0000064
+                z: 1.0000064
+            rotation:
+              Quaternion:
+                x: 1
+                y: 0
+                z: 0
+                w: 7.646109e-07
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -0.14849532
+                y: -5.9604645e-08
+                z: -0.14849532
+            max:
+              Vector3:
+                x: 0.14849532
+                y: 0.082634404
+                z: 0.14849532
+        rigid_bodies: ~
+        render_entities:
+          - SM_Light002.fbx
+        children: ~
+        camera: ~
+        light:
+          - PointLight:
+              position:
+                Vector3:
+                  x: 0
+                  y: 2.7451131
+                  z: 2
+              color:
+                Color:
+                  r: 1
+                  g: 1
+                  b: 1
+              constant_attenuation: 1
+              linear_attenuation: 0.313
+              quadratic_attenuation: 0.157
+              specular_power: 32
+              intensity: 1
+    - Description:
+        name: north_corridor_6_child_1
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: 0.003768921
+                y: 2.5531824
+                z: -7.9999285
+            scale:
+              Vector3:
+                x: 1
+                y: 1
+                z: 1
+            rotation:
+              Quaternion:
+                x: 0
+                y: 2.910383e-11
+                z: 0
+                w: 1
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -0.10690127
+                y: -0.00031403266
+                z: -0.10690127
+            max:
+              Vector3:
+                x: 0.10690127
+                y: 1.1233655
+                z: 0.10690127
+        rigid_bodies: ~
+        render_entities:
+          - SM_Light003.fbx
+        children: ~
+        camera: ~
+        light:
+          - PointLight:
+              position:
+                Vector3:
+                  x: -17.002941
+                  y: 2.5381918
+                  z: -19.00426
+              color:
+                Color:
+                  r: 1
+                  g: 1
+                  b: 1
+              constant_attenuation: 1
+              linear_attenuation: 0.313
+              quadratic_attenuation: 0.157
+              specular_power: 32
+              intensity: 0.617
+    - Description:
+        name: gun
+        emissive_strength: 1
+        transform:
+          Transform:
+            position:
+              Vector3:
+                x: -0.3517456
+                y: -0.21345997
+                z: 0.6670682
+            scale:
+              Vector3:
+                x: 0.0075807797
+                y: 0.00704042
+                z: 0.007636256
+            rotation:
+              Quaternion:
+                x: 0.04
+                y: 0.72
+                z: 0.06
+                w: 0.69
+        aabb:
+          AABB:
+            min:
+              Vector3:
+                x: -0.053433396
+                y: -0.5502794
+                z: -0.14810744
+            max:
+              Vector3:
+                x: 0.053433403
+                y: 0.41483355
+                z: 0.19927938
+        rigid_bodies: ~
+        render_entities:
+          - SciFiRifle01_1.fbx
+        children: ~
+        camera: ~
+        light: ~
