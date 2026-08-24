@@ -374,6 +374,9 @@ namespace ufps
             debug_layer_lines.pop();
         }
 
+        static auto c = int{};
+        log::debug("rendering {} lines [{}]", std::ranges::size(_debug_lines), c++);
+
         if (!std::ranges::empty(_debug_lines))
         {
             _debug_line_program.bind();

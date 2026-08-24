@@ -210,6 +210,14 @@ namespace ufps
 
     auto DebugRenderer::post_render(Scene &scene, const Camera &camera) -> void
     {
+        Renderer::post_render(scene, camera);
+
+        if (!_enabled)
+        {
+            _debug_lines.clear();
+            return;
+        }
+
         auto &&[em, rem, mm, lm, ps, cm, dl] = services<
             EntityManager,
             RenderEntityManager,
@@ -254,14 +262,6 @@ namespace ufps
             contract_assert(rb);
 
             _debug_lines.append_range(create_aabb_lines({.min = {-1.f}, .max = {1.f}}, rb->transform(), Color::magenta()));
-        }
-
-        Renderer::post_render(scene, camera);
-
-        if (!_enabled)
-        {
-            _debug_lines.clear();
-            return;
         }
 
         _light_pass_rt.fb.unbind();
