@@ -34,6 +34,7 @@
 #include "core/service_locator.h"
 #include "events/input_map.h"
 #include "graphics/command_buffer.h"
+#include "graphics/debug_layer.h"
 #include "graphics/debug_renderer.h"
 #include "graphics/mesh_data.h"
 #include "graphics/mesh_manager.h"
@@ -466,7 +467,8 @@ auto start(int argc, char **argv) -> int
         std::make_unique<ufps::EntityManager>(),
         std::make_unique<ufps::LightManager>(),
         std::make_unique<ufps::CameraManager>(),
-        ufps::CameraHandle{});
+        ufps::CameraHandle{},
+        std::make_unique<ufps::DebugLayer>());
 
     ufps::set_services(services.get());
 
