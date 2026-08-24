@@ -36,6 +36,10 @@ namespace ufps
             }
 
             ufps::log::info("growing {} buffer {} -> {}", gpu_buffer.name(), gpu_buffer.size(), new_size);
+            if (new_size > 1024 * 1024 * 10)
+            {
+                log::debug(">10 MB for {} entries", cpu_buffer.size());
+            }
             // opengl barrier in case gpu using previous frame
             ::glFinish();
 
