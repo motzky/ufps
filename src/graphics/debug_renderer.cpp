@@ -356,6 +356,11 @@ namespace ufps
             _debug_lines.append_range(physics_debug_renderer->yield_lines());
         }
 
+        if (_debug_lines.size() > 10 * 1000 * 1000)
+        {
+            _debug_lines.clear();
+        }
+
         if (!_debug_lines.empty())
         {
             _debug_line_program.bind();
@@ -1286,6 +1291,43 @@ namespace ufps
                             }
 
                             ::ImGui::PopStyleColor(3);
+                        }
+                    }
+
+                    {
+                        ::ImGui::Text("Light");
+
+                        ::ImGui::PushID("light");
+
+                        if (const auto light = entity->light(); light)
+                        {
+                            if (::ImGui::Button("Select"))
+                            {
+                                _selected = light;
+                            }
+
+                            ::ImGui::SameLine();
+
+                            ::ImGui::PushStyleColor(ImGuiCol_Button, ::ImVec4(0.8f, 0.15f, 0.15f, 1.0f));
+                            ::ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ::ImVec4(0.95f, 0.25f, 0.25f, 1.0f));
+                            ::ImGui::PushStyleColor(ImGuiCol_ButtonActive, ::ImVec4(0.65f, 0.1f, 0.1f, 1.0f));
+
+                            if (::ImGui::Button("Delete"))
+                            {
+                                entity->set_light({});
+                                lm.remove(light);
+                            }
+
+                            ::ImGui::PopStyleColor(3);
+                        }
+                        else
+                        {
+                            if (::ImGui::Button("Add"))
+                            {
+                                const auto new_light = lm.insert({entity->transform().position, Color::white(), 1.f, 0.313f, 0.157f, 32.f, 1.f});
+                                entity->set_light(new_light);
+                                _selected = new_light;
+                            }
                         }
                     }
                 }
