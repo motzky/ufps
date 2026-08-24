@@ -260,6 +260,7 @@ namespace ufps
 
         if (!_enabled)
         {
+            _debug_lines.clear();
             return;
         }
 
@@ -836,7 +837,7 @@ namespace ufps
         {
             ::ImGui::PushID("render_targets");
 
-            static constexpr auto width = 175.f;
+            static constexpr auto width = 150.f;
             const auto aspect_ratio = static_cast<float>(_window.width()) / static_cast<float>(_window.height());
 
             ::ImGui::Image(
@@ -874,13 +875,6 @@ namespace ufps
             ::ImGui::SameLine();
 
             ::ImGui::Image(
-                tm.texture(_gbuffer_rt.color_texture_bindless_handle_4)->native_handle(),
-                ::ImVec2(width * aspect_ratio, width),
-                ::ImVec2(0.f, 1.f),
-                ::ImVec2(1.f, 0.f));
-            ::ImGui::SameLine();
-
-            ::ImGui::Image(
                 tm.texture(_gbuffer_rt.color_texture_bindless_handle_5)->native_handle(),
                 ::ImVec2(width * aspect_ratio, width),
                 ::ImVec2(0.f, 1.f),
@@ -892,6 +886,13 @@ namespace ufps
                 ::ImVec2(width * aspect_ratio, width),
                 ::ImVec2(0.f, 1.f),
                 ::ImVec2(1.f, 0.f));
+
+            ::ImGui::Image(
+                tm.texture(_tone_map_rt.color_texture_bindless_handle_0)->native_handle(),
+                ::ImVec2(width * aspect_ratio, width),
+                ::ImVec2(0.f, 1.f),
+                ::ImVec2(1.f, 0.f));
+            ::ImGui::SameLine();
 
             ::ImGui::Image(
                 tm.texture(_ssao_blur_rt.color_texture_bindless_handle_0)->native_handle(),
