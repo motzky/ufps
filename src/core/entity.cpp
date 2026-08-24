@@ -4,6 +4,7 @@
 
 #include "core/camera_manager.h"
 #include "core/entity_manager.h"
+#include "core/light_manager.h"
 #include "core/service_locator.h"
 #include "math/transform.h"
 
@@ -13,6 +14,7 @@ namespace ufps
         : _name{std::move(name)},
           _render_entities{std::ranges::cbegin(render_entities), std::ranges::cend(render_entities)},
           _rigid_bodies{},
+          _light{},
           _local_transform{std::move(transform)},
           _parent_transform{{}, {1.f}, {}},
           _transform{_parent_transform * _local_transform},
@@ -92,6 +94,16 @@ namespace ufps
         return _rigid_bodies;
     }
 
+    auto Entity::light() const -> LightHandle
+    {
+        return _light;
+    }
+
+    auto Entity::set_light(LightHandle handle) -> void
+    {
+        _light = handle;
+    }
+
     auto Entity::set_parent_transform(const Transform &transform) -> void
     {
         update_transforms(_local_transform, transform);
@@ -104,7 +116,7 @@ namespace ufps
 
     auto Entity::description() const -> Description
     {
-        const auto &[em, rem, ps, cm] = services<EntityManager, RenderEntityManager, PhysicsSystem, CameraManager>();
+        const auto &[em, rem, ps, cm, lm] = services<EntityManager, RenderEntityManager, PhysicsSystem, CameraManager, LightManager>();
 
         auto render_entities = _render_entities |
                                std::views::filter([&](auto e)
@@ -118,6 +130,7 @@ namespace ufps
         render_entities.erase(first, last);
 
         const auto camera = cm[_camera];
+        const auto light = lm[_light];
 
         return {
             .name = _name,
@@ -142,12 +155,14 @@ namespace ufps
                                               { return std::string{e->name()}; }) |
                         std::ranges::to<std::vector>(),
             .camera = camera.transform([](const auto &e)
-                                       { return e.description(); })};
+                                       { return e.description(); }),
+            .light = light.transform([](const auto &e)
+                                     { return e; })};
     }
 
     auto Entity::set_transform(const Transform &transform) -> void
     {
-        auto &&[em, ps, cm] = services<EntityManager, PhysicsSystem, CameraManager>();
+        auto &&[em, ps, cm, lm] = services<EntityManager, PhysicsSystem, CameraManager, LightManager>();
 
         update_transforms(transform, _parent_transform);
 
@@ -173,6 +188,14 @@ namespace ufps
             contract_assert(camera);
 
             camera->set_parent_transform(_transform);
+        }
+
+        if (_light)
+        {
+            const auto light = lm[_light];
+            contract_assert(light);
+
+            light->position = _transform.position;
         }
     }
 

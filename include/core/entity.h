@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "core/camera_manager.h"
+#include "core/light_manager.h"
 #include "core/render_entity.h"
 #include "core/render_entity_manager.h"
 #include "core/service_locator.h"
@@ -33,6 +34,7 @@ namespace ufps
             std::vector<std::string> render_entities;
             std::vector<std::string> children;
             std::optional<Camera::Description> camera;
+            std::optional<PointLight> light;
         };
 
         Entity(std::string name, std::span<const RenderEntityHandle> render_entities, Transform transform);
@@ -68,6 +70,10 @@ namespace ufps
 
         auto rigid_bodies() const -> std::span<const RigidBodyHandle>;
 
+        auto light() const -> LightHandle;
+
+        auto set_light(LightHandle handle) -> void;
+
         auto add_child(EntityHandle child) -> void;
 
         auto children() -> std::span<const EntityHandle>;
@@ -82,6 +88,7 @@ namespace ufps
         std::string _name;
         std::vector<RenderEntityHandle> _render_entities;
         std::vector<RigidBodyHandle> _rigid_bodies;
+        LightHandle _light;
         Transform _local_transform;
         Transform _parent_transform;
         Transform _transform;

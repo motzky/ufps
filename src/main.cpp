@@ -22,6 +22,7 @@
 #include "config.h"
 #include "core/actor.h"
 #include "core/camera_manager.h"
+#include "core/entity.h"
 #include "core/entity_manager.h"
 #include "core/flycam_actor.h"
 #include "core/light_manager.h"
@@ -325,22 +326,29 @@ namespace
             }});
     }
 
-    auto pulse_light(ufps::LightHandle handle) -> ufps::Task
+    [[maybe_unused]] auto pulse_light(ufps::EntityHandle handle) -> ufps::Task
     {
-        const auto &[awaitable, lm] = ufps::services<ufps::AwaitableManager, ufps::LightManager>();
+        const auto &[awaitable, em, lm] = ufps::services<ufps::AwaitableManager, ufps::EntityManager, ufps::LightManager>();
         auto fake_time = 0.f;
 
         for (;;)
         {
-            if (auto light = lm[handle]; light)
+            const auto entity = em[handle];
+            if (!entity)
             {
-                light->intensity = 2.f + (5.f * ((std::sin(fake_time) + 1.f) / 2.f));
-            }
-            else
-            {
-                ufps::log::info("ending pulse_light coro");
+                ufps::log::info("ending pulse_light coroutine due to missing entity");
                 co_return;
             }
+
+            const auto light = lm[entity->light()];
+            if (!light)
+            {
+                ufps::log::info("ending pulse_light coroutine due to missing light");
+                co_return;
+            }
+
+            light->intensity = 2.f + (5.f * ((std::sin(fake_time) + 1.f) / 2.f));
+            entity->set_emissive_strength(light->intensity);
 
             fake_time += 0.01f;
 
@@ -348,7 +356,7 @@ namespace
         }
     }
 
-    auto flicker_light(ufps::LightHandle handle) -> ufps::Task
+    [[maybe_unused]] auto flicker_light(ufps::LightHandle handle) -> ufps::Task
     {
         const auto &[awaitable, lm] = ufps::services<ufps::AwaitableManager, ufps::LightManager>();
         auto light = lm[handle];
@@ -475,8 +483,25 @@ auto start(int argc, char **argv) -> int
     auto scene = ufps::Scene{std::move(*scene_desc)};
 
     const auto point_light_handles = lm.handles();
-    pulse_light(point_light_handles[0]);
-    flicker_light(point_light_handles[1]);
+
+    auto alert_light = ufps::EntityHandle{};
+    for (const auto handle : em.handles())
+    {
+        const auto entity = em[handle];
+        if (!entity)
+        {
+            continue;
+        }
+
+        if (entity->name() == "north_corridor_0_alert_light")
+        {
+            alert_light = handle;
+            break;
+        }
+    }
+
+    pulse_light(alert_light);
+    // flicker_light(point_light_handles[2]);
 
     const auto entity_handles = em.handles();
     auto player_entity_handle = std::ranges::find_if(entity_handles, [&](auto e)
