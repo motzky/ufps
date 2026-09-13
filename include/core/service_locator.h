@@ -9,6 +9,7 @@
 
 namespace ufps
 {
+    class AudioManager;
     class AwaitableManager;
     class MeshManager;
     class PhysicsSystem;
@@ -33,7 +34,8 @@ namespace ufps
         std::unique_ptr<LightManager>,
         std::unique_ptr<CameraManager>,
         CameraHandle,
-        std::unique_ptr<DebugLayer>>;
+        std::unique_ptr<DebugLayer>,
+        std::unique_ptr<AudioManager>>;
 
     namespace impl
     {

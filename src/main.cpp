@@ -16,6 +16,7 @@
 
 #include <yaml-cpp/yaml.h>
 
+#include "audio/audio_manager.h"
 #include "concurrency/awaitable_manager.h"
 #include "concurrency/task.h"
 #include "concurrency/thread_pool.h"
@@ -468,7 +469,8 @@ auto start(int argc, char **argv) -> int
         std::make_unique<ufps::LightManager>(),
         std::make_unique<ufps::CameraManager>(),
         ufps::CameraHandle{},
-        std::make_unique<ufps::DebugLayer>());
+        std::make_unique<ufps::DebugLayer>(),
+        std::make_unique<ufps::AudioManager>(*resource_loader));
 
     ufps::set_services(services.get());
 
