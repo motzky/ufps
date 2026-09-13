@@ -5,6 +5,7 @@
 #include "core/camera_manager.h"
 #include "core/scene.h"
 #include "graphics/command_buffer.h"
+#include "graphics/debug_layer.h"
 #include "graphics/frame_buffer.h"
 #include "graphics/line_data.h"
 #include "graphics/multi_buffer.h"
@@ -56,6 +57,8 @@ namespace ufps
 
         virtual auto post_render(Scene &scene, const Camera &camera) -> void;
 
+        auto execute_debug_layer(DebugLayerType type) -> void;
+
         const Window &_window;
         AutoRelease<::GLuint> _dummy_vao;
         CommandBuffer _command_buffer;
@@ -97,9 +100,9 @@ namespace ufps
         RenderTarget _bloom_rt;
         FrameBuffer *_final_fb;
         bool _enable_post_processing;
-        std::vector<LineData> _debug_lines;
         MultiBuffer<PersistentBuffer> _debug_line_buffer;
         Program _debug_line_program;
+        Program _debug_light_program;
 
     private:
         auto execute_gbuffer_pass(Scene &scene) -> void;

@@ -202,14 +202,20 @@ namespace ufps
           _bloom_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "bloom")},
           _final_fb{},
           _enable_post_processing{true},
-          _debug_lines{},
           _debug_line_buffer{sizeof(LineData) * 2u, "line_data_buffer"},
           _debug_line_program{create_program(resource_loader,
                                              "debug_lines_program",
                                              "shaders/line.vert",
                                              "line_vertex_shader",
                                              "shaders/line.frag",
-                                             "line_fragment_shader")}
+                                             "line_fragment_shader")},
+          _debug_light_program{create_program(resource_loader,
+                                              "debug_light_program",
+                                              "shaders/debug_light.vert",
+                                              "debug_light_vertex_shader",
+                                              "shaders/debug_light.frag",
+                                              "debug_light_fragment_shader")}
+
     {
         _post_processing_command_buffer.build(_post_process_sprite);
 
@@ -365,32 +371,7 @@ namespace ufps
             GL_DEPTH_BUFFER_BIT,
             GL_NEAREST);
 
-        auto &dl = service<DebugLayer>();
-
-        auto debug_layer_lines = dl.yield_lines(DebugLayerType::DEFAULT);
-        while (!std::ranges::empty(debug_layer_lines))
-        {
-            _debug_lines.push_back(debug_layer_lines.front());
-            debug_layer_lines.pop();
-        }
-
-        static auto c = int{};
-        log::debug("rendering {} lines [{}]", std::ranges::size(_debug_lines), c++);
-
-        if (!std::ranges::empty(_debug_lines))
-        {
-            _debug_line_program.bind();
-
-            resize_gpu_buffer(_debug_lines, _debug_line_buffer);
-            _debug_line_buffer.write(std::as_bytes(std::span{_debug_lines.data(), _debug_lines.size()}), 0zu);
-            ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _debug_line_buffer.native_handle());
-            ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
-            ::glDrawArrays(GL_LINES, 0, _debug_lines.size());
-
-            _debug_lines.clear();
-
-            _debug_line_program.unbind();
-        }
+        execute_debug_layer(DebugLayerType::DEFAULT);
     }
 
     auto Renderer::execute_gbuffer_pass(Scene &scene) -> void
@@ -819,13 +800,13 @@ namespace ufps
         const auto zero = ::GLuint{0};
         ::glClearNamedBufferData(_luminance_histogram_buffer.native_handle(), GL_R32UI, GL_RED_INTEGER, GL_UNSIGNED_INT, &zero);
 
-        _luminance_program.set_uniforms(_bloom_rt.color_texture_bindless_handle_0, scene.exposure_options().min_log_luminance, 1.f / (scene.exposure_options().max_log_luminance - scene.exposure_options().min_log_luminance));
+        _luminance_program.set_uniforms(_light_pass_rt.color_texture_bindless_handle_0, scene.exposure_options().min_log_luminance, 1.f / (scene.exposure_options().max_log_luminance - scene.exposure_options().min_log_luminance));
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _luminance_histogram_buffer.native_handle());
 
         ::glDispatchCompute(
-            static_cast<std::uint32_t>(_bloom_rt.fb.width() + 15 / 16),
-            static_cast<std::uint32_t>(_bloom_rt.fb.height() + 15 / 16),
+            static_cast<std::uint32_t>(_light_pass_rt.fb.width() + 15 / 16),
+            static_cast<std::uint32_t>(_light_pass_rt.fb.height() + 15 / 16),
             1);
 
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
@@ -843,7 +824,7 @@ namespace ufps
         _average_luminance_program.set_uniforms(scene.exposure_options().min_log_luminance,
                                                 scene.exposure_options().max_log_luminance - scene.exposure_options().min_log_luminance,
                                                 std::clamp(1.f - std::exp(-delta_time * scene.exposure_options().tau), 0.f, 1.f),
-                                                static_cast<float>(_bloom_rt.fb.width() * _bloom_rt.fb.height()));
+                                                static_cast<float>(_light_pass_rt.fb.width() * _light_pass_rt.fb.height()));
 
         ::glDispatchCompute(1, 1, 1);
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
@@ -995,4 +976,68 @@ namespace ufps
             1u,
             0);
     }
+
+    auto Renderer::execute_debug_layer(DebugLayerType type) -> void
+    {
+        auto &&[em, rem, mm, lm, ps, cm, dl] = services<
+            EntityManager,
+            RenderEntityManager,
+            MeshManager,
+            LightManager,
+            PhysicsSystem,
+            CameraManager,
+            DebugLayer>();
+
+        _light_pass_rt.fb.unbind();
+
+        _debug_light_program.bind();
+
+        const auto [vertex_buffer_handle, index_buffer_handle] = mm.native_handle();
+        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
+        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
+        ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_handle);
+
+        const auto cube_parts = mm.mesh("cube");
+        ensure(cube_parts.size() == 1u, "cube mesh should have exactly 1 part");
+        const auto cube_indices_offset_bytes = cube_parts.front().index_offset * sizeof(std::uint32_t);
+        const auto cube_vertex_offset = cube_parts.front().vertex_offset;
+
+        auto cubes = dl.yield_cubes(type);
+
+        while (!std::ranges::empty(cubes))
+        {
+            const auto &[transform, color] = cubes.front();
+            _debug_light_program.set_uniforms(Matrix4{transform}, color);
+
+            ::glDrawElementsBaseVertex(GL_TRIANGLES, 36, GL_UNSIGNED_INT, reinterpret_cast<const void *>(cube_indices_offset_bytes), cube_vertex_offset);
+
+            cubes.pop();
+        }
+
+        _debug_light_program.unbind();
+
+        auto debug_lines = std::vector<LineData>{};
+
+        auto debug_layer_lines = dl.yield_lines(type);
+        while (!std::ranges::empty(debug_layer_lines))
+        {
+            debug_lines.push_back(debug_layer_lines.front());
+            debug_layer_lines.pop();
+        }
+
+        if (!std::ranges::empty(debug_lines) && debug_lines.size() <= 10 * 1000 * 1000)
+        {
+            _debug_line_program.bind();
+
+            resize_gpu_buffer(debug_lines, _debug_line_buffer);
+            _debug_line_buffer.write(std::as_bytes(std::span{debug_lines.data(), debug_lines.size()}), 0zu);
+            ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _debug_line_buffer.native_handle());
+            ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
+
+            ::glDrawArrays(GL_LINES, 0, debug_lines.size());
+
+            _debug_line_program.unbind();
+        }
+    }
+
 }
