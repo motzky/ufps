@@ -78,6 +78,8 @@ namespace ufps
     auto FileResourceLoader::resources(std::string_view type) -> std::vector<std::string>
     {
         return _roots |
+               std::views::filter([&](const auto &e)
+                                  { return std::filesystem::is_directory(e / type); }) |
                std::views::transform(
                    [&](const auto &e)
                    {
