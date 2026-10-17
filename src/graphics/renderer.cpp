@@ -529,7 +529,6 @@ namespace ufps
             if (_light_buffer.size() < buffer_size_bytes)
             {
                 _light_buffer = {buffer_size_bytes, _light_buffer.name()};
-                ::glFinish();
             }
 
             auto writer = BufferWriter{_light_buffer};
