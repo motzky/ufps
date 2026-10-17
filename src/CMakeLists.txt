@@ -73,8 +73,16 @@ elseif(UNIX)
     # )
 endif()
 
-# target_include_directories(ufpslib PUBLIC ${stb_lib_SOURCE_DIR} ${imgui_SOURCE_DIR} ${imguizmo_SOURCE_DIR} ${JoltPhysics_SOURCE_DIR} ${lua_SOURCE_DIR})
-target_include_directories(ufpslib PUBLIC ${stb_lib_SOURCE_DIR} ${imgui_SOURCE_DIR} ${imguizmo_SOURCE_DIR}/src ${JoltPhysics_SOURCE_DIR} ${assimp_SOURCE_DIR}/include ${assimp_BINARY_DIR}/include)
+target_include_directories(
+    ufpslib      PUBLIC 
+    ${stb_lib_SOURCE_DIR}
+    ${imgui_SOURCE_DIR}
+    ${imguizmo_SOURCE_DIR}/src
+    ${JoltPhysics_SOURCE_DIR}
+    ${faudio_SOURCE_DIR}/include
+    ${assimp_SOURCE_DIR}/include
+    ${assimp_BINARY_DIR}/include
+)
 
 if(WIN32)
 target_include_directories(resource_packer PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/tools PRIVATE ${zstd_SOURCE_DIR}/lib)
@@ -149,7 +157,7 @@ target_link_libraries(
     ufpslib
     PUBLIC imguilib Jolt
     # PUBLIC imguilib Jolt opengl32 lua
-    PRIVATE dwmapi assimp yaml-cpp libzstd_static
+    PRIVATE dwmapi assimp yaml-cpp libzstd_static FAudio-static
     # PRIVATE  ${FREETYPE_LIBRARY_NAME}
 )
 target_link_libraries(
@@ -162,7 +170,7 @@ target_link_libraries(
     ufpslib
     PUBLIC imguilib Jolt
     # PUBLIC imguilib Jolt lua
-    PRIVATE GL glfw Backtrace::Backtrace stdc++exp assimp yaml-cpp libzstd_static
+    PRIVATE GL glfw Backtrace::Backtrace stdc++exp assimp yaml-cpp libzstd_static FAudio-static
     # PRIVATE GL glfw Backtrace::Backtrace stdc++exp libzstd_static ${FREETYPE_LIBRARY_NAME}
 )
 target_link_libraries(
