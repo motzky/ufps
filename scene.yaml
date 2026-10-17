@@ -28,8 +28,8 @@ Description:
           g: 0
           b: 0
       density: 0.054
-  chromatic_abberation_options:
-    ChromaticAbberationOptions:
+  chromatic_aberration_options:
+    ChromaticAberrationOptions:
       red_offset: 0.009
       green_offset: 0.006
       blue_offset: -0.006

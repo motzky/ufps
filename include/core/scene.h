@@ -64,7 +64,7 @@ namespace ufps
         BoundedFloat<0.f, 0.2f> density = 0.02f;
     };
 
-    struct ChromaticAbberationOptions
+    struct ChromaticAberrationOptions
     {
         BoundedFloat<-0.1f, 0.1f> red_offset = .009f;
         BoundedFloat<-0.1f, 0.1f> green_offset = .006f;
@@ -100,7 +100,7 @@ namespace ufps
             SSAOOptions ssao_options;
             ExposureOptions exposure_options;
             FogOptions fog_options;
-            ChromaticAbberationOptions chromatic_abberation_options;
+            ChromaticAberrationOptions chromatic_aberration_options;
             VignetteOptions vignette_options;
             FilmGrainOptions film_grain_options;
             BloomOptions bloom_options;
@@ -124,7 +124,7 @@ namespace ufps
         constexpr auto &ssao_options(this auto &&self);
         constexpr auto &exposure_options(this auto &&self);
         constexpr auto &fog_options(this auto &&self);
-        constexpr auto &chromatic_abberation_options(this auto &&self);
+        constexpr auto &chromatic_aberration_options(this auto &&self);
         constexpr auto &vignette_options(this auto &&self);
         constexpr auto &film_grain_options(this auto &&self);
         constexpr auto &bloom_options(this auto &&self);
@@ -141,7 +141,7 @@ namespace ufps
         SSAOOptions _ssao_options;
         ExposureOptions _exposure_options;
         FogOptions _fog_options;
-        ChromaticAbberationOptions _chromatic_abberation_options;
+        ChromaticAberrationOptions _chromatic_aberration_options;
         VignetteOptions _vignette_options;
         FilmGrainOptions _film_grain_options;
         BloomOptions _bloom_options;
@@ -229,7 +229,7 @@ namespace ufps
           _ssao_options{description.ssao_options},
           _exposure_options{description.exposure_options},
           _fog_options{description.fog_options},
-          _chromatic_abberation_options{description.chromatic_abberation_options},
+          _chromatic_aberration_options{description.chromatic_aberration_options},
           _vignette_options{description.vignette_options},
           _film_grain_options{description.film_grain_options},
           _bloom_options{description.bloom_options}
@@ -340,9 +340,9 @@ namespace ufps
         return self._fog_options;
     }
 
-    constexpr auto &Scene::chromatic_abberation_options(this auto &&self)
+    constexpr auto &Scene::chromatic_aberration_options(this auto &&self)
     {
-        return self._chromatic_abberation_options;
+        return self._chromatic_aberration_options;
     }
 
     constexpr auto &Scene::vignette_options(this auto &&self)
@@ -381,7 +381,7 @@ namespace ufps
             .ssao_options = self._ssao_options,
             .exposure_options = self._exposure_options,
             .fog_options = self._fog_options,
-            .chromatic_abberation_options = self._chromatic_abberation_options,
+            .chromatic_aberration_options = self._chromatic_aberration_options,
             .vignette_options = self._vignette_options,
             .film_grain_options = self._film_grain_options,
             .bloom_options = self._bloom_options,

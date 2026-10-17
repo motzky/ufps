@@ -82,7 +82,7 @@ namespace ufps
         Program _average_luminance_program;
         Program _ssao_program;
         Program _ssao_blur_program;
-        Program _chromatic_abberation_program;
+        Program _chromatic_aberration_program;
         Program _bloom_downsample_program;
         Program _bloom_upsample_program;
         Program _bloom_mix_program;
@@ -95,7 +95,7 @@ namespace ufps
         RenderTarget _tone_map_rt;
         RenderTarget _ssao_rt;
         RenderTarget _ssao_blur_rt;
-        RenderTarget _chromatic_abberation_rt;
+        RenderTarget _chromatic_aberration_rt;
         std::vector<RenderTarget> _bloom_mips;
         RenderTarget _bloom_rt;
         FrameBuffer *_final_fb;
@@ -115,6 +115,6 @@ namespace ufps
         auto execute_luminance_average_pass(Scene &scene) -> void;
         auto execute_ssao_pass(Scene &scene) -> void;
         auto execute_tone_mapping_pass(Scene &scene) -> void;
-        auto execute_chromatic_abberation_pass(Scene &scene) -> void;
+        auto execute_chromatic_aberration_pass(Scene &scene) -> void;
     };
 }

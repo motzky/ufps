@@ -430,10 +430,10 @@ namespace ufps
             {
                 ::ImGui::PushID("chromatic_aberration_options");
 
-                create_debug_control("red", scene.chromatic_abberation_options().red_offset);
-                create_debug_control("green", scene.chromatic_abberation_options().green_offset);
-                create_debug_control("blue", scene.chromatic_abberation_options().blue_offset);
-                create_debug_control("strength", scene.chromatic_abberation_options().strength);
+                create_debug_control("red", scene.chromatic_aberration_options().red_offset);
+                create_debug_control("green", scene.chromatic_aberration_options().green_offset);
+                create_debug_control("blue", scene.chromatic_aberration_options().blue_offset);
+                create_debug_control("strength", scene.chromatic_aberration_options().strength);
 
                 ::ImGui::PopID();
             }

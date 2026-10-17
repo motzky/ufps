@@ -184,7 +184,7 @@ namespace ufps
           _average_luminance_program{create_program(resource_loader, "average_luminance_program"sv, "shaders/average_luminance.comp"sv, "average_luminance_compute")},
           _ssao_program{create_program(resource_loader, "ssao_program"sv, "shaders/ssao.vert"sv, "ssao_vertex_shader"sv, "shaders/ssao.frag"sv, "ssao_fragement_shader"sv)},                                                                                                 //
           _ssao_blur_program{create_program(resource_loader, "ssao_blur_program"sv, "shaders/ssao.vert"sv, "ssao_blur_vertex_shader"sv, "shaders/ssao_blur.frag"sv, "ssao_blur_fragement_shader"sv)},                                                                        //
-          _chromatic_abberation_program{create_program(resource_loader, "chromatic_abberation_program"sv, "shaders/chromatic_aberration.vert"sv, "chromatic_aberration_vertex_shader"sv, "shaders/chromatic_aberration.frag"sv, "chromatic_aberration_fragement_shader"sv)}, //
+          _chromatic_aberration_program{create_program(resource_loader, "chromatic_aberration_program"sv, "shaders/chromatic_aberration.vert"sv, "chromatic_aberration_vertex_shader"sv, "shaders/chromatic_aberration.frag"sv, "chromatic_aberration_fragement_shader"sv)}, //
           _bloom_downsample_program{create_program(resource_loader, "bloom_downsample_program"sv, "shaders/bloom_downsample.vert"sv, "bloom_downsample_vertex_shader"sv, "shaders/bloom_downsample.frag"sv, "bloom_downsample_fragement_shader"sv)},                         //
           _bloom_upsample_program{create_program(resource_loader, "bloom_upsample_program"sv, "shaders/bloom_upsample.vert"sv, "bloom_upsample_vertex_shader"sv, "shaders/bloom_upsample.frag"sv, "bloom_upsample_fragement_shader"sv)},                                     //
           _bloom_mix_program{create_program(resource_loader, "bloom_mix_program"sv, "shaders/bloom_mix.vert"sv, "bloom_mix_vertex_shader"sv, "shaders/bloom_mix.frag"sv, "bloom_mix_fragement_shader"sv)},                                                                   //
@@ -197,7 +197,7 @@ namespace ufps
           _tone_map_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "tone_map")},
           _ssao_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, "ssao", TextureFormat::RG16F)},
           _ssao_blur_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, "ssao", TextureFormat::RG16F)},
-          _chromatic_abberation_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "chromatic_abberation")},
+          _chromatic_aberration_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "chromatic_aberration")},
           _bloom_mips{},
           _bloom_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "bloom")},
           _final_fb{},
@@ -308,7 +308,7 @@ namespace ufps
             execute_luminance_average_pass(scene);
 
             execute_ssao_pass(scene);
-            _final_fb = &_chromatic_abberation_rt.fb;
+            _final_fb = &_chromatic_aberration_rt.fb;
         }
         else
         {
@@ -326,7 +326,7 @@ namespace ufps
         {
             execute_bloom_pass(scene);
             execute_tone_mapping_pass(scene);
-            execute_chromatic_abberation_pass(scene);
+            execute_chromatic_aberration_pass(scene);
         }
 
         post_render(scene, *camera);
@@ -938,27 +938,27 @@ namespace ufps
             0);
     }
 
-    auto Renderer::execute_chromatic_abberation_pass(Scene &scene) -> void
+    auto Renderer::execute_chromatic_aberration_pass(Scene &scene) -> void
     {
         static const auto start = std::chrono::steady_clock::now();
         const auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
 
         const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
 
-        _chromatic_abberation_rt.fb.bind();
+        _chromatic_aberration_rt.fb.bind();
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        [[maybe_unused]] const auto auto_bind = AutoBind{_chromatic_abberation_program};
+        [[maybe_unused]] const auto auto_bind = AutoBind{_chromatic_aberration_program};
 
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, service<TextureManager>().native_handle());
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
 
-        _chromatic_abberation_program.set_uniforms(_tone_map_rt.color_texture_bindless_handle_0,
-                                                   scene.chromatic_abberation_options().red_offset,
-                                                   scene.chromatic_abberation_options().green_offset,
-                                                   scene.chromatic_abberation_options().blue_offset,
-                                                   scene.chromatic_abberation_options().strength,
+        _chromatic_aberration_program.set_uniforms(_tone_map_rt.color_texture_bindless_handle_0,
+                                                   scene.chromatic_aberration_options().red_offset,
+                                                   scene.chromatic_aberration_options().green_offset,
+                                                   scene.chromatic_aberration_options().blue_offset,
+                                                   scene.chromatic_aberration_options().strength,
                                                    scene.vignette_options().color,
                                                    scene.vignette_options().strength,
                                                    scene.vignette_options().feather,
