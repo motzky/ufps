@@ -804,8 +804,8 @@ namespace ufps
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _luminance_histogram_buffer.native_handle());
 
         ::glDispatchCompute(
-            static_cast<std::uint32_t>(_light_pass_rt.fb.width() + 15 / 16),
-            static_cast<std::uint32_t>(_light_pass_rt.fb.height() + 15 / 16),
+            static_cast<std::uint32_t>(_light_pass_rt.fb.width() + 15.f / 16.f),
+            static_cast<std::uint32_t>(_light_pass_rt.fb.height() + 15.f / 16.f),
             1);
 
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
