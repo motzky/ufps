@@ -965,7 +965,6 @@ namespace ufps
                                                    scene.film_grain_options().strength,
                                                    static_cast<float>(elapsed.count()));
 
-        ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _post_processing_command_buffer.native_handle());
 
         ::glMultiDrawElementsIndirect(
