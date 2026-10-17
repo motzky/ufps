@@ -14,6 +14,12 @@
 
 namespace
 {
+    auto contains_cc(ufps::DataBufferView source, ufps::DataBufferView control_code) -> bool
+    {
+        const auto chunk_header = std::ranges::search(source, control_code);
+        return !std::ranges::empty(chunk_header);
+    }
+
     auto parse_chunk(ufps::DataBufferView source, ufps::DataBufferView control_code) -> std::expected<ufps::DataBufferView, std::string>
     {
         const auto chunk_header = std::ranges::search(source, control_code);
@@ -50,11 +56,11 @@ namespace ufps
         ensure(::FAudioCreate(std::out_ptr(_xaudio), 0, FAUDIO_DEFAULT_PROCESSOR) == FAUDIO_OK, "failed to create FAudio");
 
         ensure(::FAudio_CreateMasteringVoice(_xaudio.get(), std::out_ptr(_mastering_voice),
-                                           FAUDIO_DEFAULT_CHANNELS,
-                                           FAUDIO_DEFAULT_SAMPLERATE,
-                                           0u,
-                                           0u,
-                                           nullptr) == FAUDIO_OK,
+                                             FAUDIO_DEFAULT_CHANNELS,
+                                             FAUDIO_DEFAULT_SAMPLERATE,
+                                             0u,
+                                             0u,
+                                             nullptr) == FAUDIO_OK,
                "failed to create mastering voice");
 
         const auto format = ::FAudioWaveFormatEx{
@@ -89,16 +95,14 @@ namespace ufps
             }
 
             const std::byte wave_cc[]{std::byte{'W'}, std::byte{'A'}, std::byte{'V'}, std::byte{'E'}};
-            const auto wave_chunk = parse_chunk(*riff_chunk, wave_cc);
-
-            if (!wave_chunk)
+            if (!contains_cc(track_data, wave_cc))
             {
-                log::error("failed to parse wav: {} {}", resource, wave_chunk.error());
+                log::error("failed to parse wav: {} did not contain WAVE marker", resource);
                 continue;
             }
 
             const std::byte fmt_cc[]{std::byte{'f'}, std::byte{'m'}, std::byte{'t'}, std::byte{' '}};
-            const auto fmt_chunk = parse_chunk(*wave_chunk, fmt_cc);
+            const auto fmt_chunk = parse_chunk(track_data, fmt_cc);
 
             if (!fmt_chunk)
             {
@@ -107,7 +111,7 @@ namespace ufps
             }
 
             const std::byte data_cc[]{std::byte{'d'}, std::byte{'a'}, std::byte{'t'}, std::byte{'a'}};
-            const auto data_chunk = parse_chunk(*fmt_chunk, data_cc);
+            const auto data_chunk = parse_chunk(track_data, data_cc);
 
             if (!data_chunk)
             {
