@@ -49,7 +49,7 @@ namespace ufps
     {
         ensure(::FAudioCreate(std::out_ptr(_xaudio), 0, FAUDIO_DEFAULT_PROCESSOR) == FAUDIO_OK, "failed to create FAudio");
 
-        ensure(FAudio_CreateMasteringVoice(_xaudio.get(), std::out_ptr(_mastering_voice),
+        ensure(::FAudio_CreateMasteringVoice(_xaudio.get(), std::out_ptr(_mastering_voice),
                                            FAUDIO_DEFAULT_CHANNELS,
                                            FAUDIO_DEFAULT_SAMPLERATE,
                                            0u,
@@ -69,7 +69,7 @@ namespace ufps
 
         for (auto &voice : _voices)
         {
-            ensure(FAudio_CreateSourceVoice(_xaudio.get(), std::out_ptr(voice), &format, 0u, 1.0f, nullptr, nullptr, nullptr) == FAUDIO_OK, "failed to create voice");
+            ensure(::FAudio_CreateSourceVoice(_xaudio.get(), std::out_ptr(voice), &format, 0u, 1.0f, nullptr, nullptr, nullptr) == FAUDIO_OK, "failed to create voice");
         }
 
         for (const auto &resource : resource_loader.resources("sounds") |

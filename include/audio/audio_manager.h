@@ -23,10 +23,10 @@ namespace ufps
 
     private:
         static constexpr auto destroy_faudio = [](auto *obj)
-        { FAudio_Release(obj); };
+        { ::FAudio_Release(obj); };
 
         static constexpr auto destroy_voice = [](auto *obj)
-        { FAudioVoice_DestroyVoice(obj); };
+        { ::FAudioVoice_DestroyVoice(obj); };
 
         StringUnorderedMap<Track> _tracks;
         std::unique_ptr<::FAudio, decltype(destroy_faudio)> _xaudio;
