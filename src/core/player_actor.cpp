@@ -79,9 +79,11 @@ namespace ufps
     {
         const auto &[em, cm, dl, am] = services<EntityManager, CameraManager, DebugLayer, AudioManager>();
 
+        _shoot_timer += delta;
+        _walk_sound_timer += delta;
+
         if (_input_map.is_any_set<Key::W, Key::S, Key::A, Key::D>())
         {
-            _walk_sound_timer += delta;
             if (_walk_sound_timer >= 600ms)
             {
                 am.play("walk.wav");
@@ -113,12 +115,12 @@ namespace ufps
 
         player->set_transform(new_transform);
 
-        static auto handle_click = true;
-
-        if (const auto mouse_event = _input_map.mouse_event; mouse_event)
+        if (const auto mouse_event = _input_map.mouse_event; mouse_event && mouse_event->state() == MouseButtonState::DOWN)
         {
-            if (handle_click && mouse_event->state() == MouseButtonState::DOWN)
+            if (_shoot_timer >= 600ms)
             {
+                _shoot_timer = {};
+
                 am.play("single-laser-shot.wav");
 
                 const auto bullet_ray = Ray{camera->transform().position, camera->direction() * 100.f};
@@ -133,13 +135,7 @@ namespace ufps
                 {
                     _pew_pew_lines.push_back(std::make_tuple(bullet_ray.origin, bullet_ray.origin + (bullet_ray.direction * 100.f), Color::red()));
                 }
-
-                handle_click = false;
             }
-        }
-        else
-        {
-            handle_click = true;
         }
 
         for (const auto &[start, end, color] : _pew_pew_lines)

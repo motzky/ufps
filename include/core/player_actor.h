@@ -34,6 +34,7 @@ namespace ufps
         std::vector<std::tuple<Vector3, Vector3, Color>> _pew_pew_lines;
         const Scene &_scene;
         Duration _walk_sound_timer;
+        Duration _shoot_timer;
     };
 
 }
