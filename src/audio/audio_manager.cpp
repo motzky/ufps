@@ -1,5 +1,6 @@
 #include "audio/audio_manager.h"
 
+#include <algorithm>
 #include <cstring>
 #include <expected>
 #include <ranges>
@@ -50,8 +51,7 @@ namespace ufps
     AudioManager::AudioManager(ResourceLoader &resource_loader)
         : _tracks{},
           _xaudio{},
-          _mastering_voice{},
-          _voices{}
+          _mastering_voice{}
     {
         ensure(::FAudioCreate(std::out_ptr(_xaudio), 0, FAUDIO_DEFAULT_PROCESSOR) == FAUDIO_OK, "failed to create FAudio");
 
@@ -62,21 +62,6 @@ namespace ufps
                                              0u,
                                              nullptr) == FAUDIO_OK,
                "failed to create mastering voice");
-
-        const auto format = ::FAudioWaveFormatEx{
-            .wFormatTag = FAUDIO_FORMAT_PCM,
-            .nChannels = 1,
-            .nSamplesPerSec = 48000,
-            .nAvgBytesPerSec = 48000 * 2,
-            .nBlockAlign = 2,
-            .wBitsPerSample = 16,
-            .cbSize = 0,
-        };
-
-        for (auto &voice : _voices)
-        {
-            ensure(::FAudio_CreateSourceVoice(_xaudio.get(), std::out_ptr(voice), &format, 0u, 1.0f, nullptr, nullptr, nullptr) == FAUDIO_OK, "failed to create voice");
-        }
 
         for (const auto &resource : resource_loader.resources("sounds") |
                                         std::views::filter([](const auto &e)
@@ -119,10 +104,29 @@ namespace ufps
                 continue;
             }
 
-            _tracks[resource.substr(resource.find_last_of('/'))] = Track{
+            const auto name = resource.substr(resource.find_last_of('/') + 1zu);
+
+            const auto track = Track{
                 .format = {std::ranges::cbegin(*fmt_chunk), std::ranges::cend(*fmt_chunk)},
                 .data = {std::ranges::cbegin(*data_chunk), std::ranges::cend(*data_chunk)},
             };
+
+            // The WAVE `fmt` chunk is a WAVEFORMATEX, whose layout matches the first
+            // 16 bytes of FAudioWaveFormatEx. A canonical PCM chunk is only 16 bytes --
+            // it omits the trailing cbSize field that makes FAudioWaveFormatEx 18 bytes
+            // -- so copy whichever is smaller into a zero-initialized struct. That
+            // populates every field FAudio's PCM path needs (format tag, channels,
+            // sample rate, block align, bits per sample) while leaving cbSize at 0.
+            // Passing each track's real format fixes the mis-decoded audio; FAudio then
+            // resamples every source voice up to the mastering rate on its own.
+            auto format = ::FAudioWaveFormatEx{};
+            const auto copy_bytes = std::min<std::size_t>((*fmt_chunk).size(), sizeof(format));
+            std::memcpy(&format, track.format.data(), copy_bytes);
+
+            auto loaded = LoadedTrack{track, {}};
+            ensure(::FAudio_CreateSourceVoice(_xaudio.get(), std::out_ptr(loaded.voice), &format, 0u, FAUDIO_DEFAULT_FREQ_RATIO, nullptr, nullptr, nullptr) == FAUDIO_OK, "failed to create source voice");
+
+            _tracks.emplace(std::move(name), std::move(loaded));
         }
     }
 
@@ -135,34 +139,26 @@ namespace ufps
             return;
         }
 
-        for (const auto &voice : _voices)
-        {
-            auto state = ::FAudioVoiceState{};
-            ::FAudioSourceVoice_GetState(voice.get(), &state, 0u);
+        const auto &voice = track->second.voice;
 
-            if (state.pCurrentBufferContext != nullptr)
-            {
-                continue;
-            }
+        // Restart from the beginning on re-trigger: Stop() flushes any previously
+        // queued buffer, so a rapid re-fire (e.g. firing the laser repeatedly) plays
+        // the full clip again rather than piling buffers onto one another.
+        ::FAudioSourceVoice_Stop(voice.get(), 0u, FAUDIO_COMMIT_NOW);
 
-            const auto buffer = ::FAudioBuffer{
-                .Flags = FAUDIO_END_OF_STREAM,
-                .AudioBytes = static_cast<std::uint32_t>(std::ranges::size(track->second.data)),
-                .pAudioData = reinterpret_cast<const std::uint8_t *>(std::ranges::data(track->second.data)),
-                .PlayBegin = 0,
-                .PlayLength = 0,
-                .LoopBegin = 0,
-                .LoopLength = 0,
-                .LoopCount = 0,
-                .pContext = nullptr};
+        const auto buffer = ::FAudioBuffer{
+            .Flags = FAUDIO_END_OF_STREAM,
+            .AudioBytes = static_cast<std::uint32_t>(std::ranges::size(track->second.track.data)),
+            .pAudioData = reinterpret_cast<const std::uint8_t *>(std::ranges::data(track->second.track.data)),
+            .PlayBegin = 0,
+            .PlayLength = 0,
+            .LoopBegin = 0,
+            .LoopLength = 0,
+            .LoopCount = 0,
+            .pContext = nullptr,
+        };
 
-            ensure(FAudioSourceVoice_SubmitSourceBuffer(voice.get(), &buffer, nullptr) == FAUDIO_OK, "failed to set source");
-            ensure(FAudioSourceVoice_Start(voice.get(), 0u, FAUDIO_COMMIT_NOW) == FAUDIO_OK, "failed to start sound");
-
-            return;
-        }
-
-        log::warn("no free voice");
+        ensure(FAudioSourceVoice_SubmitSourceBuffer(voice.get(), &buffer, nullptr) == FAUDIO_OK, "failed to set source");
+        ensure(FAudioSourceVoice_Start(voice.get(), 0u, FAUDIO_COMMIT_NOW) == FAUDIO_OK, "failed to start sound");
     }
-
 }

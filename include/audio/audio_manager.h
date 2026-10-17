@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring>
 #include <memory>
 #include <string_view>
 #include <vector>
@@ -11,6 +12,7 @@
 #pragma GCC diagnostic pop
 
 #include "audio/track.h"
+#include "log.h"
 #include "resources/resource_loader.h"
 #include "utils/string_unordered_map.h"
 
@@ -30,10 +32,20 @@ namespace ufps
         static constexpr auto destroy_voice = [](auto *obj)
         { ::FAudioVoice_DestroyVoice(obj); };
 
-        StringUnorderedMap<Track> _tracks;
+        // A decoded track plus the dedicated source voice used to play it. The voice
+        // is created once, at load time, from the track's own WAVE `fmt` chunk so each
+        // sound keeps its true bit depth, channel count and sample rate. FAudio
+        // resamples every source voice up to the mastering rate, so tracks with
+        // different formats can all coexist.
+        struct LoadedTrack
+        {
+            Track track;
+            std::unique_ptr<::FAudioSourceVoice, decltype(destroy_voice)> voice;
+        };
+
+        StringUnorderedMap<LoadedTrack> _tracks;
         std::unique_ptr<::FAudio, decltype(destroy_faudio)> _xaudio;
         std::unique_ptr<::FAudioMasteringVoice, decltype(destroy_voice)> _mastering_voice;
-        std::array<std::unique_ptr<::FAudioSourceVoice, decltype(destroy_voice)>, 64zu> _voices;
     };
 
 }
