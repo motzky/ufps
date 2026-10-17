@@ -18,6 +18,7 @@ layout(binding = 1, std430) readonly buffer camera
     mat4 view;
     mat4 projection;
     float camera_position[3];
+    float pad;
 };
 
 layout(location = 0) uniform mat4 model;

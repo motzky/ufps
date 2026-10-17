@@ -39,8 +39,12 @@ void main()
     color += (b+d+f+h)*0.0625;
     color += (j+k+l+m)*0.125;
 
-    float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
-    color = luminance < threshold ? vec3(0.0) : color;
+    // Soft-knee threshold: blend smoothly over [threshold, threshold + knee]
+    // instead of a hard cut, and subtract the threshold so only the "hot"
+    // part of each channel feeds the bloom (reduces dim halos).
+    float knee = max(threshold * 0.5, 0.01);
+    vec3 soft_mask = smoothstep(threshold, threshold + knee, color);
+    color = (color - threshold) * soft_mask;
 
     out_color = vec4(color, 1.0);
 }

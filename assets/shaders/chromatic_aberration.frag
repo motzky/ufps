@@ -43,7 +43,8 @@ vec3 vignette(vec3 color)
 
 vec3 film_grain(vec3 color)
 {
-    float rand = fract(10000 * sin((uv.x + uv.y * frame_time) * PI / 180.0));
+    // float rand = fract(10000 * sin((uv.x + uv.y * frame_time) * PI / 180.0));
+    float rand = fract(sin(dot(gl_FragCoord.xy + frame_time, vec2(12.9898, 78.233))) * 43758.5453);
     rand *= film_grain_strength;
 
     return color += rand;

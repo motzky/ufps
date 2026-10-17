@@ -19,6 +19,7 @@ struct ObjectData
     uvec2 ao_tex_bindless_handle;
     uvec2 emissive_tex_bindless_handle;
     float opacity;
+    float emissive_strength;
     uint normal_compressed;
     uint pad;
 

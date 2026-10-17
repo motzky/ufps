@@ -67,7 +67,7 @@ vec3 convertXYZ2Yxy(vec3 _xyz)
 {
 	// Reference:
 	// http://www.brucelindbloom.com/index.html?Eqn_XYZ_to_xyY.html
-	float inv = 1.0/dot(_xyz, vec3(1.0, 1.0, 1.0) );
+	float inv = 1.0/ max(dot(_xyz, vec3(1.0, 1.0, 1.0)), 1e-6);
 	return vec3(_xyz.y, _xyz.x*inv, _xyz.y*inv);
 }
 
@@ -78,12 +78,13 @@ vec3 convertRGB2Yxy(vec3 _rgb)
 
 vec3 convertYxy2XYZ(vec3 _Yxy)
 {
+    float z = max(_Yxy.z, 1e-6);
 	// Reference:
 	// http://www.brucelindbloom.com/index.html?Eqn_xyY_to_XYZ.html
 	vec3 xyz;
-	xyz.x = _Yxy.x*_Yxy.y/_Yxy.z;
+	xyz.x = _Yxy.x*_Yxy.y/z;
 	xyz.y = _Yxy.x;
-	xyz.z = _Yxy.x*(1.0 - _Yxy.y - _Yxy.z)/_Yxy.z;
+	xyz.z = _Yxy.x*(1.0 - _Yxy.y - _Yxy.z)/z;
 	return xyz;
 }
 
@@ -130,8 +131,9 @@ void main()
 
     vec3 tone_mapped_color = uchimura(in_color, in_P, in_a, in_m, in_l, in_c, in_b);
     
+    vec3 nan_insurance = max(tone_mapped_color, 0.0);
 
-    vec3 gamma_corrected = pow(tone_mapped_color, vec3(1.0 / in_gamma));
+    vec3 gamma_corrected = pow(nan_insurance, vec3(1.0 / in_gamma));
 
     out_color = vec4(gamma_corrected, input_color.a);
 }

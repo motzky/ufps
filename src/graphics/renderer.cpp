@@ -164,7 +164,7 @@ namespace ufps
           _dummy_vao{0u, [](auto e)
                      { ::glDeleteVertexArrays(1, &e); }},
           _command_buffer{"gbuffer_command_buffer"},
-          _forward_transparancy_command_buffer{"forward_transparancy_command_buffer"},
+          _forward_transparency_command_buffer{"forward_transparency_command_buffer"},
           _post_processing_command_buffer{"post_processing_command_buffer"},
           _gun_command_buffer{"gun_command_buffer"},
           _post_process_sprite{create_sprite()},
@@ -178,13 +178,13 @@ namespace ufps
           _ssao_samples_buffer{sizeof(Vector4) * 64, "ssao_samples_buffer"},                                                                                                                                                        //
           _gbuffer_program{create_program(resource_loader, "gbuffer_program"sv, "shaders/gbuffer.vert"sv, "gbuffer_vertex_shader"sv, "shaders/gbuffer.frag"sv, "gbuffer_fragement_shader"sv)},                                      //
           _light_pass_program{create_program(resource_loader, "light_pass_program"sv, "shaders/light_pass.vert"sv, "light_pass_vertex_shader"sv, "shaders/light_pass.frag"sv, "light_pass_fragment_shader"sv)},                     //
-          _forward_transparancy_program{create_program(resource_loader, "transparancy_program"sv, "shaders/transparancy.vert"sv, "transparancy_vertex_shader"sv, "shaders/transparancy.frag"sv, "transparancy_fragment_shader"sv)}, //
+          _forward_transparency_program{create_program(resource_loader, "transparency_program"sv, "shaders/transparency.vert"sv, "transparency_vertex_shader"sv, "shaders/transparency.frag"sv, "transparency_fragment_shader"sv)}, //
           _tone_map_program{create_program(resource_loader, "tone_map_program"sv, "shaders/tone_map.vert"sv, "tone_map_vertex_shader"sv, "shaders/tone_map.frag"sv, "tone_map_fragment_shader"sv)},                                 //
           _luminance_program{create_program(resource_loader, "luminance_histogram_program"sv, "shaders/luminance_histogram.comp"sv, "luminance_history_compute")},
           _average_luminance_program{create_program(resource_loader, "average_luminance_program"sv, "shaders/average_luminance.comp"sv, "average_luminance_compute")},
           _ssao_program{create_program(resource_loader, "ssao_program"sv, "shaders/ssao.vert"sv, "ssao_vertex_shader"sv, "shaders/ssao.frag"sv, "ssao_fragement_shader"sv)},                                                                                                 //
           _ssao_blur_program{create_program(resource_loader, "ssao_blur_program"sv, "shaders/ssao.vert"sv, "ssao_blur_vertex_shader"sv, "shaders/ssao_blur.frag"sv, "ssao_blur_fragement_shader"sv)},                                                                        //
-          _chromatic_abberation_program{create_program(resource_loader, "chromatic_abberation_program"sv, "shaders/chromatic_abberation.vert"sv, "chromatic_abberation_vertex_shader"sv, "shaders/chromatic_abberation.frag"sv, "chromatic_abberation_fragement_shader"sv)}, //
+          _chromatic_abberation_program{create_program(resource_loader, "chromatic_abberation_program"sv, "shaders/chromatic_aberration.vert"sv, "chromatic_aberration_vertex_shader"sv, "shaders/chromatic_aberration.frag"sv, "chromatic_aberration_fragement_shader"sv)}, //
           _bloom_downsample_program{create_program(resource_loader, "bloom_downsample_program"sv, "shaders/bloom_downsample.vert"sv, "bloom_downsample_vertex_shader"sv, "shaders/bloom_downsample.frag"sv, "bloom_downsample_fragement_shader"sv)},                         //
           _bloom_upsample_program{create_program(resource_loader, "bloom_upsample_program"sv, "shaders/bloom_upsample.vert"sv, "bloom_upsample_vertex_shader"sv, "shaders/bloom_upsample.frag"sv, "bloom_upsample_fragement_shader"sv)},                                     //
           _bloom_mix_program{create_program(resource_loader, "bloom_mix_program"sv, "shaders/bloom_mix.vert"sv, "bloom_mix_vertex_shader"sv, "shaders/bloom_mix.frag"sv, "bloom_mix_fragement_shader"sv)},                                                                   //
@@ -193,7 +193,7 @@ namespace ufps
           _fb_sampler{FilterType::LINEAR, FilterType::LINEAR, WrapMode::CLAMP_TO_EDGE, WrapMode::CLAMP_TO_EDGE, "fb_sampler"},                                                                                                                                               //
           _gbuffer_rt{create_render_target(7u, window.width(), window.height(), _fb_sampler, "gbuffer")},                                                                                                                                                                    //
           _light_pass_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "light_pass")},                                                                                                                                                              //
-          _forward_transparancy_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "forward_transparancy")},                                                                                                                                          //
+          _forward_transparency_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "forward_transparency")},                                                                                                                                          //
           _tone_map_rt{create_render_target(1u, window.width(), window.height(), _fb_sampler, "tone_map")},
           _ssao_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, "ssao", TextureFormat::RG16F)},
           _ssao_blur_rt{create_render_target(1u, window.width() / 2u, window.height() / 2u, _fb_sampler, "ssao", TextureFormat::RG16F)},
@@ -320,7 +320,7 @@ namespace ufps
         execute_gun_lighting_pass(scene);
         ::glEnable(GL_BLEND);
 
-        execute_forward_transparancy_pass(scene);
+        execute_forward_transparency_pass(scene);
 
         if (_enable_post_processing)
         {
@@ -590,37 +590,37 @@ namespace ufps
         ::glDepthRange(0.1f, 1.0f);
     }
 
-    auto Renderer::execute_forward_transparancy_pass(Scene &scene) -> void
+    auto Renderer::execute_forward_transparency_pass(Scene &scene) -> void
     {
-        _forward_transparancy_rt.fb.bind();
+        _forward_transparency_rt.fb.bind();
 
         ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         ::glBlitNamedFramebuffer(
             _gbuffer_rt.fb.native_handle(),
-            _forward_transparancy_rt.fb.native_handle(),
+            _forward_transparency_rt.fb.native_handle(),
             0u,
             0u,
             _gbuffer_rt.fb.width(),
             _gbuffer_rt.fb.height(),
             0u,
             0u,
-            _forward_transparancy_rt.fb.width(),
-            _forward_transparancy_rt.fb.height(),
+            _forward_transparency_rt.fb.width(),
+            _forward_transparency_rt.fb.height(),
             GL_DEPTH_BUFFER_BIT,
             GL_NEAREST);
 
         ::glBlitNamedFramebuffer(
             _light_pass_rt.fb.native_handle(),
-            _forward_transparancy_rt.fb.native_handle(),
+            _forward_transparency_rt.fb.native_handle(),
             0u,
             0u,
             _light_pass_rt.fb.width(),
             _light_pass_rt.fb.height(),
             0u,
             0u,
-            _forward_transparancy_rt.fb.width(),
-            _forward_transparancy_rt.fb.height(),
+            _forward_transparency_rt.fb.width(),
+            _forward_transparency_rt.fb.height(),
             GL_COLOR_BUFFER_BIT,
             GL_NEAREST);
 
@@ -628,7 +628,7 @@ namespace ufps
         ::glEnable(GL_BLEND);
         ::glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        [[maybe_unused]] const auto auto_bind = AutoBind(_forward_transparancy_program);
+        [[maybe_unused]] const auto auto_bind = AutoBind(_forward_transparency_program);
 
         const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
@@ -636,9 +636,9 @@ namespace ufps
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _light_buffer.native_handle(), _light_buffer.frame_offset_bytes(), _light_buffer.size());
         ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_handle);
 
-        const auto command_count = _forward_transparancy_command_buffer.build(scene, EntityFilterMode::TRANSPARENT);
+        const auto command_count = _forward_transparency_command_buffer.build(scene, EntityFilterMode::TRANSPARENT);
 
-        ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _forward_transparancy_command_buffer.native_handle());
+        ::glBindBuffer(GL_DRAW_INDIRECT_BUFFER, _forward_transparency_command_buffer.native_handle());
 
         auto object_data = std::vector<ObjectData>{};
 
@@ -688,7 +688,7 @@ namespace ufps
         ::glMultiDrawElementsIndirect(
             GL_TRIANGLES,
             GL_UNSIGNED_INT,
-            reinterpret_cast<const void *>(_forward_transparancy_command_buffer.offset_bytes()),
+            reinterpret_cast<const void *>(_forward_transparency_command_buffer.offset_bytes()),
             command_count,
             0);
 
@@ -698,9 +698,9 @@ namespace ufps
 
     auto Renderer::execute_bloom_pass([[maybe_unused]] Scene &scene) -> void
     {
-        auto src_width = _forward_transparancy_rt.fb.width();
-        auto src_height = _forward_transparancy_rt.fb.height();
-        auto src_handle = _forward_transparancy_rt.color_texture_bindless_handle_0;
+        auto src_width = _forward_transparency_rt.fb.width();
+        auto src_height = _forward_transparency_rt.fb.height();
+        auto src_handle = _forward_transparency_rt.color_texture_bindless_handle_0;
 
         {
             [[maybe_unused]] const auto auto_bind = AutoBind{_bloom_downsample_program};
@@ -777,7 +777,7 @@ namespace ufps
 
             _bloom_mix_program.set_uniforms(
                 mip.color_texture_bindless_handle_0,
-                _forward_transparancy_rt.color_texture_bindless_handle_0,
+                _forward_transparency_rt.color_texture_bindless_handle_0,
                 scene.bloom_options().mix_amount,
                 scene.bloom_options().filter_radius);
 

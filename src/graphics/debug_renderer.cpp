@@ -744,7 +744,7 @@ namespace ufps
             ::ImGui::SameLine();
 
             ::ImGui::Image(
-                tm.texture(_forward_transparancy_rt.color_texture_bindless_handle_0)->native_handle(),
+                tm.texture(_forward_transparency_rt.color_texture_bindless_handle_0)->native_handle(),
                 ::ImVec2(width * aspect_ratio, width),
                 ::ImVec2(0.f, 1.f),
                 ::ImVec2(1.f, 0.f));

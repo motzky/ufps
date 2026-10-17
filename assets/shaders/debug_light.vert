@@ -18,6 +18,7 @@ layout(binding = 1, std430) readonly buffer camera
     mat4 view;
     mat4 projection;
     float camera_position[3];
+    float pad;
 };
 
 vec3 get_position(uint index)

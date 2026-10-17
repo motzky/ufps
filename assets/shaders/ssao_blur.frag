@@ -19,9 +19,9 @@ void main()
     float result = 0.0;
     float total_weight = 0.0;
 
-    for(int x = -2; x < 2; ++x)
+    for(int x = -2; x <= 2; ++x)
     {
-        for(int y = -2; y < 2; ++y)
+        for(int y = -2; y <= 2; ++y)
         {
             vec2 offset = vec2(float(x), float(y)) * texel_size;
 

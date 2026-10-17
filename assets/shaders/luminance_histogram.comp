@@ -19,7 +19,7 @@ shared uint shared_histogram[NUM_BINS];
 uint color_to_bin(vec3 color, float min_log_lum, float invert_log_lum_range)
 {
     // use approximation of eye sensitivity
-    float lum = dot(color, vec3(0.2125, 0.7154, 0.0721));
+    float lum = dot(color, vec3(0.2126, 0.7152, 0.0722));
 
     if(lum < 0.005)
     {
