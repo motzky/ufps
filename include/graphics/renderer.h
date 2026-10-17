@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "core/camera_manager.h"
+#include "core/clock.h"
 #include "core/scene.h"
 #include "graphics/command_buffer.h"
 #include "graphics/debug_layer.h"
@@ -38,7 +39,7 @@ namespace ufps
         Renderer(const Window &window, ResourceLoader &resource_loader);
         virtual ~Renderer() = default;
 
-        auto render(Scene &scene) -> void;
+        auto render(Scene &scene, Duration delta) -> void;
 
     protected:
         static auto create_program(
@@ -112,7 +113,7 @@ namespace ufps
         auto execute_bloom_pass(Scene &scene) -> void;
         auto execute_forward_transparency_pass(Scene &scene) -> void;
         auto execute_luminance_histogram_pass(Scene &scene) -> void;
-        auto execute_luminance_average_pass(Scene &scene) -> void;
+        auto execute_luminance_average_pass(Scene &scene, Duration delta) -> void;
         auto execute_ssao_pass(Scene &scene) -> void;
         auto execute_tone_mapping_pass(Scene &scene) -> void;
         auto execute_chromatic_aberration_pass(Scene &scene) -> void;

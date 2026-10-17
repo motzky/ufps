@@ -1,5 +1,6 @@
 #include "graphics/renderer.h"
 
+#include <chrono>
 #include <cstdint>
 #include <optional>
 #include <random>
@@ -9,6 +10,7 @@
 
 #include "core/camera.h"
 #include "core/camera_manager.h"
+#include "core/clock.h"
 #include "core/light_manager.h"
 #include "core/render_entity_manager.h"
 #include "core/scene.h"
@@ -289,7 +291,7 @@ namespace ufps
         return ufps::Program{comp_shader, program_name};
     }
 
-    auto Renderer::render(Scene &scene) -> void
+    auto Renderer::render(Scene &scene, Duration delta) -> void
     {
         const auto handle = service<CameraHandle>();
         const auto camera = service<CameraManager>()[handle];
@@ -305,7 +307,7 @@ namespace ufps
         {
             execute_luminance_histogram_pass(scene);
 
-            execute_luminance_average_pass(scene);
+            execute_luminance_average_pass(scene, delta);
 
             execute_ssao_pass(scene);
             _final_fb = &_chromatic_aberration_rt.fb;
@@ -811,9 +813,9 @@ namespace ufps
         ::glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT | GL_BUFFER_UPDATE_BARRIER_BIT);
     }
 
-    auto Renderer::execute_luminance_average_pass(Scene &scene) -> void
+    auto Renderer::execute_luminance_average_pass(Scene &scene, Duration delta) -> void
     {
-        static auto delta_time = 1.f / 60.f;
+        const auto delta_time = static_cast<float>(delta.count() / 1e+6);
 
         [[maybe_unused]] const auto auto_bind = AutoBind{_average_luminance_program};
 

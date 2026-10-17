@@ -624,7 +624,7 @@ auto start(int argc, char **argv) -> int
         awaitable.pump();
         pool.drain();
 
-        renderer.render(scene);
+        renderer.render(scene, delta);
 
         window.swap();
 
