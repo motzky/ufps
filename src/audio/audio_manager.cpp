@@ -130,7 +130,7 @@ namespace ufps
         }
     }
 
-    auto AudioManager::play(std::string_view track_name) -> void
+    auto AudioManager::play(std::string_view track_name, PlayMode mode) -> void
     {
         const auto track = _tracks.find(track_name);
         if (track == std::ranges::cend(_tracks))
@@ -154,7 +154,7 @@ namespace ufps
             .PlayLength = 0,
             .LoopBegin = 0,
             .LoopLength = 0,
-            .LoopCount = 0,
+            .LoopCount = mode == PlayMode::LOOP ? FAUDIO_LOOP_INFINITE : 0u,
             .pContext = nullptr,
         };
 

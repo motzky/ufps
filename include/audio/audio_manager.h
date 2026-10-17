@@ -18,12 +18,18 @@
 
 namespace ufps
 {
+    enum class PlayMode
+    {
+        SINGLE,
+        LOOP
+    };
+
     class AudioManager
     {
     public:
         AudioManager(ResourceLoader &resource_loader);
 
-        auto play(std::string_view track_name) -> void;
+        auto play(std::string_view track_name, PlayMode mode = PlayMode::SINGLE) -> void;
 
     private:
         static constexpr auto destroy_faudio = [](auto *obj)

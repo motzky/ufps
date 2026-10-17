@@ -527,7 +527,7 @@ auto start(int argc, char **argv) -> int
 
     ufps::Actor *current_actor = std::addressof(player_actor);
 
-    am.play("bgm.wav");
+    am.play("bgm.wav", ufps::PlayMode::LOOP);
 
     while (running)
     {
