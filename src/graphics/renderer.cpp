@@ -833,7 +833,7 @@ namespace ufps
     {
         if (!scene.ssao_options().enabled)
         {
-            ::glClearColor(1.f, 0.f, 0.f, 1.f);
+            ::glClearColor(1.f, 1.f, 1.f, 1.f);
             _ssao_blur_rt.fb.bind();
             ::glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             ::glClearColor(0.f, 0.f, 0.f, 1.f);
