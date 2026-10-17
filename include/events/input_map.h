@@ -69,6 +69,12 @@ namespace ufps
             return _map[index];
         }
 
+        template <Key... Keys>
+        constexpr auto is_any_set() const -> bool
+        {
+            return (is_set(Keys) || ...);
+        }
+
         constexpr auto operator[](Key key) const -> bool
         {
             return is_set(key);
