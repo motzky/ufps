@@ -9,6 +9,7 @@
 #include "log.h"
 #include "resources/resource_loader.h"
 #include "utils/data_buffer.h"
+#include "utils/ensure.h"
 #include "utils/string_unordered_map.h"
 
 namespace
@@ -41,8 +42,36 @@ namespace
 namespace ufps
 {
     AudioManager::AudioManager(ResourceLoader &resource_loader)
-        : _tracks{}
+        : _tracks{},
+          _xaudio{},
+          _mastering_voice{},
+          _voices{}
     {
+        ensure(::FAudioCreate(std::out_ptr(_xaudio), 0, FAUDIO_DEFAULT_PROCESSOR) == FAUDIO_OK, "failed to create FAudio");
+
+        ensure(FAudio_CreateMasteringVoice(_xaudio.get(), std::out_ptr(_mastering_voice),
+                                           FAUDIO_DEFAULT_CHANNELS,
+                                           FAUDIO_DEFAULT_SAMPLERATE,
+                                           0u,
+                                           0u,
+                                           nullptr) == FAUDIO_OK,
+               "failed to create mastering voice");
+
+        const auto format = ::FAudioWaveFormatEx{
+            .wFormatTag = FAUDIO_FORMAT_PCM,
+            .nChannels = 1,
+            .nSamplesPerSec = 48000,
+            .nAvgBytesPerSec = 48000 * 2,
+            .nBlockAlign = 2,
+            .wBitsPerSample = 16,
+            .cbSize = 0,
+        };
+
+        for (auto &voice : _voices)
+        {
+            ensure(FAudio_CreateSourceVoice(_xaudio.get(), std::out_ptr(voice), &format, 0u, 1.0f, nullptr, nullptr, nullptr) == FAUDIO_OK, "failed to create voice");
+        }
+
         for (const auto &resource : resource_loader.resources("sounds") |
                                         std::views::filter([](const auto &e)
                                                            { return e.ends_with(".wav"); }))
