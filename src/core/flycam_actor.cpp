@@ -58,7 +58,7 @@ namespace ufps
     {
     }
 
-    auto FlyCamActor::update() -> void
+    auto FlyCamActor::update([[maybe_unused]] Duration delta) -> void
     {
         const auto &[em, cm] = services<EntityManager, CameraManager>();
 

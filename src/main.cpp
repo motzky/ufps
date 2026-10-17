@@ -23,6 +23,7 @@
 #include "config.h"
 #include "core/actor.h"
 #include "core/camera_manager.h"
+#include "core/clock.h"
 #include "core/entity.h"
 #include "core/entity_manager.h"
 #include "core/flycam_actor.h"
@@ -529,6 +530,9 @@ auto start(int argc, char **argv) -> int
 
     am.play("bgm.wav", ufps::PlayMode::LOOP);
 
+    auto delta = ufps::Duration{};
+    auto start_time = ufps::Clock::now();
+
     while (running)
     {
         auto &physics = ufps::service<ufps::PhysicsSystem>();
@@ -615,7 +619,7 @@ auto start(int argc, char **argv) -> int
             event = window.pump_event();
         }
 
-        current_actor->update();
+        current_actor->update(delta);
 
         physics.update();
         awaitable.pump();
@@ -624,6 +628,9 @@ auto start(int argc, char **argv) -> int
         renderer.render(scene);
 
         window.swap();
+
+        delta = std::chrono::duration_cast<ufps::Duration>(ufps::Clock::now() - start_time);
+        start_time = ufps::Clock::now();
     }
 
     ufps::service<ufps::AwaitableManager>().pump();

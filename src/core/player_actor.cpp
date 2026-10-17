@@ -11,6 +11,8 @@
 #include "math/ray.h"
 #include "math/vector3.h"
 
+using namespace std::literals;
+
 namespace
 {
     auto walk_direction(const ufps::InputMap &input_map, const ufps::Camera &camera) -> ufps::Vector3
@@ -67,14 +69,25 @@ namespace ufps
         : Actor{entity},
           _input_map{input_map},
           _character_controller{character_controller},
-          _scene{scene}
+          _scene{scene},
+          _walk_sound_timer{}
     {
         service<CameraHandle>() = _camera;
     }
 
-    auto PlayerActor::update() -> void
+    auto PlayerActor::update(Duration delta) -> void
     {
         const auto &[em, cm, dl, am] = services<EntityManager, CameraManager, DebugLayer, AudioManager>();
+
+        if (_input_map.is_any_set<Key::W, Key::S, Key::A, Key::D>())
+        {
+            _walk_sound_timer += delta;
+            if (_walk_sound_timer >= 600ms)
+            {
+                am.play("walk.wav");
+                _walk_sound_timer = {};
+            }
+        }
 
         const auto camera = cm[_camera];
         contract_assert(camera);
