@@ -20,7 +20,7 @@ layout(binding = 1, std430) readonly buffer camera
     float camera_position[3];
 };
 
-layout(binding = 2, std430) readonly buffer lights
+layout(binding = 3, std430) readonly buffer lights
 {
     float ambient_color[3];
     uint num_point_lights;

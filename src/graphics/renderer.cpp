@@ -632,7 +632,7 @@ namespace ufps
         const auto [vertex_buffer_handle, index_buffer_handle] = service<MeshManager>().native_handle();
         ::glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertex_buffer_handle);
         ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, _camera_buffer.native_handle(), _camera_buffer.frame_offset_bytes(), sizeof(CameraData));
-        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, _light_buffer.native_handle(), _light_buffer.frame_offset_bytes(), _light_buffer.size());
+        ::glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 3, _light_buffer.native_handle(), _light_buffer.frame_offset_bytes(), _light_buffer.size());
         ::glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer_handle);
 
         const auto command_count = _forward_transparency_command_buffer.build(scene, EntityFilterMode::TRANSPARENT);
