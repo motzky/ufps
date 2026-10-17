@@ -21,6 +21,8 @@ namespace ufps
     public:
         AudioManager(ResourceLoader &resource_loader);
 
+        auto play(std::string_view track_name) -> void;
+
     private:
         static constexpr auto destroy_faudio = [](auto *obj)
         { ::FAudio_Release(obj); };

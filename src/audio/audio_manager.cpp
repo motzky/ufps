@@ -126,4 +126,43 @@ namespace ufps
         }
     }
 
+    auto AudioManager::play(std::string_view track_name) -> void
+    {
+        const auto track = _tracks.find(track_name);
+        if (track == std::ranges::cend(_tracks))
+        {
+            log::warn("tried to play missing track: {}", track_name);
+            return;
+        }
+
+        for (const auto &voice : _voices)
+        {
+            auto state = ::FAudioVoiceState{};
+            ::FAudioSourceVoice_GetState(voice.get(), &state, 0u);
+
+            if (state.pCurrentBufferContext != nullptr)
+            {
+                continue;
+            }
+
+            const auto buffer = ::FAudioBuffer{
+                .Flags = FAUDIO_END_OF_STREAM,
+                .AudioBytes = static_cast<std::uint32_t>(std::ranges::size(track->second.data)),
+                .pAudioData = reinterpret_cast<const std::uint8_t *>(std::ranges::data(track->second.data)),
+                .PlayBegin = 0,
+                .PlayLength = 0,
+                .LoopBegin = 0,
+                .LoopLength = 0,
+                .LoopCount = 0,
+                .pContext = nullptr};
+
+            ensure(FAudioSourceVoice_SubmitSourceBuffer(voice.get(), &buffer, nullptr) == FAUDIO_OK, "failed to set source");
+            ensure(FAudioSourceVoice_Start(voice.get(), 0u, FAUDIO_COMMIT_NOW) == FAUDIO_OK, "failed to start sound");
+
+            return;
+        }
+
+        log::warn("no free voice");
+    }
+
 }
