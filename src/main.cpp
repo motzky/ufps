@@ -541,7 +541,6 @@ auto start(int argc, char **argv) -> int
 
         input_map.delta_x = 0.f;
         input_map.delta_y = 0.f;
-        input_map.mouse_event = std::nullopt;
 
         auto event = window.pump_event();
         while (event && running)
