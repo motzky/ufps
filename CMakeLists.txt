@@ -97,7 +97,13 @@ find_package(glfw3 REQUIRED)
 find_package(Backtrace REQUIRED)
 endif()
 
-find_package(OpenAL REQUIRED)
+FetchContent_Declare(
+    faudio
+    GIT_REPOSITORY https://github.com/FNA-XNA/FAudio.git
+    GIT_TAG 26.10    
+)
+
+FetchContent_MakeAvailable(faudio)
 
 # find_package(Freetype)
 # if(${Freetype_FOUND})

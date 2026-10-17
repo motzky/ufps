@@ -56,7 +56,7 @@ configure_file(${PROJECT_SOURCE_DIR}/include/config.h.in ${PROJECT_SOURCE_DIR}/i
 if(WIN32)
     target_sources(
         ufpslib
-        PRIVATE win32/window.cpp win32/debug_renderer.cpp win32/file_resource_loader.cpp win32/audio_backend.cpp
+        PRIVATE win32/window.cpp win32/debug_renderer.cpp win32/file_resource_loader.cpp
     )
     # target_sources(
     #     imguilib
@@ -65,7 +65,7 @@ if(WIN32)
 elseif(UNIX)
     target_sources(
         ufpslib
-        PRIVATE posix/window.cpp posix/debug_renderer.cpp posix/file.cpp posix/file_resource_loader.cpp posix/audio_backend.cpp
+        PRIVATE posix/window.cpp posix/debug_renderer.cpp posix/file.cpp posix/file_resource_loader.cpp
     )
     # target_sources(
     #     imguilib
@@ -147,7 +147,7 @@ endif()
 if(WIN32)
 target_link_libraries(
     ufpslib
-    PUBLIC imguilib Jolt OpenAL::OpenAL
+    PUBLIC imguilib Jolt
     # PUBLIC imguilib Jolt opengl32 lua
     PRIVATE dwmapi assimp yaml-cpp libzstd_static
     # PRIVATE  ${FREETYPE_LIBRARY_NAME}
@@ -160,7 +160,7 @@ target_link_libraries(
 elseif(UNIX)
 target_link_libraries(
     ufpslib
-    PUBLIC imguilib Jolt OpenAL::OpenAL
+    PUBLIC imguilib Jolt
     # PUBLIC imguilib Jolt lua
     PRIVATE GL glfw Backtrace::Backtrace stdc++exp assimp yaml-cpp libzstd_static
     # PRIVATE GL glfw Backtrace::Backtrace stdc++exp libzstd_static ${FREETYPE_LIBRARY_NAME}
