@@ -312,7 +312,7 @@ namespace ufps
         }
         else
         {
-            _final_fb = &_light_pass_rt.fb;
+            _final_fb = &_forward_transparency_rt.fb;
         }
 
         ::glDisable(GL_BLEND);
