@@ -476,7 +476,12 @@ auto start(int argc, char **argv) -> int
 
     load_render_entity_manager(*resource_loader);
 
-    const auto &[em, rem, lm, cm] = ufps::services<ufps::EntityManager, ufps::RenderEntityManager, ufps::LightManager, ufps::CameraManager>();
+    const auto &[em, rem, lm, cm, am] = ufps::services<
+        ufps::EntityManager,
+        ufps::RenderEntityManager,
+        ufps::LightManager,
+        ufps::CameraManager,
+        ufps::AudioManager>();
 
     auto renderer = ufps::DebugRenderer{window, *resource_loader};
     auto show_debug_ui = false;
@@ -521,6 +526,8 @@ auto start(int argc, char **argv) -> int
     auto flycam_actor = ufps::FlyCamActor{*flycam_entity_handle, input_map};
 
     ufps::Actor *current_actor = std::addressof(player_actor);
+
+    am.play("bgm.wav");
 
     while (running)
     {

@@ -1,5 +1,6 @@
 #include "core/player_actor.h"
 
+#include "audio/audio_manager.h"
 #include "core/actor.h"
 #include "core/camera.h"
 #include "core/scene.h"
@@ -73,7 +74,7 @@ namespace ufps
 
     auto PlayerActor::update() -> void
     {
-        const auto &[em, cm, dl] = services<EntityManager, CameraManager, DebugLayer>();
+        const auto &[em, cm, dl, am] = services<EntityManager, CameraManager, DebugLayer, AudioManager>();
 
         const auto camera = cm[_camera];
         contract_assert(camera);
@@ -105,6 +106,8 @@ namespace ufps
         {
             if (handle_click && mouse_event->state() == MouseButtonState::DOWN)
             {
+                am.play("single-laser-shot.wav");
+
                 const auto bullet_ray = Ray{camera->transform().position, camera->direction() * 100.f};
 
                 if (const auto intersection = _scene.intersect_ray(bullet_ray); intersection)
